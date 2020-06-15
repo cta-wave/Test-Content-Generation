@@ -170,7 +170,7 @@ class Representation:
             elif name == "fps":
                 self.m_frame_rate = value
             elif name == "sar":
-                sar_x_y = value.split(':')
+                sar_x_y = value.split('/')
                 self.m_aspect_ratio_x = sar_x_y[0]
                 self.m_aspect_ratio_y = sar_x_y[1]
             elif name == "profile":
@@ -232,7 +232,7 @@ def generate_log(ffmpeg_path, command):
     result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
 
     script = ""
-    with open('encode.py', 'r') as file:
+    with open('encode_dash.py', 'r') as file:
         script = file.read()
 
     filename = "CTATestContentGeneration_Log_" + date + "_" + time
