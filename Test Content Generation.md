@@ -1,9 +1,11 @@
 # Test Content Generation
 
 ## Setup
+The following setup is proposed for generating the content:
+
 * [python3.6](https://www.python.org/downloads/)
 * [xml.dom.minidom](https://docs.python.org/3.6/library/xml.dom.minidom.html)
-* [ffmpeg4.2.2](https://ffmpeg.org/)
+* [ffmpeg4.2.2](https://ffmpeg.org/) (Note: 4.2.2 is used for the generation of the mezzanine content)
 
 ## Code Flow
 CTA Test content generation consists of three steps:
