@@ -1,10 +1,142 @@
-import sys, os, getopt
+import sys, os, glob, getopt
+from pathlib import Path
 from enum import Enum
 import subprocess
 from subprocess import PIPE
 from datetime import datetime
+import struct
+from xml.dom.minidom import parse
+import xml.dom.minidom
 
 
+# Content Model
+# Modify the generated content to comply with CTA Content Model
+class Mode(Enum):
+    FRAGMENTED = 1
+    CHUNKED = 2
+
+class ContentModel:
+    m_filename = ""
+    m_mode = Mode.FRAGMENTED.value
+
+    def __init__(self, filename, mode=None):
+        self.m_filename = filename
+        if mode is not None:
+            self.m_mode = mode
+
+    def process(self):
+        DOMTree = xml.dom.minidom.parse(self.m_filename)
+        mpd = DOMTree.documentElement
+        self.process_mpd(DOMTree, mpd)
+        with open(self.m_filename, 'w') as f:
+            f.write(DOMTree.toxml())
+
+    def process_mpd(self, DOMTree, mpd):
+        # @profiles
+        profiles = mpd.getAttribute('profiles')
+        cta_profile = "urn:cta:wave:test-content-media-profile"
+        fragmented_profile = "urn:mpeg:dash:profile:isoff-live:2011"
+        chunked_profile = "urn:mpeg:dash:profile:isoff-broadcast:2015"
+        if cta_profile not in profiles:
+            profiles += "," + cta_profile
+        if self.m_mode is Mode.FRAGMENTED.value and fragmented_profile not in profiles:
+            profiles += "," + fragmented_profile
+        if self.m_mode is Mode.CHUNKED.value and chunked_profile not in profiles:
+            profiles += "," + chunked_profile
+        mpd.setAttribute('profiles', profiles)
+
+        # ProgramInformation
+        program_informations = mpd.getElementsByTagName("ProgramInformation")
+        self.remove_element(program_informations)
+        program_information = DOMTree.createElement("ProgramInformation")
+        source = DOMTree.createElement("Source")
+        source_txt = DOMTree.createTextNode("CTA WAVE")
+        source.appendChild(source_txt)
+        copyright = DOMTree.createElement("Copyright")
+        copyright_txt = DOMTree.createTextNode("CTA WAVE")
+        copyright.appendChild(copyright_txt)
+        program_information.appendChild(source)
+        program_information.appendChild(copyright)
+
+        # Period
+        period = mpd.getElementsByTagName("Period").item(0)
+        mpd.insertBefore(program_information, period)
+        self.process_period(DOMTree, mpd, period)
+
+    def process_period(self, DOMTree, mpd, period):
+        asset_identifier = DOMTree.createElement("AssetIdentifier")
+        asset_identifier.setAttribute("schemeIdUri", "urn:cta:org:wave-test-mezzanine:unique-id")
+        asset_identifier.setAttribute("value", "0")
+        adaptation_sets = period.getElementsByTagName("AdaptationSet")
+        period.insertBefore(asset_identifier, adaptation_sets.item(0))
+        # Adaptation Set
+        self.process_adaptation_sets(period.getElementsByTagName('AdaptationSet'))
+
+    def process_adaptation_sets(self, adaptation_sets):
+        adaptation_set_index = 0
+        representation_index = 0
+        for adaptation_set in adaptation_sets:
+            id = adaptation_set.getAttribute('id')
+
+            content_type = adaptation_set.getAttribute('contentType')
+            if  content_type == "":
+                representations = adaptation_set.getElementsByTagName('Representation')
+                mime_type = representations.item(0).getAttribute('mimeType') if representations.item(0).getAttribute('mimeType') != '' \
+                    else adaptation_set.getAttribte('mimeType')
+
+                if 'video' in mime_type:
+                    content_type = 'video'
+                    adaptation_set.setAttribute('contentType', content_type)
+                elif 'audio' in mime_type:
+                    content_type = 'audio'
+                    adaptation_set.setAttribute('contentType', content_type)
+
+            if self.m_mode == Mode.FRAGMENTED.value:
+                adaptation_set.setAttribute('segmentProfiles', 'cmfs, cmff')
+            elif self.m_mode == Mode.CHUNKED.value:
+                adaptation_set.setAttribute('segmentProfiles', 'cmfs, cmff, cmfl')
+
+            representations = adaptation_set.getElementsByTagName('Representation')
+            for representation in representations:
+                # Representation
+                self.process_representation(representation, adaptation_set_index, representation_index, id, content_type)
+                representation_index += 1
+
+            adaptation_set_index += 1
+
+    def process_representation(self, representation, adaptation_set_index, representation_index, id, content_type):
+        rep_id = content_type + id + "/" + str(representation_index)
+
+        rep_path = "./" + rep_id
+        Path(rep_path).mkdir(parents=True, exist_ok=True)
+
+        init_name = "init-stream" + str(representation_index)
+        os.rename(init_name + ".m4s", rep_id + "/0.m4s")
+
+        media_name = "chunk-stream" + str(representation_index)
+        files = subprocess.run("ls -v | grep '" + media_name + "'", shell=True, stdout=PIPE, stderr=PIPE).stdout.decode('ascii').split("\n")
+        number = 1
+        for file in files:
+            if file != '':
+                os.rename(file, rep_id + "/" + str(number) + ".m4s")
+                number += 1
+        representation.setAttribute('id', rep_id)
+
+        mime_type = representation.getAttribute('mimeType')
+        representation.setAttribute('mimeType', mime_type + ", profiles='cmfc'")
+
+        segment_template = representation.getElementsByTagName('SegmentTemplate').item(0)
+        segment_template.setAttribute('initialization', '$RepresentationID$/0.m4s')
+        segment_template.setAttribute('media', '$RepresentationID$/$Number$.m4s')
+
+
+    def remove_element(self, nodes):
+        for node in nodes:
+            parent = node.parentNode
+            parent.removeChild(node)
+
+
+# Supported codecs
 class VideoCodecOptions(Enum):
     AVC = "h264"
     HEVC = "h265"
@@ -14,6 +146,8 @@ class AudioCodecOptions(Enum):
     AAC = "aac"
 
 
+# CMAF Profiles
+# ISO/IEC 23000-19 Annex A.1
 class AVCSD:
     m_profile = "high"
     m_level = "31"
@@ -40,10 +174,11 @@ class AVCHDHF:
     m_resolution_h = "1080"
     m_frame_rate = "60"
 
-
+# DASHing
+# ffmpeg command dashing portion
 class DASH:
     m_segment_duration = "2"
-    m_segment_signaling = "template"
+    m_segment_signaling = "timeline"
 
     def __init__(self, dash_config=None):
         if dash_config is not None:
@@ -88,6 +223,25 @@ class DASH:
         return dash_command
 
 
+# Encoding
+# ffmpeg command encoding portion for each track. Encoding is done based on the representation configuration given in
+# the command line. The syntax for configuration for each Representation is as follows:
+#### rep_config = <config_parameter_1>:<config_parameter_value_1>,<config_parameter_2>:<config_parameter_value_2>,…
+# <config_parameter> can be:
+#### id: Representation ID
+#### type: Media type. Can be “v” or “video” for video media and “a” or “audio” for audio media type
+#### input: Input file name. The media type mentioned in “type” will be extracted from this input file for the Representation
+#### codec: codec value for the media. Can be “h264”, “h265” or “aac”
+#### bitrate: encoding bitrate for the media in kbits/s
+#### cmaf: cmaf profile that is desired. Supported ones are avcsd, avchd, avchdhf (taken from 23000-19 A.1)
+#### res: resolution width and resolution height provided as “wxh”
+#### fps: framerate
+#### sar: aspect ratio provided as “x/y”
+#### profile: codec profile (such as high, baseline, main, etc.)
+#### level: codec level (such as 32, 40, 42, etc.)
+#### color: color primary (1 for bt709, etc.)
+# The first six configuration parameters are mandatory to be provided. The rest can be filled according to the specified
+# cmaf profile. If the rest is also given, these will override the default values for the specified CMAF profile
 class Representation:
     m_id = None
     m_input = None
@@ -223,7 +377,11 @@ class Representation:
 
         return [input_file_command, command]
 
-
+# Collect logs regarding the generated content. The collected logs are as follows:
+#### Content generation date and time,
+#### ffmpeg version,
+#### ffmpeg command that is run,
+#### this python script (encode_dash.py)
 def generate_log(ffmpeg_path, command):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     date = now.split(" ")[0]
@@ -232,7 +390,7 @@ def generate_log(ffmpeg_path, command):
     result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
 
     script = ""
-    with open('encode.py', 'r') as file:
+    with open('encode_dash.py', 'r') as file:
         script = file.read()
 
     filename = "CTATestContentGeneration_Log_" + date + "_" + time
@@ -257,6 +415,11 @@ def generate_log(ffmpeg_path, command):
     f.close()
 
 
+# Parse input arguments
+# Output MPD: --out="<desired_mpd_name>"
+# FFMpeg binary path: -–path="path/to/ffmpeg"
+# Representation configuration: --reps="<rep1_config rep2_config … repN_config>"
+# DASHing configuration: --dash="<dash_config>"
 def parse_args(args):
     ffmpeg_path = None
     output_file = None
@@ -278,6 +441,7 @@ def parse_args(args):
     return [ffmpeg_path, output_file, representations, dashing]
 
 
+# Check if the input arguments are correctly given
 def assert_configuration(configuration):
     ffmpeg_path = configuration[0]
     output_file = configuration[1]
@@ -303,7 +467,7 @@ def assert_configuration(configuration):
 
 
 if __name__ == "__main__":
-    # Read input and parse
+    # Read input, parse and assert
     try:
         arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p', ['out=', 'reps=', 'dash=', 'path='])
     except getopt.GetoptError:
@@ -336,7 +500,7 @@ if __name__ == "__main__":
 
     input_command = ""
     encode_command = ""
-    for i in range(0,len(options)):
+    for i in range(0, len(options)):
         option_i = options[i]
         input_command += option_i[0] + " "
         encode_command += option_i[1] + " "
@@ -345,6 +509,7 @@ if __name__ == "__main__":
     dash_options = DASH(dash)
     dash_package_command = dash_options.dash_package_command(index_v, index_a)
 
+    # Run the command
     command = ffmpeg_path + " " + \
               input_command + " " + \
               encode_command + " " + \
@@ -352,4 +517,11 @@ if __name__ == "__main__":
               output_file
 
     subprocess.run(command, shell=True)
+
+    # Content Model
+    output_file = "output.mpd"
+    content_model = ContentModel(output_file)
+    content_model.process()
+
+    # Save the log
     generate_log(ffmpeg_path, command)
