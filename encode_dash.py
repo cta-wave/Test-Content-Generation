@@ -45,6 +45,10 @@ class ContentModel:
             profiles += "," + chunked_profile
         mpd.setAttribute('profiles', profiles)
 
+        # Remove ServiceDescrition element if present (somehow ffmpeg 4.3 adds this to the mpd by default, removed for now)
+        service_descriptions = mpd.getElementsByTagName("ServiceDescription")
+        self.remove_element(service_descriptions)
+
         # ProgramInformation
         program_informations = mpd.getElementsByTagName("ProgramInformation")
         self.remove_element(program_informations)
@@ -519,7 +523,6 @@ if __name__ == "__main__":
     subprocess.run(command, shell=True)
 
     # Content Model
-    output_file = "output.mpd"
     content_model = ContentModel(output_file)
     content_model.process()
 
