@@ -118,7 +118,7 @@ class ContentModel:
         os.rename(init_name + ".m4s", rep_id + "/0.m4s")
 
         media_name = "chunk-stream" + str(representation_index)
-        files = subprocess.run("ls -v | grep '" + media_name + "'", shell=True, stdout=PIPE, stderr=PIPE).stdout.decode('ascii').split("\n")
+        files = glob.glob(media_name + "*")
         number = 1
         for file in files:
             if file != '':
@@ -150,6 +150,14 @@ class AudioCodecOptions(Enum):
     AAC = "aac"
 
 
+# Supported visual sample entries
+class VideoSampleEntry(Enum):
+    AVC1 = "avc1"
+    AVC3 = "avc3"
+    HVC1 = "hvc1"
+    HEV1 = "hev1"
+
+
 # CMAF Profiles
 # ISO/IEC 23000-19 Annex A.1
 class AVCSD:
@@ -178,11 +186,14 @@ class AVCHDHF:
     m_resolution_h = "1080"
     m_frame_rate = "60"
 
+
 # DASHing
 # ffmpeg command dashing portion
 class DASH:
     m_segment_duration = "2"
     m_segment_signaling = "timeline"
+    m_fragment_type = "duration"
+    m_fragment_duration = "2"
 
     def __init__(self, dash_config=None):
         if dash_config is not None:
@@ -192,15 +203,23 @@ class DASH:
                 name = config_opt[0]
                 value = config_opt[1]
 
-                if name == "d":
+                if name == "sd":
                     self.m_segment_duration = value
-                elif name == "s":
+                elif name == "ss":
                     if value != "template" and value != "timeline":
-                        print("Segment Signaling can either be Segment Template denoted by \"template or "
+                        print("Segment Signaling can either be Segment Template denoted by \"template\" or "
                               "SegmentTemplate with Segment Timeline denoted by \"timeline\".")
                         exit(1)
                     else:
                         self.m_segment_signaling = value
+                elif name == "ft":
+                    if value != "none" and value != "duration" and value != "pframes" and value != "every_frame":
+                        print("Fragment Type can be \"none\", \"duration\", \"pframes\" or \"every_frame\".")
+                        exit(1)
+                    else:
+                        self.m_fragment_type = value
+                elif name == "fd":
+                    self.m_fragment_duration = value
 
     def dash_package_command(self, index_v, index_a):
         dash_command = "-adaptation_sets "
@@ -217,10 +236,13 @@ class DASH:
         dash_command += "-format_options \"movflags=cmaf\" " + \
                   "-seg_duration " + self.m_segment_duration + " " + \
                   "-use_template 1 "
-        if self.m_segment_signaling is "timeline":
+        if self.m_segment_signaling == "timeline":
             dash_command += "-use_timeline 1 "
         else:
             dash_command += "-use_timeline 0 "
+
+        if self.m_fragment_type == "duration":
+            dash_command += "-frag_type duration -frag_duration " + self.m_fragment_duration + " "
 
         dash_command += "-f dash"
 
@@ -251,6 +273,7 @@ class Representation:
     m_input = None
     m_media_type = None
     m_codec = None
+    m_video_sample_entry = None
     m_cmaf_profile = None
     m_bitrate = None
     m_resolution_w = None
@@ -281,6 +304,13 @@ class Representation:
                           "AAC denoted by \"aac\".")
                     sys.exit(1)
                 self.m_codec = value
+            elif name == "vse":
+                if value != VideoSampleEntry.AVC1.value and value != VideoSampleEntry.AVC3.value and \
+                   value != VideoSampleEntry.HEV1.value and value != VideoSampleEntry.HVC1.value:
+                    print("Supported video sample entries for AVC are \"avc1\" and \"avc3\" and"
+                          " for HEVC \"hev1\" and \"hvc1\".")
+                    sys.exit(1)
+                self.m_video_sample_entry = value
             elif name == "cmaf":
                 self.m_cmaf_profile = value
                 if value == "avcsd":
@@ -363,6 +393,9 @@ class Representation:
             if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
                 command += "-vf:v:" + index + " " + "\"setsar=" + self.m_aspect_ratio_x + "/" + self.m_aspect_ratio_y + "\" "
 
+            if self.m_video_sample_entry is not None:
+                command += "-tag:v:" + index + " " + self.m_video_sample_entry + " "
+
             if self.m_codec == VideoCodecOptions.AVC.value:
                 command += "-x264-params:v:" + index + " "
             elif self.m_codec == VideoCodecOptions.HEVC.value:
@@ -394,10 +427,10 @@ def generate_log(ffmpeg_path, command):
     result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
 
     script = ""
-    with open('encode_dash.py', 'r') as file:
+    with open('encode_dash.py', mode='r', encoding='utf-8') as file:
         script = file.read()
 
-    filename = "CTATestContentGeneration_Log_" + date + "_" + time
+    filename = "CTATestContentGeneration_Log_" + date + "_" + time.replace(':','-') + ".txt"
     f = open(filename, "w+")
 
     f.write("CTA Test Content Generation Log (Generated at: " + "'{0}' '{1}'".format(date, time) + ")\n\n\n\n")
