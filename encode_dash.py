@@ -151,7 +151,7 @@ class AudioCodecOptions(Enum):
 
 
 # Supported visual sample entries
-class VideoSampleEntry(Enum):
+class VisualSampleEntry(Enum):
     AVC1 = "avc1"
     AVC3 = "avc3"
     HVC1 = "hvc1"
@@ -309,8 +309,8 @@ class Representation:
                     sys.exit(1)
                 self.m_codec = value
             elif name == "vse":
-                if value != VideoSampleEntry.AVC1.value and value != VideoSampleEntry.AVC3.value and \
-                   value != VideoSampleEntry.HEV1.value and value != VideoSampleEntry.HVC1.value:
+                if value != VisualSampleEntry.AVC1.value and value != VisualSampleEntry.AVC3.value and \
+                   value != VisualSampleEntry.HEV1.value and value != VisualSampleEntry.HVC1.value:
                     print("Supported video sample entries for AVC are \"avc1\" and \"avc3\" and"
                           " for HEVC \"hev1\" and \"hvc1\".")
                     sys.exit(1)
