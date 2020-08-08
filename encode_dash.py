@@ -243,6 +243,8 @@ class DASH:
 
         if self.m_fragment_type == "duration":
             dash_command += "-frag_type duration -frag_duration " + self.m_fragment_duration + " "
+        elif self.m_fragment_type == "every_frame":
+            dash_command += "-frag_type every_frame" + " "
 
         dash_command += "-f dash"
 
