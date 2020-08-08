@@ -30,7 +30,7 @@ All the steps are provided in the encode_dash.py script. The process flow is as 
         * __bitrate:__ encoding bitrate for the media in kbits/s
         * __cmaf:__ cmaf profile that is desired. Supported ones are avcsd, avchd, avchdhf (taken from 23000-19 A.1)
         * vse: visual sample entry. Supported video sample entries for AVC are "avc1" and "avc3" and for HEVC "hev1" and "hvc1"
-		* res: resolution width and resolution height provided as “wxh”
+        * res: resolution width and resolution height provided as “wxh”
         * fps: frame rate
         * sar: aspect ratio provided as “x/y”
         * profile: codec profile (such as high, baseline, main, etc.)
@@ -42,8 +42,8 @@ All the steps are provided in the encode_dash.py script. The process flow is as 
     * *<*config_parameter*>* can be:
         * sd: Segment duration
         * ss: Segment signaling. Can be either “template” for SegmentTemplate or “timeline” for SegmentTimeline
-		* ft: Fragment type. Can be either "none", "duration", "pframes" or "every_frame"
-		* fd: Fragment duration
+        * ft: Fragment type. Can be either "none", "duration", "pframes" or "every_frame"
+        * fd: Fragment duration
     * It is defaulted to segment duration of 2 seconds and segment signaling of SegmentTimeline. If parameters are provided, these override the default settings.
 * Content is generated.
     * Using the FFMpeg path, formed encoding and DASHing command portions and the output MPD file name, a single line FFMPEG command is formed and executed.
