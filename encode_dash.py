@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys, os, glob, getopt
 from pathlib import Path
 from enum import Enum
@@ -111,18 +112,18 @@ class ContentModel:
     def process_representation(self, representation, adaptation_set_index, representation_index, id, content_type):
         rep_id = content_type + id + "/" + str(representation_index)
 
-        rep_path = "./" + rep_id
+        rep_path =  os.path.dirname(os.path.abspath(self.m_filename))  + "/" + rep_id
         Path(rep_path).mkdir(parents=True, exist_ok=True)
 
-        init_name = "init-stream" + str(representation_index)
-        os.rename(init_name + ".m4s", rep_id + "/0.m4s")
+        init_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "init-stream" + str(representation_index)
+        os.rename(init_name + ".m4s", rep_path + "/0.m4s")
 
-        media_name = "chunk-stream" + str(representation_index)
+        media_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "chunk-stream" + str(representation_index)
         files = glob.glob(media_name + "*")
         number = 1
         for file in files:
             if file != '':
-                os.rename(file, rep_id + "/" + str(number) + ".m4s")
+                os.rename(file, rep_path + "/" + str(number) + ".m4s")
                 number += 1
         representation.setAttribute('id', rep_id)
 
@@ -466,6 +467,7 @@ def parse_args(args):
     output_file = None
     representations = None
     dashing = None
+    outDir = None
     for opt, arg in args:
         if opt == '-h':
             print('test.py -i <inputfile> -o <outputfile>')
@@ -478,8 +480,10 @@ def parse_args(args):
             representations = arg.split(" ")
         elif opt in ("-d", "--dash"):
             dashing = arg
+        elif opt in ("-od", "--outdir"):
+            outDir = arg
 
-    return [ffmpeg_path, output_file, representations, dashing]
+    return [ffmpeg_path, output_file, representations, dashing, outDir]
 
 
 # Check if the input arguments are correctly given
@@ -488,7 +492,8 @@ def assert_configuration(configuration):
     output_file = configuration[1]
     representations = configuration[2]
     dashing = configuration[3]
-
+    out_dir = configuration[4]
+    print(ffmpeg_path)
     result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
     if "ffmpeg version" not in result.stdout.decode('ascii'):
         print("FFMPEG binary is checked in the \"" + ffmpeg_path + "\" path, but not found.")
@@ -506,11 +511,14 @@ def assert_configuration(configuration):
         print("Warning: DASHing information is not provided, as a default setting, segment duration of 2 seconds and "
               "segment signaling of SegmentTemplate will be used.")
 
+    if out_dir is None:
+        print("Warning: Output directory wasn't specified, it will output everything into cwd")
+
 
 if __name__ == "__main__":
     # Read input, parse and assert
     try:
-        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p', ['out=', 'reps=', 'dash=', 'path='])
+        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od', ['out=', 'reps=', 'dash=', 'path=', 'outdir='])
     except getopt.GetoptError:
         sys.exit(2)
 
@@ -521,6 +529,12 @@ if __name__ == "__main__":
     output_file = configuration[1]
     representations = configuration[2]
     dash = configuration[3]
+    out_dir = configuration[4]
+
+    if out_dir is not None:
+        output_file = out_dir + "/" + output_file
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
+        print("Checking that the output directory exists")
 
     # Prepare the encoding for each Representation
     options = []
@@ -556,7 +570,7 @@ if __name__ == "__main__":
               encode_command + " " + \
               dash_package_command + " " + \
               output_file
-
+    print(command)
     subprocess.run(command, shell=True)
 
     # Content Model
