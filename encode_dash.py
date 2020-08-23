@@ -289,6 +289,8 @@ class Representation:
     m_profile = None
     m_level = None
     m_color_primary = None
+    m_sei = None
+    m_vui_timing = None
 
     def __init__(self, representation_config):
         config = representation_config.split(",")
@@ -372,6 +374,10 @@ class Representation:
                 self.m_level = value
             elif name == "color":
                 self.m_color_primary = value
+            elif name == "sei":
+                self.m_sei = value
+            elif name == "vui_timing":
+                self.m_vui_timing = value
             else:
                 print("Unknown configuration option for representation: " + name + " , it will be ignored.")
 
@@ -411,6 +417,12 @@ class Representation:
                        "min-keyint=" + self.m_frame_rate + ":" \
                        "keyint=" + self.m_frame_rate + ":" \
                        "scenecut=0"
+
+            # SEI Type is 6 https://github.com/FFmpeg/FFmpeg/blob/a0ac49e38ee1d1011c394d7be67d0f08b2281526/libavcodec/h264.h#L40
+            if self.m_sei == "False":
+                command += " -bsf:v 'filter_units=remove_types=6' "
+            if self.m_vui_timing == "False":
+                command += " -bsf:v 'h264_metadata:tick_rate=0' "       
 
         elif self.m_media_type in ("a", "audio"):
             command += "-map " + index + ":a:0" + " " \
