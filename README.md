@@ -35,4 +35,12 @@ Provides all information and scripts how the CTA Wave Test Content is generated.
    * unencrypted
   * write a script/command line for FFMPEG to generate the above content, might also include a repackaging script.
   
- 
+ ## How to generate the content
+
+* Download the files from https://1drv.ms/w/s!AiNJEPgowJnWgbpZesbLvglzCXVlSg?e=4ZFRyB, be sure to pick different fingerprints
+* Modify run-all.py to:
+  * use different resolutions, and bitrate you may find [here](https://developer.apple.com/documentation/http_live_streaming/hls_authoring_specification_for_apple_devices)
+  * modify the framerates to match the framerate of your input sample
+  * modify the input files to match your owm
+  * modify FFmpeg's path to use your own, you need to use FFmpeg 4.3 or above
+* Run ```./run-all.py```, and grab a cup of tea, or coffee

@@ -553,6 +553,7 @@ if __name__ == "__main__":
     index_v = 0
     index_a = 0
     for representation_config in representations:
+        print(representation_config)
         representation = Representation(representation_config)
         if representation.m_media_type in ("v", "video"):
             options.append(representation.form_command(str(index_v)))
