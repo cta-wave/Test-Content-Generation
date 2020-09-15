@@ -422,7 +422,7 @@ class Representation:
             if self.m_sei == "False":
                 command += " -bsf:v 'filter_units=remove_types=6' "
             if self.m_vui_timing == "False":
-                command += " -bsf:v 'h264_metadata:tick_rate=0' "       
+                command += " -bsf:v 'h264_metadata=tick_rate=0' "       
 
         elif self.m_media_type in ("a", "audio"):
             command += "-map " + index + ":a:0" + " " \
