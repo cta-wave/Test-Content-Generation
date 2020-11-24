@@ -112,27 +112,27 @@ class ContentModel:
     def process_representation(self, representation, adaptation_set_index, representation_index, id, content_type):
         rep_id = content_type + id + "/" + str(representation_index)
 
-        rep_path =  os.path.dirname(os.path.abspath(self.m_filename))  + "/" + rep_id
-        Path(rep_path).mkdir(parents=True, exist_ok=True)
+        # rep_path =  os.path.dirname(os.path.abspath(self.m_filename))  + "/" + rep_id
+        # Path(rep_path).mkdir(parents=True, exist_ok=True)
 
-        init_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "init-stream" + str(representation_index)
-        os.rename(init_name + ".m4s", rep_path + "/0.m4s")
+        # init_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "init-stream" + str(representation_index)
+        # os.rename(init_name + ".m4s", rep_path + "/0.m4s")
 
-        media_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "chunk-stream" + str(representation_index)
-        files = glob.glob(media_name + "*")
-        number = 1
-        for file in files:
-            if file != '':
-                os.rename(file, rep_path + "/" + str(number) + ".m4s")
-                number += 1
-        representation.setAttribute('id', rep_id)
+        # media_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "chunk-stream" + str(representation_index)
+        # files = glob.glob(media_name + "*")
+        # number = 1
+        # for file in files:
+        #     if file != '':
+        #         os.rename(file, rep_path + "/" + str(number) + ".m4s")
+        #         number += 1
+        # representation.setAttribute('id', rep_id)
 
-        mime_type = representation.getAttribute('mimeType')
-        representation.setAttribute('mimeType', mime_type + ", profiles='cmfc'")
+        # mime_type = representation.getAttribute('mimeType')
+        # representation.setAttribute('mimeType', mime_type )
 
-        segment_template = representation.getElementsByTagName('SegmentTemplate').item(0)
-        segment_template.setAttribute('initialization', '$RepresentationID$/0.m4s')
-        segment_template.setAttribute('media', '$RepresentationID$/$Number$.m4s')
+        # segment_template = representation.getElementsByTagName('SegmentTemplate').item(0)
+        # segment_template.setAttribute('initialization', '$RepresentationID$/0.m4s')
+        # segment_template.setAttribute('media', '$RepresentationID$/$Number$.m4s')
 
 
     def remove_element(self, nodes):
@@ -489,12 +489,13 @@ def parse_args(args):
         elif opt in ("-o", "--out"):
             output_file = arg
         elif opt in ("-r", "--reps"):
-            representations = arg.split(" ")
+            representations = arg.split("|")
         elif opt in ("-d", "--dash"):
             dashing = arg
         elif opt in ("-od", "--outdir"):
             outDir = arg
 
+    print(representations)
     return [ffmpeg_path, output_file, representations, dashing, outDir]
 
 
@@ -505,7 +506,6 @@ def assert_configuration(configuration):
     representations = configuration[2]
     dashing = configuration[3]
     out_dir = configuration[4]
-    print(ffmpeg_path)
     result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
     if "ffmpeg version" not in result.stdout.decode('ascii'):
         print("FFMPEG binary is checked in the \"" + ffmpeg_path + "\" path, but not found.")
@@ -553,7 +553,6 @@ if __name__ == "__main__":
     index_v = 0
     index_a = 0
     for representation_config in representations:
-        print(representation_config)
         representation = Representation(representation_config)
         if representation.m_media_type in ("v", "video"):
             options.append(representation.form_command(str(index_v)))
