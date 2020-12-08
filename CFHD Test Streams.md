@@ -12,6 +12,7 @@ It is built up as follows;
 * Streams 1 and 12 through 23 are a simple content ladder for testing CMAF switching sets.
 * Stream 1 should have content options that are representative of existing industry practice. 
 * The resolutions and bitrates in the simple content ladder in streams 12 through 23 should also be representative of existing practice.
+
 | Stream ID | picture timing SEI message | VUI timing information | Sample entry (CMAF 9.4.1.2) | CMAF fragment duration | Initialization constraints | Fragments containing one or multiple moof/mdat pairs | resolution | frame rate | bitrate | length |
 |----------|:-------------:|------:|-------|------|-----|-----|-----|-----|----|---|
 |1 = base stream|present|present|avc1 sample entry type (parameter sets within the CMAF Header)|2s|Regular Switching Set, do not apply CMAF clause 7.3.4.2 and 9.2.11.4|Fragment is 1 chunk|1920x1080|25Hz, 29.97Hz, 30Hz, 50Hz, 59.94Hz or 60Hz|A bps (note 1)|60s|
@@ -37,4 +38,5 @@ It is built up as follows;
 |21|as 1|as 1|as 1|as 1|as 1|as 1|640x360|as 1|(note 1)|as 1|
 |22|as 1|as 1|as 1|as 1|as 1|as 1|512x288|as 1|(note 1)|as 1|
 |23|as 1|as 1|as 1|as 1|as 1|as 1|480x270|as 1|(note 1)|as 1|
+
 Note 1: A bitrate ladder representative of existing practices should be used.
