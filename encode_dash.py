@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys, os, glob, getopt
 from pathlib import Path
 from enum import Enum
@@ -111,27 +112,27 @@ class ContentModel:
     def process_representation(self, representation, adaptation_set_index, representation_index, id, content_type):
         rep_id = content_type + id + "/" + str(representation_index)
 
-        rep_path = "./" + rep_id
-        Path(rep_path).mkdir(parents=True, exist_ok=True)
+        # rep_path =  os.path.dirname(os.path.abspath(self.m_filename))  + "/" + rep_id
+        # Path(rep_path).mkdir(parents=True, exist_ok=True)
 
-        init_name = "init-stream" + str(representation_index)
-        os.rename(init_name + ".m4s", rep_id + "/0.m4s")
+        # init_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "init-stream" + str(representation_index)
+        # os.rename(init_name + ".m4s", rep_path + "/0.m4s")
 
-        media_name = "chunk-stream" + str(representation_index)
-        files = glob.glob(media_name + "*")
-        number = 1
-        for file in files:
-            if file != '':
-                os.rename(file, rep_id + "/" + str(number) + ".m4s")
-                number += 1
-        representation.setAttribute('id', rep_id)
+        # media_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "chunk-stream" + str(representation_index)
+        # files = glob.glob(media_name + "*")
+        # number = 1
+        # for file in files:
+        #     if file != '':
+        #         os.rename(file, rep_path + "/" + str(number) + ".m4s")
+        #         number += 1
+        # representation.setAttribute('id', rep_id)
 
-        mime_type = representation.getAttribute('mimeType')
-        representation.setAttribute('mimeType', mime_type + ", profiles='cmfc'")
+        # mime_type = representation.getAttribute('mimeType')
+        # representation.setAttribute('mimeType', mime_type )
 
-        segment_template = representation.getElementsByTagName('SegmentTemplate').item(0)
-        segment_template.setAttribute('initialization', '$RepresentationID$/0.m4s')
-        segment_template.setAttribute('media', '$RepresentationID$/$Number$.m4s')
+        # segment_template = representation.getElementsByTagName('SegmentTemplate').item(0)
+        # segment_template.setAttribute('initialization', '$RepresentationID$/0.m4s')
+        # segment_template.setAttribute('media', '$RepresentationID$/$Number$.m4s')
 
 
     def remove_element(self, nodes):
@@ -288,6 +289,8 @@ class Representation:
     m_profile = None
     m_level = None
     m_color_primary = None
+    m_sei = None
+    m_vui_timing = None
 
     def __init__(self, representation_config):
         config = representation_config.split(",")
@@ -371,6 +374,10 @@ class Representation:
                 self.m_level = value
             elif name == "color":
                 self.m_color_primary = value
+            elif name == "sei":
+                self.m_sei = value
+            elif name == "vui_timing":
+                self.m_vui_timing = value
             else:
                 print("Unknown configuration option for representation: " + name + " , it will be ignored.")
 
@@ -410,6 +417,12 @@ class Representation:
                        "min-keyint=" + self.m_frame_rate + ":" \
                        "keyint=" + self.m_frame_rate + ":" \
                        "scenecut=0"
+
+            # SEI Type is 6 https://github.com/FFmpeg/FFmpeg/blob/a0ac49e38ee1d1011c394d7be67d0f08b2281526/libavcodec/h264.h#L40
+            if self.m_sei == "False":
+                command += " -bsf:v 'filter_units=remove_types=6' "
+            if self.m_vui_timing == "False":
+                command += " -bsf:v 'h264_metadata=tick_rate=0' "       
 
         elif self.m_media_type in ("a", "audio"):
             command += "-map " + index + ":a:0" + " " \
@@ -466,6 +479,7 @@ def parse_args(args):
     output_file = None
     representations = None
     dashing = None
+    outDir = None
     for opt, arg in args:
         if opt == '-h':
             print('test.py -i <inputfile> -o <outputfile>')
@@ -475,11 +489,14 @@ def parse_args(args):
         elif opt in ("-o", "--out"):
             output_file = arg
         elif opt in ("-r", "--reps"):
-            representations = arg.split(" ")
+            representations = arg.split("|")
         elif opt in ("-d", "--dash"):
             dashing = arg
+        elif opt in ("-od", "--outdir"):
+            outDir = arg
 
-    return [ffmpeg_path, output_file, representations, dashing]
+    print(representations)
+    return [ffmpeg_path, output_file, representations, dashing, outDir]
 
 
 # Check if the input arguments are correctly given
@@ -488,7 +505,7 @@ def assert_configuration(configuration):
     output_file = configuration[1]
     representations = configuration[2]
     dashing = configuration[3]
-
+    out_dir = configuration[4]
     result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
     if "ffmpeg version" not in result.stdout.decode('ascii'):
         print("FFMPEG binary is checked in the \"" + ffmpeg_path + "\" path, but not found.")
@@ -506,11 +523,14 @@ def assert_configuration(configuration):
         print("Warning: DASHing information is not provided, as a default setting, segment duration of 2 seconds and "
               "segment signaling of SegmentTemplate will be used.")
 
+    if out_dir is None:
+        print("Warning: Output directory wasn't specified, it will output everything into cwd")
+
 
 if __name__ == "__main__":
     # Read input, parse and assert
     try:
-        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p', ['out=', 'reps=', 'dash=', 'path='])
+        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od', ['out=', 'reps=', 'dash=', 'path=', 'outdir='])
     except getopt.GetoptError:
         sys.exit(2)
 
@@ -521,6 +541,12 @@ if __name__ == "__main__":
     output_file = configuration[1]
     representations = configuration[2]
     dash = configuration[3]
+    out_dir = configuration[4]
+
+    if out_dir is not None:
+        output_file = out_dir + "/" + output_file
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
+        print("Checking that the output directory exists")
 
     # Prepare the encoding for each Representation
     options = []
@@ -556,7 +582,7 @@ if __name__ == "__main__":
               encode_command + " " + \
               dash_package_command + " " + \
               output_file
-
+    print(command)
     subprocess.run(command, shell=True)
 
     # Content Model
