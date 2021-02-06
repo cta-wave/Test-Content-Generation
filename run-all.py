@@ -15,8 +15,14 @@ cnopts.hostkeys = None
 outputFolder = '/129021/dash/WAVE/vectors/'
 
 resolutions = [
-    ['768x432',1100, 30, "content_files/tos_M1_2560x1440@60_60.mp4" ],['768x432',730, 30, "content_files/tos_L1_1920x1080@60_60.mp4" ]
+    [
+        ['1920x1080', 4500, 30, "content_files/tos_L1_1920x1080@30_60.mp4" ],
+        ['1024x576' , 1500, 30, "content_files/tos_I1_1024x576@30_60.mp4"  ],
+        ['1024x576' , 1200, 30, "content_files/tos_I2_1024x576@30_60.mp4"  ],
+        ['768x432'  , 900 , 30, "content_files/tos_F1_768x432@30_60.mp4"   ],
+        ['512x288'  , 450 , 30, "content_files/tos_B1_512x288@30_60.mp4"   ]
     ]
+]
 
 database = { }
 filepath = './database.json'
@@ -26,7 +32,7 @@ with open('params.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     line_count = 0
     id = "wave_{0}_{1}"
-    has_audio=False # we only support one audio for now
+    has_audio = False # we only support one audio for now
     for row in csv_reader:
         line_count = line_count + 1
         if line_count == 1: 
@@ -35,19 +41,19 @@ with open('params.csv') as csv_file:
         key = id.format("avc_sets", row[0])
         reps = []
 
-        for i in range(len(resolutions)): 
-            reps += [{"resolution": resolutions[i][0], "framerate": resolutions[i][2], "bitrate": resolutions[i][1], "input": resolutions[i][3]}]
+        for i in range(len(resolutions[0])):
+            reps += [{"resolution": resolutions[0][i][0], "framerate": resolutions[0][i][2], "bitrate": resolutions[0][i][1], "input": resolutions[0][i][3]}]
             if row[1] == "audio":
                 if has_audio == False:
                     codec="aac"
                     audio_rep_command = "id:{0},type:{1},codec:{2},bitrate:{3},input:{4}"\
-                        .format(i, row[1], codec, resolutions[i][1], resolutions[i][3])
+                        .format(i, row[1], codec, resolutions[0][i][1], resolutions[0][i][3])
                     has_audio=True
             else:
                 codec="h264"
                 cmaf_profile="avchdhf"
                 reps_command += "id:{0},type:{1},codec:{2},vse:{3},cmaf:{4},fps:{5},res:{6},bitrate:{7},input:{8},sei:{9},vui_timing:{10}"\
-                    .format(i, row[1], codec, row[4], cmaf_profile, resolutions[i][2], resolutions[i][0], resolutions[i][1], resolutions[i][3], row[2].capitalize(), row[3].capitalize())
+                    .format(i, row[1], codec, row[4], cmaf_profile, resolutions[0][i][2], resolutions[0][i][0], resolutions[0][i][1], resolutions[0][i][3], row[2].capitalize(), row[3].capitalize())
 
             reps_command += "\|"
 
