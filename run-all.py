@@ -7,18 +7,16 @@ import os.path
 import json
 import pysftp
 
-# SFTP credentials
+# output: SFTP credentials
 host = "dashstorage.upload.akamai.com"
 username = "sshacs"
 cnopts = pysftp.CnOpts(knownhosts=host)
 cnopts.hostkeys = None    
-basePath = '/129021/dash/WAVE/vectors/'
+outputFolder = '/129021/dash/WAVE/vectors/'
 
 resolutions = [
-    ['1920x1080',7800, 60, "content_files/tos_O1_3840x2160@60_60.mp4" ],['1920x1080',6000, 60, "content_files/tos_O2_3840x2160@60_60.mp4" ],
-    ['1280x720',4500, 60, "content_files/tos_O3_3840x2160@60_60.mp4" ],['1280x720',3000, 60, "content_files/tos_N1_3200x1800@60_60.mp4" ],
     ['768x432',1100, 30, "content_files/tos_M1_2560x1440@60_60.mp4" ],['768x432',730, 30, "content_files/tos_L1_1920x1080@60_60.mp4" ]
-]
+    ]
 
 database = { }
 filepath = './database.json'
@@ -60,9 +58,6 @@ with open('params.csv') as csv_file:
         if reps_command == None:
             print("Audio only streams are not processed (but the audio will be then attached to video streams) - skipping")
         else:
-            # add audio
-            reps_command += audio_rep_command
-
             database[key] = {
                 'representations': reps,
                 'segmentDuration': row[6], 
@@ -72,6 +67,9 @@ with open('params.csv') as csv_file:
                 'visualSampleEntry': row[4],
                 'mpdPath': 'avc_sets/{0}/stream.mpd'.format(row[0])
             }
+
+            # add audio
+            reps_command += audio_rep_command
 
             command = "./encode_dash.py --path=/usr/bin/ffmpeg --out=stream.mpd --outdir=output/{0} --dash=sd:{1},ft:{2} {3}".format(row[0], row[6], row[8], reps_command)
             print("Executing " + command)
@@ -85,13 +83,13 @@ with pysftp.Connection(host=host, username=username, private_key=os.path.expandu
     print("Connection successfully established ... ")
 
     # Switch to a remote directory and put the data base
-    sftp.cwd(basePath)
-    sftp.put(filepath, basePath + filepath)
+    sftp.cwd(outputFolder)
+    sftp.put(filepath, outputFolder + filepath)
 
     # Create the directory structure if it does not exist
     for root, dirs, files in os.walk('./output', topdown=True):
         for name in dirs:
-            p =  os.path.join(root ,name).replace('./output', basePath + 'avc_sets')
+            p =  os.path.join(root ,name).replace('./output', outputFolder + 'avc_sets')
             if not sftp.isfile(p): 
                 print("Creating directory " + p)
                 sftp.mkdir(p, mode=644)
@@ -99,6 +97,6 @@ with pysftp.Connection(host=host, username=username, private_key=os.path.expandu
     # Put the files
     for root, dirs, files in os.walk('./output', topdown=True):
         for name in files:
-            dest = os.path.join(root ,name).replace('./output', basePath + 'avc_sets')
+            dest = os.path.join(root ,name).replace('./output', outputFolder + 'avc_sets')
             print("Upload file " + os.path.join(root ,name) + " to " + dest)
             sftp.put(os.path.join(root ,name), dest, callback=lambda x,y: print("{} transferred out of {}".format(x,y)))
