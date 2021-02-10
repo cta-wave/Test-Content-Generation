@@ -17,11 +17,14 @@ outputFolder = '/129021/dash/WAVE/vectors/'
 # TODO: link to params.csv - currently only references Switching Set X1
 resolutions = [
     [
+        ['1920x1080', 6000, 60, "content_files/tos_L2_1920x1080@60_60.mp4" ],
         ['1920x1080', 4500, 30, "content_files/tos_L1_1920x1080@30_60.mp4" ],
-        ['1024x576' , 1500, 30, "content_files/tos_I1_1024x576@30_60.mp4"  ],
-        ['1024x576' , 1200, 30, "content_files/tos_I2_1024x576@30_60.mp4"  ],
+        ['1280x720' , 3000, 60, "content_files/tos_J1_1280x720@60_60.mp4"  ],
+        ['1024x576' , 1500, 30, "content_files/tos_I2_1024x576@30_60.mp4"  ],
+        ['1024x576' , 1200, 30, "content_files/tos_I1_1024x576@30_60.mp4"  ],
         ['768x432'  , 900 , 30, "content_files/tos_F1_768x432@30_60.mp4"   ],
-        ['512x288'  , 450 , 30, "content_files/tos_B1_512x288@30_60.mp4"   ]
+        ['512x288'  , 450 , 30, "content_files/tos_B1_512x288@30_60.mp4"   ],
+        ['512x288'  , 300 , 15, "content_files/tos_A1_480x270@15_60.mp4"   ]
     ]
 ]
 
