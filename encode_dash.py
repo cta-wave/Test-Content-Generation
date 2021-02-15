@@ -46,7 +46,7 @@ class ContentModel:
             profiles += "," + chunked_profile
         mpd.setAttribute('profiles', profiles)
 
-        # Remove ServiceDescrition element if present (somehow ffmpeg 4.3 adds this to the mpd by default, removed for now)
+        # Remove ServiceDescription element if present (somehow ffmpeg 4.3 adds this to the mpd by default, removed for now)
         service_descriptions = mpd.getElementsByTagName("ServiceDescription")
         self.remove_element(service_descriptions)
 
@@ -317,7 +317,8 @@ class Representation:
                     print("Supported video sample entries for AVC are \"avc1\" and \"avc3\" and"
                           " for HEVC \"hev1\" and \"hvc1\".")
                     sys.exit(1)
-                self.m_video_sample_entry = value
+                else:
+                    self.m_video_sample_entry = value
             elif name == "cmaf":
                 self.m_cmaf_profile = value
                 if value == "avcsd":
@@ -381,10 +382,12 @@ class Representation:
             else:
                 print("Unknown configuration option for representation: " + name + " , it will be ignored.")
 
+        # Sanity checks
         if self.m_id is None or self.m_input is None or self.m_media_type is None or self.m_codec is None or \
-           self.m_bitrate is None or self.m_cmaf_profile is None:
+            self.m_bitrate is None and self.m_cmaf_profile:
             print("For each representation at least the following 6 parameters must be provided: " +
-                  "<representation_id>,<input_file>,<media_type>,<codec>,<bitrate>,<cmaf_profile>")
+                "<representation_id>{0},<input_file>{1},<media_type>{2},<codec>{3},<bitrate>{4},<cmaf_profile>{5}"\
+                    .format(self.m_id, self.m_input, self.m_media_type, self.m_codec, self.m_bitrate, self.m_cmaf_profile))
             sys.exit(1)
 
     def form_command(self, index):
@@ -453,7 +456,7 @@ def generate_log(ffmpeg_path, command):
     f.write("CTA Test Content Generation Log (Generated at: " + "'{0}' '{1}'".format(date, time) + ")\n\n\n\n")
 
     f.write("-----------------------------------\n")
-    f.write("FFMPEG Information:\n")
+    f.write("FFmpeg Information:\n")
     f.write("-----------------------------------\n")
     f.write("%s\n\n\n\n" % result.stdout.decode('ascii'))
 
@@ -471,7 +474,7 @@ def generate_log(ffmpeg_path, command):
 
 # Parse input arguments
 # Output MPD: --out="<desired_mpd_name>"
-# FFMpeg binary path: -–path="path/to/ffmpeg"
+# FFmpeg binary path: -–path="path/to/ffmpeg"
 # Representation configuration: --reps="<rep1_config rep2_config … repN_config>"
 # DASHing configuration: --dash="<dash_config>"
 def parse_args(args):
@@ -508,7 +511,7 @@ def assert_configuration(configuration):
     out_dir = configuration[4]
     result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
     if "ffmpeg version" not in result.stdout.decode('ascii'):
-        print("FFMPEG binary is checked in the \"" + ffmpeg_path + "\" path, but not found.")
+        print("ffmpeg binary is checked in the \"" + ffmpeg_path + "\" path, but not found.")
         sys.exit(1)
 
     if output_file is None:
@@ -561,7 +564,7 @@ if __name__ == "__main__":
             options.append(representation.form_command(str(index_a)))
             index_a += 1
         else:
-            print("Media type for a representation denoted by <type> can either be \"v\" or \"video\" fro video media"
+            print("Media type for a representation denoted by <type> can either be \"v\" or \"video\" for video media"
                   "or \"a\" or \"audio\" for audio media.")
             exit(1)
 
