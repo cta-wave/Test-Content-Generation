@@ -24,7 +24,7 @@ resolutions = [
         ['1024x576' , 1200, 30, "content_files/tos_I1_1024x576@30_60.mp4"  ],
         ['768x432'  , 900 , 30, "content_files/tos_F1_768x432@30_60.mp4"   ],
         ['512x288'  , 450 , 30, "content_files/tos_B1_512x288@30_60.mp4"   ],
-        ['512x288'  , 300 , 15, "content_files/tos_A1_480x270@15_60.mp4"   ]
+        ['480x270'  , 300 , 15, "content_files/tos_A1_480x270@15_60.mp4"   ]
     ]
 ]
 
