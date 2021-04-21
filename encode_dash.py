@@ -40,6 +40,7 @@ class ContentModel:
         chunked_profile = "urn:mpeg:dash:profile:isoff-broadcast:2015"
         if cta_profile not in profiles:
             profiles += "," + cta_profile
+
         if self.m_mode is Mode.FRAGMENTED.value and fragmented_profile not in profiles:
             profiles += "," + fragmented_profile
         if self.m_mode is Mode.CHUNKED.value and chunked_profile not in profiles:
@@ -103,7 +104,6 @@ class ContentModel:
 
             representations = adaptation_set.getElementsByTagName('Representation')
             for representation in representations:
-                # Representation
                 self.process_representation(representation, adaptation_set_index, representation_index, id, content_type)
                 representation_index += 1
 
@@ -111,29 +111,6 @@ class ContentModel:
 
     def process_representation(self, representation, adaptation_set_index, representation_index, id, content_type):
         rep_id = content_type + id + "/" + str(representation_index)
-
-        # rep_path =  os.path.dirname(os.path.abspath(self.m_filename))  + "/" + rep_id
-        # Path(rep_path).mkdir(parents=True, exist_ok=True)
-
-        # init_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "init-stream" + str(representation_index)
-        # os.rename(init_name + ".m4s", rep_path + "/0.m4s")
-
-        # media_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "chunk-stream" + str(representation_index)
-        # files = glob.glob(media_name + "*")
-        # number = 1
-        # for file in files:
-        #     if file != '':
-        #         os.rename(file, rep_path + "/" + str(number) + ".m4s")
-        #         number += 1
-        # representation.setAttribute('id', rep_id)
-
-        # mime_type = representation.getAttribute('mimeType')
-        # representation.setAttribute('mimeType', mime_type )
-
-        # segment_template = representation.getElementsByTagName('SegmentTemplate').item(0)
-        # segment_template.setAttribute('initialization', '$RepresentationID$/0.m4s')
-        # segment_template.setAttribute('media', '$RepresentationID$/$Number$.m4s')
-
 
     def remove_element(self, nodes):
         for node in nodes:
@@ -145,7 +122,6 @@ class ContentModel:
 class VideoCodecOptions(Enum):
     AVC = "h264"
     HEVC = "h265"
-
 
 class AudioCodecOptions(Enum):
     AAC = "aac"
@@ -169,7 +145,6 @@ class AVCSD:
     m_resolution_h = "576"
     m_frame_rate = "60"
 
-
 class AVCHD:
     m_profile = "high"
     m_level = "40"
@@ -177,7 +152,6 @@ class AVCHD:
     m_resolution_w = "1920"
     m_resolution_h = "1080"
     m_frame_rate = "60"
-
 
 class AVCHDHF:
     m_profile = "high"
@@ -271,8 +245,8 @@ class DASH:
 #### profile: codec profile (such as high, baseline, main, etc.)
 #### level: codec level (such as 32, 40, 42, etc.)
 #### color: color primary (1 for bt709, etc.)
-# The first six configuration parameters are mandatory to be provided. The rest can be filled according to the specified
-# cmaf profile. If the rest is also given, these will override the default values for the specified CMAF profile
+# The first six configuration parameters shall be provided. The rest can be filled according to the specified
+# cmaf profile. When optional parameters are present these will override the default values for the specified CMAF profile
 class Representation:
     m_id = None
     m_input = None
@@ -421,7 +395,7 @@ class Representation:
                        "keyint=" + self.m_frame_rate + ":" \
                        "scenecut=0"
 
-            # SEI Type is 6 https://github.com/FFmpeg/FFmpeg/blob/a0ac49e38ee1d1011c394d7be67d0f08b2281526/libavcodec/h264.h#L40
+            # SEI NALU Type is 6 https://github.com/FFmpeg/FFmpeg/blob/a0ac49e38ee1d1011c394d7be67d0f08b2281526/libavcodec/h264.h#L40
             if self.m_sei == "False":
                 command += " -bsf:v 'filter_units=remove_types=6' "
             if self.m_vui_timing == "False":
