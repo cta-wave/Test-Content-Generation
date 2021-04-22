@@ -1,46 +1,45 @@
 # Test-Content-Generation
 
 ## Overview
-Provides all information and scripts how the CTA Wave Test Content is generated. This is primarily about the usage of FFMPEG with x264 and x265 to generate the content.
+
+This repository provides the information and scripts to generate the CTA Wave Test Content.
+
+The ```run-all.py``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
+TODO: continue to map input parameters.
+TODO: rename uploaded content according to https://github.com/cta-wave/Test-Content-Generation/issues/22
+TODO: add a validation phase.
+
+The ```encode_dash.py```script is primarily about the usage of GPAC leveraging libavcodec with x264 and x265 to encode the content.
+The intent is to keep the size of the post-processing as small as possible.
+TODO: split and rename script as it does several things at once.
+TODO: support encryption.
 
 * Download mezzanine content from folder 2)
 * Encode mezzanine content (from folder 2)
   * Encode to conform to CTA Proposed Test content.
   * Encode at least one option of source content according to media profile.
 * Package (markup) the content with an MPD according to the CTA Content Model format
-  * needs likely to be done manually right now, but could eventually an extension to FFMPEG to produce this
-  * **Script** Ece can write script to modify to conform to the content model formating
+  * TODO: needs likely to be done manually right now, but could eventually an extension to GPAC to produce this
 * Upload the proposed test content to folder <add> from above
 * Document the detailed procedures from above
- * **Setup Web page** This documentation will developed under this github repository. Md to a website.
-* Validate that the content conforms to
+ * **Setup Web page** This documentation will be developed under this github repository. Md to a website.
+* Validate that the content conforms to:
   * CMAF
   * CTA WAVE Test content format **needs to be extended to format validation**
   * Uses the proper mezzanine
   * Revise mezzanine test content if needed and repeat tasks 9-13 as needed
 * If valid, move content to folder 4) <add>
  
- ## Encoding to test content
+## Encoding to test content
  
- * Content options are documented here: https://1drv.ms/w/s!AiNJEPgowJnWgbpZesbLvglzCXVlSg?e=4ZFRyB
- 
- * for the first test content
-   * pick on mezzanine, for example 720p @ 50Hz
-   * Ece to check on picture timing what is default
-   * avc1
-   * 2 seconds of CMAF Fragments
-   * no chunking
-   * spatial sub-sampling for different Representations
-     * note that we need to use different mezzanine version (A,B,C) for each Representation 
-   * unencrypted
-  * write a script/command line for FFMPEG to generate the above content, might also include a repackaging script.
+* Content options are documented here: https://1drv.ms/w/s!AiNJEPgowJnWgbpZesbLvglzCXVlSg?e=4ZFRyB / https://docs.google.com/spreadsheets/d/1hxbqBdJEEdVIDEkpjZ8f5kvbat_9VGxwFP77AXA_0Ao/edit#gid=0 / https://github.com/cta-wave/Test-Content-Generation/issues/13 / https://github.com/cta-wave/Test-Content-Generation/wiki/CFHD-Test-Streams
   
- ## How to generate the content
+## How to generate the content
 
 * Download the files from https://1drv.ms/w/s!AiNJEPgowJnWgbpZesbLvglzCXVlSg?e=4ZFRyB, be sure to pick different fingerprints
 * Modify run-all.py to:
   * use different resolutions, and bitrate you may find [here](https://developer.apple.com/documentation/http_live_streaming/hls_authoring_specification_for_apple_devices)
   * modify the framerates to match the framerate of your input sample
   * modify the input files to match your owm
-  * modify FFmpeg's path to use your own, you need to use FFmpeg 4.3 or above
+  * modify GPAC's path to use your own, you need to use GPAC 1.0.1 or above
 * Run ```./run-all.py```, and grab a cup of tea, or coffee
