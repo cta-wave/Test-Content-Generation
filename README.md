@@ -5,9 +5,9 @@
 This repository provides the information and scripts to generate the CTA Wave Test Content.
 
 The ```run-all.py``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
-TODO: continue to map input parameters.
+TODO: continue to map input parameters. => csv
 TODO: rename uploaded content according to https://github.com/cta-wave/Test-Content-Generation/issues/22
-TODO: add a validation phase.
+TODO: add a validation phase. Romain; map to issue
 
 The ```encode_dash.py```script is primarily about the usage of GPAC leveraging libavcodec with x264 and x265 to encode the content.
 The intent is to keep the size of the post-processing as small as possible.
