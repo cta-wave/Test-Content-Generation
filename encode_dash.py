@@ -43,7 +43,7 @@ class ContentModel:
         if cta_profile not in profiles:
             profiles += "," + cta_profile
 
-        #TODO: check they are not already added by the packager
+        #TODO: to check; they are partially added by the packager
         if self.m_mode is Mode.FRAGMENTED.value and fragmented_profile not in profiles:
             profiles += "," + fragmented_profile
         if self.m_mode is Mode.CHUNKED.value and chunked_profile not in profiles:
@@ -130,6 +130,7 @@ class AudioCodecOptions(Enum):
 class VisualSampleEntry(Enum):
     AVC1 = "avc1"
     AVC3 = "avc3"
+    AVC1p3 = "avc1+3"
     HVC1 = "hvc1"
     HEV1 = "hev1"
 
@@ -284,8 +285,9 @@ class Representation:
                 self.m_codec = value
             elif name == "vse":
                 if value != VisualSampleEntry.AVC1.value and value != VisualSampleEntry.AVC3.value and \
+                   value != VisualSampleEntry.AVC1p3.value and \
                    value != VisualSampleEntry.HEV1.value and value != VisualSampleEntry.HVC1.value:
-                    print("Supported video sample entries for AVC are \"avc1\" and \"avc3\" and"
+                    print("Supported video sample entries for AVC are \"avc1\", \"avc3\", \"avc1+3\" and"
                           " for HEVC \"hev1\" and \"hvc1\".")
                     sys.exit(1)
                 else:
@@ -387,10 +389,6 @@ class Representation:
             if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
                 command += " @ bsrw:setsar=" + self.m_aspect_ratio_x + "/" + self.m_aspect_ratio_y + ""
 
-            #TODO: move: this is a muxing option not an encoding option
-            #if self.m_video_sample_entry is not None:
-             #   command += "-tag:v:" + index + " " + self.m_video_sample_entry + " "
-
             if self.m_codec == VideoCodecOptions.AVC.value:
                 command += ":x264-params=\""
             elif self.m_codec == VideoCodecOptions.HEVC.value:
@@ -414,7 +412,20 @@ class Representation:
                        ":c=" + self.m_codec + \
                        ":b=" + "128" + "k" #FIXME: self.m_bitrate
 
+            command += ":SID=" + "GEN" + "a"
             command += ":FID=A" + index
+
+        #TODO: move: this is a video-only muxing option not an encoding option. Setting as global.
+        if self.m_video_sample_entry is not None:
+            if self.m_video_sample_entry == "avc1":
+                command += " --xps_inband=no"
+            elif self.m_video_sample_entry == "avc3":
+                command += " --xps_inband=all"
+            elif self.m_video_sample_entry == "avc1+3":
+                command += " --xps_inband=both"
+            else:
+                print("Supported video sample entries are \"avc1\", \"avc3\", and \"avc1+3\",.")
+                sys.exit(1)
 
         return [input_file_command, command]
 
@@ -449,7 +460,7 @@ def generate_log(gpac_path, command):
     f.write("%s\n\n\n\n" % command)
 
     f.write("-----------------------------------\n")
-    f.write("Encode.py:\n")
+    f.write("encode_dash.py:\n")
     f.write("-----------------------------------\n")
     f.write("%s\n\n\n\n" % script)
     f.close()

@@ -7,20 +7,23 @@ import os.path
 import json
 import pysftp
 
+# TODO: should be sync'ed, cf Thomas Stockhammer's requests
+content_folder = "content_files/"
+
 # Output parameters: SFTP credentials
 host = "dashstorage.upload.akamai.com"
 username = "sshacs"
 cnopts = pysftp.CnOpts(knownhosts=host)
 cnopts.hostkeys = None    
 outputFolder = '/129021/dash/WAVE/vectors/'
-database = { } # Romain: contains single track only
+database = { }
 wwwfilepath = './database.json'
 
 with open('switching_sets_single_track.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     line_count = 0
 
-    switching_set_X1_IDs = { 20, 1, 23, 24, 25, 28, 32, 34 }
+    switching_set_X1_IDs = [ "20", "1", "23", "24", "25", "28", "32", "34" ]
     switching_set_X1_command = ""
 
     #TODO: fps multiples should be a parameter
@@ -33,18 +36,15 @@ with open('switching_sets_single_track.csv') as csv_file:
             continue
 
         key = content.format("t", row[0])
-        print("Processing single track Switching Set " + key)
-
-        reps_command = "--reps="
-        reps = []
+        print("===== Processing single track Switching Set " + key + " =====")
 
         # 0: Stream ID, 1: mezzanine prefix, 2: pic timing, 3: VUI timing, 4: sample entry,
         # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate, 10: bitrate
-        reps += [{"resolution": row[8], "framerate": float(row[9])*fps_base, "bitrate": row[10], "input": row[1]}]
+        reps = [{"resolution": row[8], "framerate": float(row[9])*fps_base, "bitrate": row[10], "input": row[1]}]
         codec="h264"
         cmaf_profile="avchdhf"
-        reps_command += "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4},res:{5},bitrate:{6},input:{7},sei:{8},vui_timing:{9}"\
-            .format(row[0], codec, row[4], cmaf_profile, float(row[9])*fps_base, row[8], row[10], row[1], row[2].capitalize(), row[3].capitalize())
+        reps_command = "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4},res:{5},bitrate:{6},input:{7},sei:{8},vui_timing:{9}"\
+            .format(row[0], codec, row[4], cmaf_profile, float(row[9])*fps_base, row[8], row[10], content_folder + row[1], row[2].capitalize(), row[3].capitalize())
 
         # SS-X1
         if row[0] in switching_set_X1_IDs:
@@ -54,7 +54,7 @@ with open('switching_sets_single_track.csv') as csv_file:
 
         # Add audio
         audio_command = "id:{0},type:audio,codec:aac,bitrate:{1},input:{2}"\
-            .format("a", "128k", row[1])
+            .format("a", "128k", content_folder + row[1])
         reps_command += "\|"
         reps_command += audio_command
 
@@ -74,12 +74,15 @@ with open('switching_sets_single_track.csv') as csv_file:
             'mpdPath': 'avc/15_30_60/t{0}/stream.mpd'.format(row[0])
         }
 
+        reps_command = "--reps=" + reps_command
         command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir=output/t{0} --dash=sd:{1},ft:{2} {3}".format(row[0], row[5], row[7], reps_command)
         print("Executing " + command)
-        result = subprocess.run(command, shell=True)
+        #result = subprocess.run(command, shell=True)
 
-    print("Switching Set " + content.format("X", 1))
+    print("===== " + "Switching Set " + content.format("X", 1) + " =====")
+    switching_set_X1_command = "--reps=" + switching_set_X1_command
     command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir=output/ss1 --dash=sd:2,ft:duration {0}".format(switching_set_X1_command)
+    print("Executing " + command)
     result = subprocess.run(command, shell=True)
 
 
