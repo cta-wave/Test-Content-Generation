@@ -23,7 +23,7 @@ with open('switching_sets_single_track.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     line_count = 0
 
-    switching_set_X1_IDs = [ "20", "1", "23", "24", "25", "28", "32", "34" ]
+    switching_set_X1_IDs = [ "1", "20", "23", "24", "25", "28", "32", "34" ] # keep ordered
     switching_set_X1_command = ""
 
     #TODO: fps multiples should be a parameter
@@ -48,7 +48,7 @@ with open('switching_sets_single_track.csv') as csv_file:
 
         # SS-X1
         if row[0] in switching_set_X1_IDs:
-            if row[0] == switching_set_X1_IDs[0]:
+            if row[0] != switching_set_X1_IDs[0]: # assumes orderness
                 switching_set_X1_command += "\|"
             switching_set_X1_command += reps_command
 
@@ -84,7 +84,6 @@ with open('switching_sets_single_track.csv') as csv_file:
     command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir=output/ss1 --dash=sd:2,ft:duration {0}".format(switching_set_X1_command)
     print("Executing " + command)
     result = subprocess.run(command, shell=True)
-
 
 with open(wwwfilepath, 'w') as outfile:
     json.dump(database, outfile)
