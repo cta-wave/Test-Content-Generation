@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" />
+<GPACDRM type="CENC AES-CTR">
+  <DRMInfo type="pssh" version="0">
+  <BS ID128="1077efecc0b24d02ace33c1e52e2fb4b"/>
+  <BS value="0" bits="32"/>
+</DRMInfo>
+
+<CrypTrack trackID="1" IsEncrypted="1" IV_size="16" first_IV="0x0a610676cb88f302d10ac8bc66e039ed" saiSavedBox="senc">
+<!-- KID and encryption key -->
+<key KID="0x279926496a7f5d25da69f2b3b2799a7f" value="0x00112233445566778899aabbccddeeff"/>
+</CrypTrack>
+
+</GPACDRM>
