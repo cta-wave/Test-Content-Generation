@@ -10,4 +10,9 @@
 <key KID="0x279926496a7f5d25da69f2b3b2799a7f" value="0x00112233445566778899aabbccddeeff"/>
 </CrypTrack>
 
+<CrypTrack trackID="2" IsEncrypted="1" IV_size="16" first_IV="0x0a610676cb88f302d10ac8bc66e039ed" saiSavedBox="senc">
+<!-- KID and encryption key -->
+<key KID="0x279926496a7f5d25da69f2b3b2799a7f" value="0x00112233445566778899aabbccddeeff"/>
+</CrypTrack>
+
 </GPACDRM>
