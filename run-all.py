@@ -18,6 +18,7 @@ cnopts.hostkeys = None
 outputFolder = '/129021/dash/WAVE/vectors/'
 database = { }
 wwwfilepath = './database.json'
+localOutputFolder = "./output"
 
 with open('switching_sets_single_track.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
@@ -27,15 +28,18 @@ with open('switching_sets_single_track.csv') as csv_file:
     switching_set_X1_command = ""
 
     #TODO: fps multiples should be a parameter
-    content = "avc/15_30_60/{0}{1}"
+    codec = "avc"
+    fps_family = "15_30_60"
     fps_base = 60
+    folder = "{0}/{1}/".format(codec, fps_family)
 
     for row in csv_reader:
         line_count = line_count + 1
         if line_count == 1:
             continue
 
-        key = content.format("t", row[0])
+        switching_set_folder = "{0}{1}".format("t", row[0])
+        key = "{0}{1}".format(folder, switching_set_folder)
         print("===== Processing single track Switching Set " + key + " =====")
 
         # 0: Stream ID, 1: mezzanine prefix, 2: pic timing, 3: VUI timing, 4: sample entry,
@@ -75,13 +79,23 @@ with open('switching_sets_single_track.csv') as csv_file:
         }
 
         reps_command = "--reps=" + reps_command
-        command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir=output/t{0} --dash=sd:{1},ft:{2} {3}".format(row[0], row[5], row[7], reps_command)
+        command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0}/{1} --dash=sd:{2},ft:{3} {4}".format(localOutputFolder, switching_set_folder, row[5], row[7], reps_command)
         print("Executing " + command)
         #result = subprocess.run(command, shell=True)
 
-    print("===== " + "Switching Set " + content.format("X", 1) + " =====")
+        # Create archive
+        command = "zip " + localOutputFolder + "/" + switching_set_folder + ".zip " + localOutputFolder + "/" + switching_set_folder + "/*"
+        print("Executing " + command)
+        result = subprocess.run(command, shell=True)
+
+    print("===== " + "Switching Set " + folder + "X1 =====")
     switching_set_X1_command = "--reps=" + switching_set_X1_command
-    command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir=output/ss1 --dash=sd:2,ft:duration {0}".format(switching_set_X1_command)
+    command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0}/ss1 --dash=sd:2,ft:duration {1}".format(localOutputFolder, switching_set_X1_command)
+    print("Executing " + command)
+    #result = subprocess.run(command, shell=True)
+
+    # Create archive
+    command = "zip {0}/ss1.zip {0}/ss1/*".format(localOutputFolder)
     print("Executing " + command)
     result = subprocess.run(command, shell=True)
 
@@ -96,16 +110,16 @@ with pysftp.Connection(host=host, username=username, private_key=os.path.expandu
     sftp.put(wwwfilepath, outputFolder + wwwfilepath)
 
     # Create the directory structure if it does not exist
-    for root, dirs, files in os.walk('./output', topdown=True):
+    for root, dirs, files in os.walk(localOutputFolder, topdown=True):
         for name in dirs:
-            p =  os.path.join(root ,name).replace('./output', outputFolder + 'avc_sets')
+            p =  os.path.join(root ,name).replace(localOutputFolder, outputFolder + 'avc_sets')
             if not sftp.isfile(p): 
                 print("Creating directory " + p)
                 sftp.mkdir(p, mode=644)
 
     # Put the files
-    for root, dirs, files in os.walk('./output', topdown=True):
+    for root, dirs, files in os.walk(localOutputFolder, topdown=True):
         for name in files:
-            dest = os.path.join(root ,name).replace('./output', outputFolder + 'avc_sets')
+            dest = os.path.join(root ,name).replace(localOutputFolder, outputFolder + 'avc_sets')
             print("Upload file " + os.path.join(root ,name) + " to " + dest)
             sftp.put(os.path.join(root ,name), dest, callback=lambda x,y: print("{} transferred out of {}".format(x,y)))
