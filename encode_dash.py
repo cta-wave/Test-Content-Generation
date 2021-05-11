@@ -12,6 +12,7 @@ import xml.dom.minidom
 
 # Content Model
 # Modify the generated content to comply with CTA Content Model
+# TODO: keep this post-processing as minimal as possible (e.g. move in tooling)
 class Mode(Enum):
     FRAGMENTED = 1
     CHUNKED = 2
@@ -37,18 +38,17 @@ class ContentModel:
         profiles = mpd.getAttribute('profiles')
         cta_profile = "urn:cta:wave:test-content-media-profile"
         fragmented_profile = "urn:mpeg:dash:profile:isoff-live:2011"
+        # TODO: could be added from the packager command-line
         chunked_profile = "urn:mpeg:dash:profile:isoff-broadcast:2015"
         if cta_profile not in profiles:
             profiles += "," + cta_profile
+
+        #TODO: to check; they are partially added by the packager
         if self.m_mode is Mode.FRAGMENTED.value and fragmented_profile not in profiles:
             profiles += "," + fragmented_profile
         if self.m_mode is Mode.CHUNKED.value and chunked_profile not in profiles:
             profiles += "," + chunked_profile
         mpd.setAttribute('profiles', profiles)
-
-        # Remove ServiceDescription element if present (somehow ffmpeg 4.3 adds this to the mpd by default, removed for now)
-        service_descriptions = mpd.getElementsByTagName("ServiceDescription")
-        self.remove_element(service_descriptions)
 
         # ProgramInformation
         program_informations = mpd.getElementsByTagName("ProgramInformation")
@@ -103,7 +103,6 @@ class ContentModel:
 
             representations = adaptation_set.getElementsByTagName('Representation')
             for representation in representations:
-                # Representation
                 self.process_representation(representation, adaptation_set_index, representation_index, id, content_type)
                 representation_index += 1
 
@@ -111,29 +110,6 @@ class ContentModel:
 
     def process_representation(self, representation, adaptation_set_index, representation_index, id, content_type):
         rep_id = content_type + id + "/" + str(representation_index)
-
-        # rep_path =  os.path.dirname(os.path.abspath(self.m_filename))  + "/" + rep_id
-        # Path(rep_path).mkdir(parents=True, exist_ok=True)
-
-        # init_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "init-stream" + str(representation_index)
-        # os.rename(init_name + ".m4s", rep_path + "/0.m4s")
-
-        # media_name = os.path.dirname(os.path.abspath(self.m_filename)) + "/" + "chunk-stream" + str(representation_index)
-        # files = glob.glob(media_name + "*")
-        # number = 1
-        # for file in files:
-        #     if file != '':
-        #         os.rename(file, rep_path + "/" + str(number) + ".m4s")
-        #         number += 1
-        # representation.setAttribute('id', rep_id)
-
-        # mime_type = representation.getAttribute('mimeType')
-        # representation.setAttribute('mimeType', mime_type )
-
-        # segment_template = representation.getElementsByTagName('SegmentTemplate').item(0)
-        # segment_template.setAttribute('initialization', '$RepresentationID$/0.m4s')
-        # segment_template.setAttribute('media', '$RepresentationID$/$Number$.m4s')
-
 
     def remove_element(self, nodes):
         for node in nodes:
@@ -146,7 +122,6 @@ class VideoCodecOptions(Enum):
     AVC = "h264"
     HEVC = "h265"
 
-
 class AudioCodecOptions(Enum):
     AAC = "aac"
 
@@ -155,6 +130,7 @@ class AudioCodecOptions(Enum):
 class VisualSampleEntry(Enum):
     AVC1 = "avc1"
     AVC3 = "avc3"
+    AVC1p3 = "avc1+3"
     HVC1 = "hvc1"
     HEV1 = "hev1"
 
@@ -169,7 +145,6 @@ class AVCSD:
     m_resolution_h = "576"
     m_frame_rate = "60"
 
-
 class AVCHD:
     m_profile = "high"
     m_level = "40"
@@ -177,7 +152,6 @@ class AVCHD:
     m_resolution_w = "1920"
     m_resolution_h = "1080"
     m_frame_rate = "60"
-
 
 class AVCHDHF:
     m_profile = "high"
@@ -189,7 +163,6 @@ class AVCHDHF:
 
 
 # DASHing
-# ffmpeg command dashing portion
 class DASH:
     m_segment_duration = "2"
     m_segment_signaling = "timeline"
@@ -222,40 +195,39 @@ class DASH:
                 elif name == "fd":
                     self.m_fragment_duration = value
 
-    def dash_package_command(self, index_v, index_a):
-        dash_command = "-adaptation_sets "
-        if index_v > 0 and index_a>0:
-            dash_command += "\"id=0,streams=v id=1,streams=a\" "
-        elif index_v > 0 and index_a == 0:
-            dash_command += "\"id=0,streams=v\" "
-        elif index_v == 0 and index_a > 0:
-            dash_command += "\"id=0,streams=a\" "
-        else:
-            print("At least one Represetation must be provided to be DASHed")
-            sys.exit(1)
-
-        dash_command += "-format_options \"movflags=cmaf\" " + \
-                  "-seg_duration " + self.m_segment_duration + " " + \
-                  "-use_template 1 "
+    def dash_package_command(self, index_v, index_a, output_file):
+        dash_command = "-o " + output_file
+        dash_command += ":profile=live" + \
+                        ":cmaf=cmf2" + \
+                        ":segdur=" + self.m_segment_duration + \
+                        ":tpl" # segment template
         if self.m_segment_signaling == "timeline":
-            dash_command += "-use_timeline 1 "
-        else:
-            dash_command += "-use_timeline 0 "
+            dash_command += ":stl"
 
         if self.m_fragment_type == "duration":
-            dash_command += "-frag_type duration -frag_duration " + self.m_fragment_duration + " "
+            dash_command += ":cdur=" + self.m_fragment_duration
         elif self.m_fragment_type == "pframes":
-            dash_command += "-frag_type pframes" + " "
+            dash_command += ":cdur=" + str(int(self.m_fragment_duration) / 2)
         elif self.m_fragment_type == "every_frame":
-            dash_command += "-frag_type every_frame" + " "
+            dash_command += ":cdur=" + "0.1" #TODO once refactored: 1 / self.m_frame_rate
 
-        dash_command += "-f dash"
+        if index_v == 0 or index_a != 1:
+            print("Exactly one audio and at least one video Representations must be provided to be DASHed")
+            sys.exit(1)
+
+        dash_command += ":SID="
+        if index_a > 0:
+            dash_command += "A" + str(index_a - 1) + ","
+        for i in range(index_v):
+            dash_command += "V" + str(i)
+            if i + 1 != index_v:
+                dash_command += ","
 
         return dash_command
 
 
 # Encoding
-# ffmpeg command encoding portion for each track. Encoding is done based on the representation configuration given in
+# Encoding is done based on the representation configuration given in
 # the command line. The syntax for configuration for each Representation is as follows:
 #### rep_config = <config_parameter_1>:<config_parameter_value_1>,<config_parameter_2>:<config_parameter_value_2>,…
 # <config_parameter> can be:
@@ -271,8 +243,8 @@ class DASH:
 #### profile: codec profile (such as high, baseline, main, etc.)
 #### level: codec level (such as 32, 40, 42, etc.)
 #### color: color primary (1 for bt709, etc.)
-# The first six configuration parameters are mandatory to be provided. The rest can be filled according to the specified
-# cmaf profile. If the rest is also given, these will override the default values for the specified CMAF profile
+# The first six configuration parameters shall be provided. The rest can be filled according to the specified
+# cmaf profile. When optional parameters are present these will override the default values for the specified CMAF profile
 class Representation:
     m_id = None
     m_input = None
@@ -291,6 +263,7 @@ class Representation:
     m_color_primary = None
     m_sei = None
     m_vui_timing = None
+    m_max_duration = "60" #FIXME
 
     def __init__(self, representation_config):
         config = representation_config.split(",")
@@ -298,7 +271,6 @@ class Representation:
             config_opt = config[i].split(":")
             name = config_opt[0]
             value = config_opt[1]
-
             if name == "id":
                 self.m_id = value
             elif name == "input":
@@ -313,8 +285,9 @@ class Representation:
                 self.m_codec = value
             elif name == "vse":
                 if value != VisualSampleEntry.AVC1.value and value != VisualSampleEntry.AVC3.value and \
+                   value != VisualSampleEntry.AVC1p3.value and \
                    value != VisualSampleEntry.HEV1.value and value != VisualSampleEntry.HVC1.value:
-                    print("Supported video sample entries for AVC are \"avc1\" and \"avc3\" and"
+                    print("Supported video sample entries for AVC are \"avc1\", \"avc3\", \"avc1+3\" and"
                           " for HEVC \"hev1\" and \"hvc1\".")
                     sys.exit(1)
                 else:
@@ -392,59 +365,80 @@ class Representation:
 
     def form_command(self, index):
         input_file_command = "-i " + self.m_input
+        input_file_command += ":#ClampDur=" + self.m_max_duration + ":FID=" + "GEN" + self.m_id
+
         command = ""
-
         if self.m_media_type in ("v", "video"):
-            command += "-map " + index + ":v:0" + " " \
-                       "-c:v:" + index + " " + self.m_codec + " " + \
-                       "-b:v:" + index + " " + self.m_bitrate + "k " + \
-                       "-s:v:" + index + " " + self.m_resolution_w + "x" + self.m_resolution_h + " " + \
-                       "-r:v:" + index + " " + self.m_frame_rate + " " + \
-                       "-profile:v:" + index + " " + self.m_profile + " " + \
-                       "-color_primaries:v:" + index + " " + self.m_color_primary + " " + \
-                       "-color_trc:v:" + index + " " + self.m_color_primary + " " + \
-                       "-colorspace:v:" + index + " " + self.m_color_primary + " "
-            if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
-                command += "-vf:v:" + index + " " + "\"setsar=" + self.m_aspect_ratio_x + "/" + self.m_aspect_ratio_y + "\" "
+            # Resize
+            command += "ffsws:osize=" + self.m_resolution_w + "x" + self.m_resolution_h
+            command += ":SID=" + "GEN" + self.m_id
 
-            if self.m_video_sample_entry is not None:
-                command += "-tag:v:" + index + " " + self.m_video_sample_entry + " "
+            command += " @ "
+
+            command += "enc:gfloc" + \
+                       ":c=" + self.m_codec + \
+                       ":b=" + self.m_bitrate + "k" + \
+                       ":r=" + self.m_frame_rate + \
+                       ":fintra=" + "1" + \
+                       ":profile=" + self.m_profile + \
+                       ":color_primaries=" + self.m_color_primary + \
+                       ":color_trc=" + self.m_color_primary + \
+                       ":colorspace=" + self.m_color_primary
+
+            #TODO: factorize @bsrw calls
+            if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
+                command += " @ bsrw:setsar=" + self.m_aspect_ratio_x + "/" + self.m_aspect_ratio_y + ""
 
             if self.m_codec == VideoCodecOptions.AVC.value:
-                command += "-x264-params:v:" + index + " "
+                command += ":x264-params=\""
             elif self.m_codec == VideoCodecOptions.HEVC.value:
-                command += "-x265-params:v:" + index + " "
+                command += ":x265-params=\""
 
             command += "level=" + self.m_level + ":" \
                        "no-open-gop=1" + ":" \
                        "min-keyint=" + self.m_frame_rate + ":" \
                        "keyint=" + self.m_frame_rate + ":" \
-                       "scenecut=0"
+                       "scenecut=0\""
 
-            # SEI Type is 6 https://github.com/FFmpeg/FFmpeg/blob/a0ac49e38ee1d1011c394d7be67d0f08b2281526/libavcodec/h264.h#L40
             if self.m_sei == "False":
-                command += " -bsf:v 'filter_units=remove_types=6' "
+                command += " @ bsrw:rmsei"
             if self.m_vui_timing == "False":
-                command += " -bsf:v 'h264_metadata=tick_rate=0' "       
+                command += " @ bsrw:novsi"
+
+            command += ":FID=V" + index
 
         elif self.m_media_type in ("a", "audio"):
-            command += "-map " + index + ":a:0" + " " \
-                       "-c:a:" + index + " " + self.m_codec + " " + \
-                       "-b:a:" + index + " " + self.m_bitrate + "k"
+            command += "enc:gfloc" + \
+                       ":c=" + self.m_codec + \
+                       ":b=" + "128" + "k" #FIXME: self.m_bitrate
+
+            command += ":SID=" + "GEN" + "a"
+            command += ":FID=A" + index
+
+        #TODO: move: this is a video-only muxing option not an encoding option. Setting as global.
+        if self.m_video_sample_entry is not None:
+            if self.m_video_sample_entry == "avc1":
+                command += " --xps_inband=no"
+            elif self.m_video_sample_entry == "avc3":
+                command += " --xps_inband=all"
+            elif self.m_video_sample_entry == "avc1+3":
+                command += " --xps_inband=both"
+            else:
+                print("Supported video sample entries are \"avc1\", \"avc3\", and \"avc1+3\",.")
+                sys.exit(1)
 
         return [input_file_command, command]
 
 # Collect logs regarding the generated content. The collected logs are as follows:
 #### Content generation date and time,
-#### ffmpeg version,
-#### ffmpeg command that is run,
+#### Tool version and executed commands,
 #### this python script (encode_dash.py)
-def generate_log(ffmpeg_path, command):
+def generate_log(gpac_path, command):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     date = now.split(" ")[0]
     time = now.split(" ")[1]
 
-    result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
+    result = subprocess.run(gpac_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
 
     script = ""
     with open('encode_dash.py', mode='r', encoding='utf-8') as file:
@@ -456,7 +450,7 @@ def generate_log(ffmpeg_path, command):
     f.write("CTA Test Content Generation Log (Generated at: " + "'{0}' '{1}'".format(date, time) + ")\n\n\n\n")
 
     f.write("-----------------------------------\n")
-    f.write("FFmpeg Information:\n")
+    f.write("GPAC Information:\n")
     f.write("-----------------------------------\n")
     f.write("%s\n\n\n\n" % result.stdout.decode('ascii'))
 
@@ -466,7 +460,7 @@ def generate_log(ffmpeg_path, command):
     f.write("%s\n\n\n\n" % command)
 
     f.write("-----------------------------------\n")
-    f.write("Encode.py:\n")
+    f.write("encode_dash.py:\n")
     f.write("-----------------------------------\n")
     f.write("%s\n\n\n\n" % script)
     f.close()
@@ -474,11 +468,11 @@ def generate_log(ffmpeg_path, command):
 
 # Parse input arguments
 # Output MPD: --out="<desired_mpd_name>"
-# FFmpeg binary path: -–path="path/to/ffmpeg"
+# GPAC binary path: -–path="path/to/gpac"
 # Representation configuration: --reps="<rep1_config rep2_config … repN_config>"
 # DASHing configuration: --dash="<dash_config>"
 def parse_args(args):
-    ffmpeg_path = None
+    gpac_path = None
     output_file = None
     representations = None
     dashing = None
@@ -488,7 +482,7 @@ def parse_args(args):
             print('test.py -i <inputfile> -o <outputfile>')
             sys.exit()
         elif opt in ("-p", "--path"):
-            ffmpeg_path = arg
+            gpac_path = arg
         elif opt in ("-o", "--out"):
             output_file = arg
         elif opt in ("-r", "--reps"):
@@ -499,19 +493,19 @@ def parse_args(args):
             outDir = arg
 
     print(representations)
-    return [ffmpeg_path, output_file, representations, dashing, outDir]
+    return [gpac_path, output_file, representations, dashing, outDir]
 
 
 # Check if the input arguments are correctly given
 def assert_configuration(configuration):
-    ffmpeg_path = configuration[0]
+    gpac_path = configuration[0]
     output_file = configuration[1]
     representations = configuration[2]
     dashing = configuration[3]
     out_dir = configuration[4]
-    result = subprocess.run(ffmpeg_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
-    if "ffmpeg version" not in result.stdout.decode('ascii'):
-        print("ffmpeg binary is checked in the \"" + ffmpeg_path + "\" path, but not found.")
+    result = subprocess.run(gpac_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
+    if "gpac - GPAC command line filter engine - version" not in result.stderr.decode('ascii'):
+        print("gpac binary is checked in the \"" + gpac_path + "\" path, but not found.")
         sys.exit(1)
 
     if output_file is None:
@@ -540,7 +534,7 @@ if __name__ == "__main__":
     configuration = parse_args(arguments)
     assert_configuration(configuration)
 
-    ffmpeg_path = configuration[0]
+    gpac_path = configuration[0]
     output_file = configuration[1]
     representations = configuration[2]
     dash = configuration[3]
@@ -577,14 +571,13 @@ if __name__ == "__main__":
 
     # Prepare the DASH formatting
     dash_options = DASH(dash)
-    dash_package_command = dash_options.dash_package_command(index_v, index_a)
+    dash_package_command = dash_options.dash_package_command(index_v, index_a, output_file)
 
     # Run the command
-    command = ffmpeg_path + " " + \
+    command = gpac_path + " " + \
               input_command + " " + \
               encode_command + " " + \
-              dash_package_command + " " + \
-              output_file
+              dash_package_command
     print(command)
     subprocess.run(command, shell=True)
 
@@ -593,4 +586,4 @@ if __name__ == "__main__":
     content_model.process()
 
     # Save the log
-    generate_log(ffmpeg_path, command)
+    generate_log(gpac_path, command)
