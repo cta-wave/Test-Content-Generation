@@ -4,12 +4,24 @@
 
 This repository provides the information and scripts to generate the CTA Wave Test Content.
 
+#Romain: clean up the FTP
+
+#Conformance: ok
+#Mapping parameters ok
+#database = { } # Romain: contains single track only
+#Mapping of input/output with naming convention/wave web page: being done
+#Then pushing streams
+#Then encryption: document + https://github.com/cta-wave/dpctf-tests/issues/12   for i in $(find . -type d) ; do /opt/bin/gpac -i $i/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o $i-cenc/stream.mpd:pssh=mv ; done
+#Tests
+#=> date/checksums
+#Then we'll probably talk again
+
 The ```run-all.py``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
 TODO: continue to map input parameters. => csv
 TODO: rename uploaded content according to https://github.com/cta-wave/Test-Content-Generation/issues/22
 TODO: add a validation phase. Romain; map to issue
 
-The ```encode_dash.py```script is primarily about the usage of GPAC leveraging libavcodec with x264 and x265 to encode the content.
+The ```encode_dash.py``` script is primarily about the usage of GPAC leveraging libavcodec with x264 and x265 to encode the content.
 The intent is to keep the size of the post-processing as small as possible.
 TODO: split and rename script as it does several things at once.
 TODO: support encryption.
