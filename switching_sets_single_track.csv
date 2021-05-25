@@ -10,8 +10,6 @@ Stream ID,mezzanine prefix,pic timing,VUI timing,sample entry,CMAF frag dur,init
 15,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,single,pframes,1920x1080,0.5,4300
 16,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,regular,every_frame,1920x1080,0.5,4200
 17,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1920x1080,0.5,4100
-18,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1920x1080,0.5,4000
-19,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1920x1080,0.5,3900
 20,tos_L2_1920x1080@60_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1920x1080,1,6000
 21,tos_K1_1600x900@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1600x900,0.5,3000
 22,tos_J1_1280x720@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1280x720,0.5,2000
