@@ -23,7 +23,7 @@ with open('switching_sets_single_track.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     csv_line_index = 0
 
-    switching_set_X1_IDs = [ "20", "23", "24", "25", "28", "32", "34" ] # keep ordered
+    switching_set_X1_IDs = [ "1", "20", "23", "24", "25", "28", "32", "34" ] # keep ordered
     switching_set_X1_command = ""
     switching_set_X1_reps = []
 

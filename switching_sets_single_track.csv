@@ -1,4 +1,7 @@
 Stream ID,mezzanine prefix,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,resolution,framerate,bitrate
+1,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,regular,duration,1920x1080,0.5,5100
+2,tos_L1_1920x1080@30_60.mp4,FALSE,TRUE,avc3,single,pframes,1920x1080,0.5,5000
+3,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1+3,regular,every_frame,1920x1080,0.5,4900
 10,tos_L1_1920x1080@30_60.mp4,FALSE,FALSE,avc1+3,2,regular,duration,1920x1080,0.5,4800
 11,tos_L1_1920x1080@30_60.mp4,TRUE,TRUE,avc1,2,regular,duration,1920x1080,0.5,4100
 12,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1920x1080,0.5,4200
@@ -7,7 +10,7 @@ Stream ID,mezzanine prefix,pic timing,VUI timing,sample entry,CMAF frag dur,init
 15,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,single,pframes,1920x1080,0.5,4500
 16,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,regular,every_frame,1920x1080,0.5,4600
 17,tos_L1_1920x1080@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1920x1080,0.5,4700
-20,tos_L1_1920x1080@60_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1920x1080,1,6000
+20,tos_L2_1920x1080@60_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1920x1080,1,6000
 21,tos_K1_1600x900@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1600x900,0.5,3000
 22,tos_J1_1280x720@30_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1280x720,0.5,2000
 23,tos_J1_1280x720@60_60.mp4,TRUE,FALSE,avc1,2,regular,duration,1280x720,1,3000
