@@ -21,9 +21,17 @@ export AD_BASEURL=https://dash.akamaized.net/WAVE/vectors/$TID
 rm -rf $TID && \
 export CMD="$GPAC \
   -i $MAIN_CONTENT \
-    @ reframer:FID=GEN1:#ClampDur=9.6:xs=0,9.6::props=#PStart=0:#m=m1,#PStart=19.2:#m=m3 \
+    @ resample:osr=48k \
+    @1 ffsws:osize=1280x720 \
+    @ @1 reframer:#ClampDur=9.6:xs=0,9.6::props=#PStart=0:#m=m1,#PStart=19.2:#m=m3 \
+    @ enc:c=aac:FID=GEN1A \
+    @1 enc:c=avc:fintra=1.920:FID=GEN1V \
   -i $AD_CONTENT \
-    @ reframer:FID=GEN2:#ClampDur=9.6:xs=9.6:#PStart=9.6:#m=m2:#BUrl=$AD_BASEURL \
-  -o $TID/$MPD:segdur=1.920:stl:cmaf=cmf2:SID=GEN1,GEN2 --template=\$m\$_\$Type\$_\$Number\$"
+    @ resample:osr=48k \
+    @1 ffsws:osize=1280x720 \
+    @ @1 reframer:#ClampDur=9.6:xs=0:#PStart=9.6:#m=m2:#BUrl=$AD_BASEURL \
+    @ enc:c=aac:FID=GEN2A \
+    @1 enc:c=avc:fintra=1.920:FID=GEN2V \
+  -o $TID/$MPD:segdur=1.920:stl:cmaf=cmf2:SID=GEN1A,GEN1V,GEN2A,GEN2V --template=\$m\$_\$Type\$_\$Number\$"
 echo $CMD
 $CMD && code $TID/$MPD && ls -l $TID
