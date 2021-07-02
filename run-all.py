@@ -15,11 +15,17 @@ gpac_executable = "/opt/bin/gpac"
 input_content_folder = "content_files/"
 
 # Output parameters
-server_folder = '/129021/dash/WAVE/vectors/'
+server_root_folder = '/129021/dash/WAVE/vectors/'
+
+#TODO: fps multiples should be a parameter
+codec_family = "avc_sets"
+fps_family = "15_30_60"
+fps_base = 60
 
 # Web database
 database = { }
 database_filepath = './database.json'
+
 
 with open('switching_sets_single_track.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
@@ -29,10 +35,6 @@ with open('switching_sets_single_track.csv') as csv_file:
     switching_set_X1_command = ""
     switching_set_X1_reps = []
 
-    #TODO: fps multiples should be a parameter
-    codec_family = "avc_sets"
-    fps_family = "15_30_60"
-    fps_base = 60
     output_folder_base = "{0}/{1}".format(codec_family, fps_family)
     local_folder_base = "./output"
     local_output_folder = "{0}/{1}".format(local_folder_base, output_folder_base)
@@ -161,13 +163,13 @@ with pysftp.Connection(host=host, username=username, private_key=os.path.expandu
     print("Connection successfully established ... ")
 
     # Switch to a remote directory and put the data base
-    sftp.cwd(server_folder)
-    sftp.put(database_filepath, server_folder + database_filepath)
+    sftp.cwd(server_root_folder)
+    sftp.put(database_filepath, server_root_folder + database_filepath)
 
     # Create the directory structure if it does not exist
     for root, dirs, files in os.walk(local_output_folder, topdown=True):
         for name in dirs:
-            p =  os.path.join(root ,name).replace(local_output_folder, server_folder + output_folder_base)
+            p =  os.path.join(root ,name).replace(local_output_folder, server_root_folder + output_folder_base)
             if not sftp.isfile(p): 
                 print("Creating directory " + p)
                 sftp.mkdir(p, mode=644)
@@ -175,6 +177,6 @@ with pysftp.Connection(host=host, username=username, private_key=os.path.expandu
     # Put the files
     for root, dirs, files in os.walk(local_output_folder, topdown=True):
         for name in files:
-            dest = os.path.join(root ,name).replace(local_output_folder, server_folder + output_folder_base)
+            dest = os.path.join(root ,name).replace(local_output_folder, server_root_folder + output_folder_base)
             print("Upload file " + os.path.join(root ,name) + " to " + dest)
             sftp.put(os.path.join(root ,name), dest, callback=lambda x,y: print("{} transferred out of {}".format(x,y)))

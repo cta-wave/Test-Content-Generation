@@ -6,19 +6,22 @@ This repository provides the information and scripts to generate the CTA Wave Te
 
 The ```run-all.py``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
 
-The ```encode_dash.py``` script is primarily about the usage of GPAC leveraging libavcodec with x264 and x265 to encode the content.
+The ```encode_dash.py``` script is primarily about the usage of GPAC leveraging libavcodec with x264 and x265 to generate the CMAF content with some DASH annotations.
 The intent is to keep the size of the post-processing as small as possible.
 
 ## Workflow
 
 * Download mezzanine content from https://dash.akamaized.net/WAVE/Mezzanine/. To be done manually.
 * Encode mezzanine content:
-  * Encode to conform to CTA Proposed Test content
-  * Encode at least one option of source content according to media profile
-* Package (markup) the content with an MPD according to the CTA Content Model format
-  * NB: done manually right now, but could eventually an extension to GPAC to produce this
-* Upload the proposed test content to the CTA-WAVE server using SFTP
- * **Setup Web page** This documentation will be developed under this github repository. Md to a website.
+  * Encode to conform to CTA Proposed Test content.
+  * Encode at least one option of source content according to media profile.
+* Package (markup) the content with an MPD according to the CTA Content Model format.
+  * NB: done manually right now, but could eventually an extension to GPAC to produce this.
+* Encrypt the content in-place using GPAC encryption and manifest-forwarding capabilities.
+* Upload the proposed test content to the CTA-WAVE server using SFTP.
+* Update the Webpage: update ```database.json``` at https://github.com/cta-wave/Test-Content/blob/master/database.json.
+  * NB: the Web page code is at ttps://github.com/cta-wave/Test-Content/.
+  * NB: when the JSON format needs to be updated, open an issue at https://github.com/cta-wave/dpctf-deploy/issues/.
 * TODO: Validate that the content conforms to:
   * its own constraints and flags
   * CMAF
@@ -34,18 +37,9 @@ The intent is to keep the size of the post-processing as small as possible.
 ## How to generate the content
 
 * Modify run-all.py to:
-  * modify the [input files, framerates, resolutions, and bitrates)(switching_sets_single_track.csv) to match your own
-  * modify GPAC's path to use your own, you need to use GPAC 1.0.1 or above
-* Run ```./run-all.py```, and grab a cup of tea, or coffee
-
-## Encrypt the content
-
-This is done manually after generating the clear content:
-```
-for i in $(find . -type d) ; do /opt/bin/gpac -i $i/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o $i-cenc/stream.mpd:pssh=mv ; done
-```
-
-This means you also need to upload manually the [content table](http://dash.akamaized.net/WAVE/index.html) before uploading it.
+  * Modify the [executable locations, input and output files location, codec media profile, framerate family)(run-all.py) to match your own.
+  * Inspect the [input list)(switching_sets_single_track.csv).
+* Run ```./run-all.py```, and grab a cup of tea, or coffee.
 
 ## Validation
 
