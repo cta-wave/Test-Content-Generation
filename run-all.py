@@ -9,6 +9,8 @@ import pysftp
 
 dry_run = False
 
+gpac_executable = "/opt/bin/gpac"
+
 # TODO: should be sync'ed, cf Thomas Stockhammer's requests
 input_content_folder = "content_files/"
 
@@ -66,7 +68,7 @@ with open('switching_sets_single_track.csv') as csv_file:
         reps_command += "\|"
         reps_command += audio_command
 
-        # SS-X1: add the first available audio
+        # SS-X1: select the first available audio
         if csv_line_index == 2:
             switching_set_X1_command += "\|"
             switching_set_X1_command += audio_command
@@ -89,8 +91,20 @@ with open('switching_sets_single_track.csv') as csv_file:
         if dry_run == False:
             result = subprocess.run(command, shell=True)
 
-        # Create archive
+        # Create unencrypted archive
         command = "zip " + output_switching_set_folder + ".zip " + output_switching_set_folder + "/*"
+        print("Executing " + command + " (cwd=" + local_folder_base + ")")
+        if dry_run == False:
+            result = subprocess.run(command, shell=True, cwd=local_folder_base)
+
+        # CENC
+        command = gpac_executable + " -i " + output_switching_set_folder + "/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_switching_set_folder + "-cenc/stream.mpd:pssh=mv"
+        print("Executing " + command + " (cwd=" + local_folder_base + ")")
+        if dry_run == False:
+            result = subprocess.run(command, shell=True, cwd=local_folder_base)
+
+        # Create CENC archive
+        command = "zip " + output_switching_set_folder + "-cenc.zip " + output_switching_set_folder + "-cenc/*"
         print("Executing " + command + " (cwd=" + local_folder_base + ")")
         if dry_run == False:
             result = subprocess.run(command, shell=True, cwd=local_folder_base)
@@ -98,7 +112,7 @@ with open('switching_sets_single_track.csv') as csv_file:
 
     print("===== " + "Switching Set " + output_folder_base + "X1 =====")
     switching_set_X1_command = "--reps=" + switching_set_X1_command
-    command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0}/ss1 --dash=sd:2,ft:duration {1}".format(local_output_folder, switching_set_X1_command)
+    command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1}/ss1 --dash=sd:2,ft:duration {2}".format(gpac_executable, local_output_folder, switching_set_X1_command)
     print("Executing " + command)
     if dry_run == False:
         result = subprocess.run(command, shell=True)
@@ -115,8 +129,20 @@ with open('switching_sets_single_track.csv') as csv_file:
         'zipPath': '{0}/ss1.zip'.format(output_folder_base)
     }
 
-    # Create archive
+    # Create unencrypted archive
     command = "zip {0}/ss1.zip {0}/ss1/*".format(output_folder_base)
+    print("Executing " + command + " (cwd=" + local_folder_base + ")")
+    if dry_run == False:
+        result = subprocess.run(command, shell=True, cwd=local_folder_base)
+
+    # CENC
+    command = gpac_executable + " -i " + output_folder_base + "/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_folder_base + "-cenc/stream.mpd:pssh=mv"
+    print("Executing " + command + " (cwd=" + local_folder_base + ")")
+    if dry_run == False:
+        result = subprocess.run(command, shell=True, cwd=local_folder_base)
+
+    # Create CENC archive
+    command = "zip {0}/ss1-cenc.zip {0}/ss1-cenc/*".format(output_folder_base)
     print("Executing " + command + " (cwd=" + local_folder_base + ")")
     if dry_run == False:
         result = subprocess.run(command, shell=True, cwd=local_folder_base)
