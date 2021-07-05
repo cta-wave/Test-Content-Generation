@@ -38,6 +38,7 @@ The intent is to keep the size of the post-processing as small as possible.
 
 * Modify run-all.py to:
   * Modify the [executable locations, input and output files location, codec media profile, framerate family)(run-all.py) to match your own.
+  * Make sure the DRM.xml file is accessible from the output folder.
   * Inspect the [input list)(switching_sets_single_track.csv).
 * Run ```./run-all.py```, and grab a cup of tea, or coffee.
 
