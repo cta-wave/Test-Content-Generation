@@ -22,7 +22,7 @@ class InputContent:
         self.fps = fps
 
 inputs = [
-    #InputContent("tos",     "content_files/2021-06-10/", "avc_sets", "15_30_60",           60),
+    InputContent("tos",     "content_files/2021-06-10/", "avc_sets", "15_30_60",           60),
     InputContent("croatia", "content_files/2021-06-26/", "avc_sets", "12.5_25_50",         50),
     InputContent("tos",     "content_files/2021-06-25/", "avc_sets", "14.985_29.97_59.94", 60000/1001),
 ]
@@ -37,16 +37,16 @@ database_filepath = './database.json'
 
 
 # Generate CMAF content: encode, package, annotate, and encrypt
-with open('switching_sets_single_track.csv') as csv_file:
-    for input in inputs:
-        copyright_notice = ""
-        output_folder_base = "{0}/{1}".format(input.set, input.fps_family)
-        output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
+for input in inputs:
+    copyright_notice = ""
+    output_folder_base = "{0}/{1}".format(input.set, input.fps_family)
+    output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
 
-        switching_set_X1_IDs = [ "1", "20", "23", "24", "25", "28", "32", "34" ] # keep ordered
-        switching_set_X1_command = ""
-        switching_set_X1_reps = []
+    switching_set_X1_IDs = [ "1", "20", "23", "24", "25", "28", "32", "34" ] # keep ordered
+    switching_set_X1_command = ""
+    switching_set_X1_reps = []
 
+    with open('switching_sets_single_track.csv') as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         csv_line_index = 0
         for row in csv_reader:
@@ -118,55 +118,43 @@ with open('switching_sets_single_track.csv') as csv_file:
                 result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
             # CENC
-            command = gpac_executable + " -i " + output_switching_set_folder + "/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_switching_set_folder + "-cenc/stream.mpd:pssh=mv"
-            print("Executing " + command + " (cwd=" + local_output_folder + ")")
-            if dry_run == False:
-                result = subprocess.run(command, shell=True, cwd=local_output_folder)
+            if csv_line_index == 2:
+                command = gpac_executable + " -i " + output_switching_set_folder + "/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_switching_set_folder + "-cenc/stream.mpd:pssh=mv"
+                print("Executing " + command + " (cwd=" + local_output_folder + ")")
+                if dry_run == False:
+                    result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
-            # Create CENC archive
-            command = "zip " + output_switching_set_folder + "-cenc.zip " + output_switching_set_folder + "-cenc/*"
-            print("Executing " + command + " (cwd=" + local_output_folder + ")")
-            if dry_run == False:
-                result = subprocess.run(command, shell=True, cwd=local_output_folder)
+                # Create CENC archive
+                command = "zip " + output_switching_set_folder + "-cenc.zip " + output_switching_set_folder + "-cenc/*"
+                print("Executing " + command + " (cwd=" + local_output_folder + ")")
+                if dry_run == False:
+                    result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
+    #TODO: the Switching Set should not be regenerated but derived from the representations with a MPD construction (e.g. GPAC manifest writing from existing segments)
+    print("===== " + "Switching Set " + output_folder_base + "X1 =====")
+    switching_set_X1_command = "--reps=" + switching_set_X1_command
+    command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1}/ss1 --dash=sd:2,ft:duration --copyright='{2}' {3}".format(gpac_executable, output_folder_complete, copyright_notice, switching_set_X1_command)
+    print("Executing " + command)
+    if dry_run == False:
+        result = subprocess.run(command, shell=True)
 
-        #TODO: the Switching Set should not be regenerated but derived from the representations with a MPD construction (e.g. GPAC manifest writing from existing segments)
-        print("===== " + "Switching Set " + output_folder_base + "X1 =====")
-        switching_set_X1_command = "--reps=" + switching_set_X1_command
-        command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1}/ss1 --dash=sd:2,ft:duration --copyright='{2}' {3}".format(gpac_executable, output_folder_complete, copyright_notice, switching_set_X1_command)
-        print("Executing " + command)
-        if dry_run == False:
-            result = subprocess.run(command, shell=True)
+    # Web exposed information
+    database[output_folder_complete + "/ss1"] = {
+        'representations': switching_set_X1_reps,
+        'segmentDuration': row[5],
+        'fragmentType': row[7],
+        'hasSEI': row[2].lower() == 'true',
+        'hasVUITiming': row[3].lower() == 'true',
+        'visualSampleEntry': row[4],
+        'mpdPath': '{0}/ss1/stream.mpd'.format(output_folder_base),
+        'zipPath': '{0}/ss1.zip'.format(output_folder_base)
+    }
 
-        # Web exposed information
-        database[output_folder_complete + "/ss1"] = {
-            'representations': switching_set_X1_reps,
-            'segmentDuration': row[5],
-            'fragmentType': row[7],
-            'hasSEI': row[2].lower() == 'true',
-            'hasVUITiming': row[3].lower() == 'true',
-            'visualSampleEntry': row[4],
-            'mpdPath': '{0}/ss1/stream.mpd'.format(output_folder_base),
-            'zipPath': '{0}/ss1.zip'.format(output_folder_base)
-        }
-
-        # Create unencrypted archive
-        command = "zip {0}/ss1.zip {0}/ss1/*".format(output_folder_base)
-        print("Executing " + command + " (cwd=" + local_output_folder + ")")
-        if dry_run == False:
-            result = subprocess.run(command, shell=True, cwd=local_output_folder)
-
-        # CENC
-        command = gpac_executable + " -i " + output_folder_base + "/ss1/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_folder_base + "/ss1-cenc/stream.mpd:pssh=mv"
-        print("Executing " + command + " (cwd=" + local_output_folder + ")")
-        if dry_run == False:
-            result = subprocess.run(command, shell=True, cwd=local_output_folder)
-
-        # Create CENC archive
-        command = "zip {0}/ss1-cenc.zip {0}/ss1-cenc/*".format(output_folder_base)
-        print("Executing " + command + " (cwd=" + local_output_folder + ")")
-        if dry_run == False:
-            result = subprocess.run(command, shell=True, cwd=local_output_folder)
+    # Create unencrypted archive
+    command = "zip {0}/ss1.zip {0}/ss1/*".format(output_folder_base)
+    print("Executing " + command + " (cwd=" + local_output_folder + ")")
+    if dry_run == False:
+        result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
 
 # Write Web exposed information
