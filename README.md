@@ -20,7 +20,7 @@ The intent is to keep the size of the post-processing as small as possible.
 * Encrypt the content in-place using GPAC encryption and manifest-forwarding capabilities.
 * Upload the proposed test content to the CTA-WAVE server using SFTP.
 * Update the Webpage: update ```database.json``` at https://github.com/cta-wave/Test-Content/blob/master/database.json.
-  * NB: the Web page code is at ttps://github.com/cta-wave/Test-Content/.
+  * NB: the Web page code is at https://github.com/cta-wave/Test-Content/.
   * NB: when the JSON format needs to be updated, open an issue at https://github.com/cta-wave/dpctf-deploy/issues/.
 * TODO: Validate that the content conforms to:
   * its own constraints and flags

@@ -29,7 +29,7 @@ inputs = [
 
 # Output parameters
 local_output_folder = "./output"
-server_output_folder = '/129021/dash/WAVE/vectors/2021-07-02/'
+server_output_folder = '/129021/dash/WAVE/vectors/2021-07-05/'
 
 # Web database to be exported
 database = { }
@@ -117,12 +117,24 @@ for input in inputs:
             if dry_run == False:
                 result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
-            # CENC
             if csv_line_index == 2:
+                # CENC
                 command = gpac_executable + " -i " + output_switching_set_folder + "/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_switching_set_folder + "-cenc/stream.mpd:pssh=mv"
                 print("Executing " + command + " (cwd=" + local_output_folder + ")")
                 if dry_run == False:
                     result = subprocess.run(command, shell=True, cwd=local_output_folder)
+
+                # Web exposed information
+                database[switching_set_folder] = {
+                    'representations': reps,
+                    'segmentDuration': row[5],
+                    'fragmentType': row[7],
+                    'hasSEI': row[2].lower() == 'true',
+                    'hasVUITiming': row[3].lower() == 'true',
+                    'visualSampleEntry': row[4],
+                    'mpdPath': '{0}-cenc/stream.mpd'.format(output_switching_set_folder),
+                    'zipPath': '{0}-cenc.zip'.format(output_switching_set_folder)
+                }
 
                 # Create CENC archive
                 command = "zip " + output_switching_set_folder + "-cenc.zip " + output_switching_set_folder + "-cenc/*"
