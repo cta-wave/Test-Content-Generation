@@ -10,6 +10,8 @@ from fractions import Fraction
 # NB: dry_run generates the json database
 dry_run = False
 
+batch_folder = "2021-07-05/"
+
 gpac_executable = "/opt/bin/gpac"
 
 # TODO: should be sync'ed, cf Thomas Stockhammer's requests
@@ -33,10 +35,13 @@ framerates = [12.5, 25, 50, 15, 30, 60, 14.985, 29.97, 59.94]
 
 # Output parameters
 local_output_folder = "./output"
-server_output_folder = '/129021/dash/WAVE/vectors/2021-07-05/'
+server_output_folder = "/129021/dash/WAVE/vectors/" + batch_folder
 
 # Web database to be exported
+server_access_url = "https://dash.akamaized.net/WAVE/vectors/" + batch_folder
 database = { }
+database["CFHD"] = { }
+database["CENC"] = { }
 database_filepath = './database.json'
 
 
@@ -61,6 +66,7 @@ for input in inputs:
             switching_set_folder_suffix = "{0}{1}".format("t", row[0])
             switching_set_folder = "{0}/{1}".format(output_folder_complete, switching_set_folder_suffix)
             output_switching_set_folder = "{0}/{1}".format(output_folder_base, switching_set_folder_suffix)
+            server_switching_set_access_url = server_access_url + output_switching_set_folder
             print("===== Processing single track Switching Set " + switching_set_folder + " =====")
 
             # 0: Stream ID, 1: mezzanine radius, 2: pic timing, 3: VUI timing, 4: sample entry,
@@ -100,15 +106,15 @@ for input in inputs:
                 switching_set_X1_command += audio_command
 
             # Web exposed information
-            database[switching_set_folder] = {
+            database["CFHD"][output_switching_set_folder] = {
                 'representations': reps,
                 'segmentDuration': str(seg_dur),
                 'fragmentType': row[7],
                 'hasSEI': row[2].lower() == 'true',
                 'hasVUITiming': row[3].lower() == 'true',
                 'visualSampleEntry': row[4],
-                'mpdPath': '{0}/stream.mpd'.format(output_switching_set_folder),
-                'zipPath': '{0}.zip'.format(output_switching_set_folder)
+                'mpdPath': '{0}/stream.mpd'.format(server_switching_set_access_url),
+                'zipPath': '{0}.zip'.format(server_switching_set_access_url)
             }
 
             # Extract copyright
@@ -137,15 +143,15 @@ for input in inputs:
                     result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
                 # Web exposed information
-                database[switching_set_folder] = {
+                database["CENC"][output_switching_set_folder + "-cenc"] = {
                     'representations': reps,
                     'segmentDuration': str(seg_dur),
                     'fragmentType': row[7],
                     'hasSEI': row[2].lower() == 'true',
                     'hasVUITiming': row[3].lower() == 'true',
                     'visualSampleEntry': row[4],
-                    'mpdPath': '{0}-cenc/stream.mpd'.format(output_switching_set_folder),
-                    'zipPath': '{0}-cenc.zip'.format(output_switching_set_folder)
+                    'mpdPath': '{0}-cenc/stream.mpd'.format(server_switching_set_access_url),
+                    'zipPath': '{0}-cenc.zip'.format(server_switching_set_access_url)
                 }
 
                 # Create CENC archive
@@ -164,15 +170,15 @@ for input in inputs:
         result = subprocess.run(command, shell=True)
 
     # Web exposed information
-    database[output_folder_complete + "/ss1"] = {
+    database["CFHD"][output_folder_base + "/ss1"] = {
         'representations': switching_set_X1_reps,
         'segmentDuration': str(switching_set_X1_seg_dur),
         'fragmentType': row[7],
         'hasSEI': row[2].lower() == 'true',
         'hasVUITiming': row[3].lower() == 'true',
         'visualSampleEntry': row[4],
-        'mpdPath': '{0}/ss1/stream.mpd'.format(output_folder_base),
-        'zipPath': '{0}/ss1.zip'.format(output_folder_base)
+        'mpdPath': '{0}/ss1/stream.mpd'.format(server_access_url + output_folder_base),
+        'zipPath': '{0}/ss1.zip'.format(server_access_url + output_folder_base)
     }
 
     # Create unencrypted archive
