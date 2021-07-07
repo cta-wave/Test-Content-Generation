@@ -10,7 +10,7 @@ from fractions import Fraction
 # NB: dry_run generates the json database
 dry_run = False
 
-batch_folder = "2021-07-05/"
+batch_folder = "2021-07-07/"
 
 gpac_executable = "/opt/bin/gpac"
 
@@ -81,7 +81,7 @@ for input in inputs:
             codec="h264"
             cmaf_profile="avchdhf"
             reps_command = "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4}/{5},res:{6},bitrate:{7},input:{8},sei:{9},vui_timing:{10},sd:{11}"\
-                .format(row[0], codec, row[4], cmaf_profile, float(row[9])*input.fps.numerator, input.fps.denominator, row[8], row[10],
+                .format(row[0], codec, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
                         input.root_folder + input_filename, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
 
             # SS-X1
@@ -122,7 +122,7 @@ for input in inputs:
                  data = annotations.read()
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
 
-            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},ft:{2},fr:{3} --copyright='{4}' {5}"\
+            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' {5}"\
                 .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, reps_command)
             print("Executing " + command)
             if dry_run == False:
