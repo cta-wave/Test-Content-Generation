@@ -8,6 +8,7 @@ from datetime import datetime
 import struct
 from xml.dom.minidom import parse
 import xml.dom.minidom
+from fractions import Fraction
 
 
 # Content Model
@@ -168,6 +169,7 @@ class DASH:
     m_segment_signaling = "timeline"
     m_fragment_type = "duration"
     m_fragment_duration = "2"
+    m_frame_rate = None
 
     def __init__(self, dash_config=None):
         if dash_config is not None:
@@ -194,6 +196,8 @@ class DASH:
                         self.m_fragment_type = value
                 elif name == "fd":
                     self.m_fragment_duration = value
+                elif name == "fr":
+                    self.m_frame_rate = value
 
     def dash_package_command(self, index_v, index_a, output_file):
         dash_command = "-o " + output_file
@@ -207,9 +211,11 @@ class DASH:
         if self.m_fragment_type == "duration":
             dash_command += ":cdur=" + self.m_fragment_duration
         elif self.m_fragment_type == "pframes":
-            dash_command += ":cdur=" + str(int(self.m_fragment_duration) / 2)
+            frag_dur = Fraction(self.m_fragment_duration) / 2
+            dash_command += ":cdur=" + str(frag_dur)
         elif self.m_fragment_type == "every_frame":
-            dash_command += ":cdur=" + "0.1" #TODO once refactored: 1 / self.m_frame_rate
+            frag_dur = Fraction(Fraction(self.m_frame_rate).denominator, Fraction(self.m_frame_rate).numerator)
+            dash_command += ":cdur=" + str(frag_dur)
 
         if index_v == 0 or index_a != 1:
             print("Exactly one audio and at least one video Representations must be provided to be DASHed")
@@ -263,6 +269,7 @@ class Representation:
     m_color_primary = None
     m_sei = None
     m_vui_timing = None
+    m_segment_duration = None
     m_max_duration = "60" #FIXME
 
     def __init__(self, representation_config):
@@ -352,6 +359,8 @@ class Representation:
                 self.m_sei = value
             elif name == "vui_timing":
                 self.m_vui_timing = value
+            elif name == "sd":
+                self.m_segment_duration = value
             else:
                 print("Unknown configuration option for representation: " + name + " , it will be ignored.")
 
@@ -379,7 +388,7 @@ class Representation:
                        ":c=" + self.m_codec + \
                        ":b=" + self.m_bitrate + "k" + \
                        ":r=" + self.m_frame_rate + \
-                       ":fintra=" + "1" + \
+                       ":fintra=" + self.m_segment_duration + \
                        ":profile=" + self.m_profile + \
                        ":color_primaries=" + self.m_color_primary + \
                        ":color_trc=" + self.m_color_primary + \
@@ -396,8 +405,6 @@ class Representation:
 
             command += "level=" + self.m_level + ":" \
                        "no-open-gop=1" + ":" \
-                       "min-keyint=" + self.m_frame_rate + ":" \
-                       "keyint=" + self.m_frame_rate + ":" \
                        "scenecut=0\""
 
             if self.m_sei == "False":

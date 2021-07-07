@@ -5,14 +5,15 @@ import csv
 import os.path
 import json
 import pysftp
+from fractions import Fraction
 
+# NB: dry_run generates the json database
 dry_run = False
 
 gpac_executable = "/opt/bin/gpac"
 
 # TODO: should be sync'ed, cf Thomas Stockhammer's requests
 # Mezzanine characteristics:
-framerates = [12.5, 25, 50, 15, 30, 60, 14.985, 29.97, 59.94]
 class InputContent:
     def __init__(self, content, root_folder, set, fps_family, fps):
         self.content = content
@@ -22,10 +23,13 @@ class InputContent:
         self.fps = fps
 
 inputs = [
-    InputContent("tos",     "content_files/2021-06-10/", "avc_sets", "15_30_60",           60),
-    InputContent("croatia", "content_files/2021-06-26/", "avc_sets", "12.5_25_50",         50),
-    InputContent("tos",     "content_files/2021-06-25/", "avc_sets", "14.985_29.97_59.94", 60000/1001),
+    InputContent("tos",     "content_files/2021-06-10/", "avc_sets", "15_30_60",           Fraction(60)),
+    InputContent("croatia", "content_files/2021-06-26/", "avc_sets", "12.5_25_50",         Fraction(50)),
+    InputContent("tos",     "content_files/2021-06-25/", "avc_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
 ]
+
+# Used for folder names only
+framerates = [12.5, 25, 50, 15, 30, 60, 14.985, 29.97, 59.94]
 
 # Output parameters
 local_output_folder = "./output"
@@ -61,13 +65,18 @@ for input in inputs:
 
             # 0: Stream ID, 1: mezzanine radius, 2: pic timing, 3: VUI timing, 4: sample entry,
             # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate, 10: bitrate
-            input_basename = "{0}_{1}@{2}_60".format(input.content, row[1], min(framerates, key=lambda x:abs(x-float(row[9])*input.fps)))
+            fps = min(framerates, key=lambda x:abs(x-float(row[9])*input.fps))
+            input_basename = "{0}_{1}@{2}_60".format(input.content, row[1], fps)
             input_filename = input_basename + ".mp4"
-            reps = [{"resolution": row[8], "framerate": float(row[9])*input.fps, "bitrate": row[10], "input": input_filename}]
+            seg_dur = Fraction(row[5])
+            if input.fps.denominator == 1001:
+                seg_dur = Fraction(row[5]) * Fraction(1001, 1000)
+            reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
             codec="h264"
             cmaf_profile="avchdhf"
-            reps_command = "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4},res:{5},bitrate:{6},input:{7},sei:{8},vui_timing:{9}"\
-                .format(row[0], codec, row[4], cmaf_profile, float(row[9])*input.fps, row[8], row[10], input.root_folder + input_filename, row[2].capitalize(), row[3].capitalize())
+            reps_command = "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4}/{5},res:{6},bitrate:{7},input:{8},sei:{9},vui_timing:{10},sd:{11}"\
+                .format(row[0], codec, row[4], cmaf_profile, float(row[9])*input.fps.numerator, input.fps.denominator, row[8], row[10],
+                        input.root_folder + input_filename, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
 
             # SS-X1
             if row[0] in switching_set_X1_IDs:
@@ -75,6 +84,7 @@ for input in inputs:
                     switching_set_X1_command += "\|"
                 switching_set_X1_command += reps_command
                 switching_set_X1_reps += reps
+                switching_set_X1_seg_dur = seg_dur
 
             # Add audio
             audio_command = "id:{0},type:audio,codec:aac,bitrate:{1},input:{2}"\
@@ -92,7 +102,7 @@ for input in inputs:
             # Web exposed information
             database[switching_set_folder] = {
                 'representations': reps,
-                'segmentDuration': row[5],
+                'segmentDuration': str(seg_dur),
                 'fragmentType': row[7],
                 'hasSEI': row[2].lower() == 'true',
                 'hasVUITiming': row[3].lower() == 'true',
@@ -106,7 +116,8 @@ for input in inputs:
                  data = annotations.read()
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
 
-            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},ft:{2} --copyright='{3}' {4}".format(switching_set_folder, row[5], row[7], copyright_notice, reps_command)
+            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},ft:{2},fr:{3} --copyright='{4}' {5}"\
+                .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, reps_command)
             print("Executing " + command)
             if dry_run == False:
                 result = subprocess.run(command, shell=True)
@@ -117,6 +128,7 @@ for input in inputs:
             if dry_run == False:
                 result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
+            # Special case for first encoding: create side streams
             if csv_line_index == 2:
                 # CENC
                 command = gpac_executable + " -i " + output_switching_set_folder + "/stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_switching_set_folder + "-cenc/stream.mpd:pssh=mv"
@@ -127,7 +139,7 @@ for input in inputs:
                 # Web exposed information
                 database[switching_set_folder] = {
                     'representations': reps,
-                    'segmentDuration': row[5],
+                    'segmentDuration': str(seg_dur),
                     'fragmentType': row[7],
                     'hasSEI': row[2].lower() == 'true',
                     'hasVUITiming': row[3].lower() == 'true',
@@ -145,7 +157,8 @@ for input in inputs:
     #TODO: the Switching Set should not be regenerated but derived from the representations with a MPD construction (e.g. GPAC manifest writing from existing segments)
     print("===== " + "Switching Set " + output_folder_base + "X1 =====")
     switching_set_X1_command = "--reps=" + switching_set_X1_command
-    command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1}/ss1 --dash=sd:2,ft:duration --copyright='{2}' {3}".format(gpac_executable, output_folder_complete, copyright_notice, switching_set_X1_command)
+    command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1}/ss1 --dash=sd:{2},ft:duration --copyright='{3}' {4}"\
+        .format(gpac_executable, output_folder_complete, switching_set_X1_seg_dur, copyright_notice, switching_set_X1_command)
     print("Executing " + command)
     if dry_run == False:
         result = subprocess.run(command, shell=True)
@@ -153,7 +166,7 @@ for input in inputs:
     # Web exposed information
     database[output_folder_complete + "/ss1"] = {
         'representations': switching_set_X1_reps,
-        'segmentDuration': row[5],
+        'segmentDuration': str(switching_set_X1_seg_dur),
         'fragmentType': row[7],
         'hasSEI': row[2].lower() == 'true',
         'hasVUITiming': row[3].lower() == 'true',
