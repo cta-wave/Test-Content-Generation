@@ -6,7 +6,7 @@ This repository provides the information and scripts to generate the CTA Wave Te
 
 The ```run-all.py``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
 
-The ```encode_dash.py``` script is primarily about the usage of GPAC leveraging libavcodec with x264 and x265 to generate the CMAF content with some DASH annotations.
+The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gpac.io) leveraging libavcodec with x264 and x265 to generate the CMAF content with some DASH annotations.
 The intent is to keep the size of the post-processing as small as possible.
 
 ## Workflow
@@ -16,8 +16,8 @@ The intent is to keep the size of the post-processing as small as possible.
   * Encode to conform to CTA Proposed Test content.
   * Encode at least one option of source content according to media profile.
 * Package (markup) the content with an MPD according to the CTA Content Model format.
-  * NB: done manually right now, but could eventually an extension to GPAC to produce this.
-* Encrypt the content in-place using GPAC encryption and manifest-forwarding capabilities.
+  * NB: done manually right now, but could eventually an extension to [GPAC](http://gpac.io) to produce this.
+* Encrypt the content in-place using [GPAC](http://gpac.io) encryption and manifest-forwarding capabilities.
 * Upload the proposed test content to the CTA-WAVE server using SFTP.
 * Update the Webpage: update ```database.json``` at https://github.com/cta-wave/Test-Content/blob/master/database.json.
   * NB: the Web page code is at https://github.com/cta-wave/Test-Content/.
@@ -37,9 +37,9 @@ The intent is to keep the size of the post-processing as small as possible.
 ## How to generate the content
 
 * Modify run-all.py to:
-  * Modify the [executable locations, input and output files location, codec media profile, framerate family)(run-all.py) to match your own.
+  * Modify the [executable locations, input and output files location, codec media profile, framerate family](run-all.py) to match your own.
   * Make sure the DRM.xml file is accessible from the output folder.
-  * Inspect the [input list)(switching_sets_single_track.csv).
+  * Inspect the [input list](switching_sets_single_track.csv).
 * Run ```./run-all.py```, and grab a cup of tea, or coffee.
 
 ## Validation
