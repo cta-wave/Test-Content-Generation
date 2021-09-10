@@ -10,7 +10,8 @@ from fractions import Fraction
 # NB: dry_run generates the json database
 dry_run = False
 
-batch_folder = "2021-07-07/"
+# Current run:
+batch_folder = "2021-09-09/" # uses mezzanine v2
 
 gpac_executable = "/opt/bin/gpac"
 
@@ -25,9 +26,9 @@ class InputContent:
         self.fps = fps
 
 inputs = [
-    InputContent("tos",     "content_files/2021-06-10/", "avc_sets", "15_30_60",           Fraction(60)),
-    InputContent("croatia", "content_files/2021-06-26/", "avc_sets", "12.5_25_50",         Fraction(50)),
-    InputContent("tos",     "content_files/2021-06-25/", "avc_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
+    InputContent("croatia", "content_files/2021-09-09/", "avc_sets", "12.5_25_50",         Fraction(50)),
+    InputContent("tos",     "content_files/2021-09-09/", "avc_sets", "15_30_60",           Fraction(60)),
+    InputContent("tos",     "content_files/2021-09-09/", "avc_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
 ]
 
 # Used for folder names only
