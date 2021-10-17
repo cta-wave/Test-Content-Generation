@@ -125,6 +125,7 @@ class VideoCodecOptions(Enum):
 
 class AudioCodecOptions(Enum):
     AAC = "aac"
+    COPY = "copy"
 
 
 # Supported visual sample entries
@@ -240,7 +241,7 @@ class DASH:
 #### id: Representation ID
 #### type: Media type. Can be “v” or “video” for video media and “a” or “audio” for audio media type
 #### input: Input file name. The media type mentioned in “type” will be extracted from this input file for the Representation
-#### codec: codec value for the media. Can be “h264”, “h265” or “aac”
+#### codec: codec value for the media. Can be “h264”, “h265”, “aac”, or "copy" to disable transcoding.
 #### bitrate: encoding bitrate for the media in kbits/s
 #### cmaf: cmaf profile that is desired. Supported ones are avcsd, avchd, avchdhf (taken from 23000-19 A.1)
 #### res: resolution width and resolution height provided as “wxh”
@@ -278,6 +279,7 @@ class Representation:
             config_opt = config[i].split(":")
             name = config_opt[0]
             value = config_opt[1]
+
             if name == "id":
                 self.m_id = value
             elif name == "input":
@@ -285,9 +287,10 @@ class Representation:
             elif name == "type":
                 self.m_media_type = value
             elif name == "codec":
-                if value != VideoCodecOptions.AVC.value and value != VideoCodecOptions.HEVC.value and value != AudioCodecOptions.AAC.value:
-                    print("Supported codecs are AVC denoted by \"h264\" and HEVC denoted by \"h265\" for video and"
-                          "AAC denoted by \"aac\".")
+                if value != VideoCodecOptions.AVC.value and value != VideoCodecOptions.HEVC.value \
+                   and value != AudioCodecOptions.AAC.value and value != AudioCodecOptions.COPY.value:
+                    print("Supported codecs are AVC denoted by \"h264\" and HEVC denoted by \"h265\" for video, and "
+                          "AAC denoted by \"aac\" or the special value \"copy\" disables the audio transcoding.")
                     sys.exit(1)
                 self.m_codec = value
             elif name == "vse":
@@ -373,7 +376,7 @@ class Representation:
             sys.exit(1)
 
     def form_command(self, index):
-        input_file_command = "-i " + self.m_input
+        input_file_command = "-i \"" + self.m_input + "\""
         input_file_command += ":#ClampDur=" + self.m_max_duration + ":FID=" + "GEN" + self.m_id
 
         command = ""
@@ -383,16 +386,15 @@ class Representation:
             command += ":SID=" + "GEN" + self.m_id
 
             command += " @ "
-
-            command += "enc:gfloc" + \
-                       ":c=" + self.m_codec + \
-                       ":b=" + self.m_bitrate + "k" + \
-                       ":r=" + self.m_frame_rate + \
-                       ":fintra=" + self.m_segment_duration + \
-                       ":profile=" + self.m_profile + \
-                       ":color_primaries=" + self.m_color_primary + \
-                       ":color_trc=" + self.m_color_primary + \
-                       ":colorspace=" + self.m_color_primary
+            command += "enc:gfloc"
+            command += ":c=" + self.m_codec
+            command += ":b=" + self.m_bitrate + "k"
+            command += ":r=" + self.m_frame_rate
+            command += ":fintra=" + self.m_segment_duration
+            command += ":profile=" + self.m_profile
+            command += ":color_primaries=" + self.m_color_primary
+            command += ":color_trc=" + self.m_color_primary
+            command += ":colorspace=" + self.m_color_primary
 
             #TODO: factorize @bsrw calls
             if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
@@ -415,12 +417,15 @@ class Representation:
             command += ":FID=V" + index
 
         elif self.m_media_type in ("a", "audio"):
-            command += "enc:gfloc" + \
-                       ":c=" + self.m_codec + \
-                       ":b=" + "128" + "k" #FIXME: self.m_bitrate
+            if self.m_codec != "copy":
+                command += "enc:gfloc" + \
+                        ":c=" + self.m_codec + \
+                        ":b=" + "128" + "k" #FIXME: self.m_bitrate
 
-            command += ":SID=" + "GEN" + "a"
-            command += ":FID=A" + index
+                command += ":SID=" + "GEN" + "a"
+                command += ":FID=A" + index
+            else:
+                input_file_command += ":FID=A" + index
 
         #TODO: move: this is a video-only muxing option not an encoding option. Setting as global.
         if self.m_video_sample_entry is not None:

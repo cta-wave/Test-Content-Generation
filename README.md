@@ -15,6 +15,7 @@ The intent is to keep the size of the post-processing as small as possible.
 * Encode mezzanine content:
   * Encode to conform to CTA Proposed Test content.
   * Encode at least one option of source content according to media profile.
+  * Special codec value "copy" to bypass the encoding. Not exposed in the CSV at the moment.
 * Package (markup) the content with an MPD according to the CTA Content Model format.
   * NB: done manually right now, but could eventually an extension to [GPAC](http://gpac.io) to produce this.
 * Encrypt the content in-place using [GPAC](http://gpac.io) encryption and manifest-forwarding capabilities.

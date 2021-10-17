@@ -15,6 +15,8 @@ batch_folder = "2021-09-09/" # uses mezzanine v2
 
 gpac_executable = "/opt/bin/gpac"
 
+dts_profile = "dtse"
+
 # TODO: should be sync'ed, cf Thomas Stockhammer's requests
 # Mezzanine characteristics:
 class InputContent:
@@ -32,7 +34,7 @@ inputs = [
 ]
 
 # Used for folder names only
-framerates = [12.5, 25, 50, 15, 30, 60, 14.985, 29.97, 59.94]
+framerates = [12.5, 25, 50, 15, 30, 60, 14.985, 29.97, 59.94, 23.976]
 
 # Output parameters
 local_output_folder = "./output"
@@ -79,11 +81,12 @@ for input in inputs:
             if input.fps.denominator == 1001:
                 seg_dur = Fraction(row[5]) * Fraction(1001, 1000)
             reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
-            codec="h264"
+            codec_v="h264"
             cmaf_profile="avchdhf"
-            reps_command = "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4}/{5},res:{6},bitrate:{7},input:{8},sei:{9},vui_timing:{10},sd:{11}"\
-                .format(row[0], codec, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
-                        input.root_folder + input_filename, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
+            filename_v=input.root_folder + input_filename
+            reps_command = "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4}/{5},res:{6},bitrate:{7},input:\"{8}\",sei:{9},vui_timing:{10},sd:{11}"\
+                .format(row[0], codec_v, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
+                        filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
 
             # SS-X1
             if row[0] in switching_set_X1_IDs:
@@ -94,8 +97,10 @@ for input in inputs:
                 switching_set_X1_seg_dur = seg_dur
 
             # Add audio
-            audio_command = "id:{0},type:audio,codec:aac,bitrate:{1},input:{2}"\
-                .format("a", "128k", input.root_folder + input_filename)
+            codec_a="aac"
+            filename_a=input.root_folder + input_filename
+            audio_command = "id:{0},type:audio,codec:{1},bitrate:{2},input:\"{3}\""\
+                .format("a", codec_a, "128k", filename_a)
             reps_command += "\|"
             reps_command += audio_command
 
@@ -119,7 +124,8 @@ for input in inputs:
             }
 
             # Extract copyright
-            with open(input.root_folder + input_basename + ".json", 'r') as annotations:
+            annotation_filename = input.root_folder + input_basename + ".json"
+            with open(annotation_filename, 'r') as annotations:
                  data = annotations.read()
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
 
