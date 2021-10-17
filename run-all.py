@@ -28,9 +28,10 @@ class InputContent:
         self.fps = fps
 
 inputs = [
-    InputContent("croatia", "content_files/2021-09-09/", "avc_sets", "12.5_25_50",         Fraction(50)),
-    InputContent("tos",     "content_files/2021-09-09/", "avc_sets", "15_30_60",           Fraction(60)),
-    InputContent("tos",     "content_files/2021-09-09/", "avc_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
+    #InputContent("croatia", "content_files/2021-09-09/", "avc_sets", "12.5_25_50",         Fraction(50)),
+    #InputContent("tos",     "content_files/2021-09-09/", "avc_sets", "15_30_60",           Fraction(60)),
+    #InputContent("tos",     "content_files/2021-09-09/", "avc_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
+    InputContent("tos",     "content_files/dts/fixed/", "dts_sets/" + dts_profile, "23.976", Fraction(24000, 1001)),
 ]
 
 # Used for folder names only
@@ -75,7 +76,8 @@ for input in inputs:
             # 0: Stream ID, 1: mezzanine radius, 2: pic timing, 3: VUI timing, 4: sample entry,
             # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate, 10: bitrate
             fps = min(framerates, key=lambda x:abs(x-float(row[9])*input.fps))
-            input_basename = "{0}_{1}@{2}_60".format(input.content, row[1], fps)
+            #Romain: input_basename = "{0}_{1}@{2}_60".format(input.content, row[1], fps)
+            input_basename = dts_profile
             input_filename = input_basename + ".mp4"
             seg_dur = Fraction(row[5])
             if input.fps.denominator == 1001:
@@ -83,7 +85,8 @@ for input in inputs:
             reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
             codec_v="h264"
             cmaf_profile="avchdhf"
-            filename_v=input.root_folder + input_filename
+            #Romain: filename_v=input.root_folder + input_filename
+            filename_v="/home/rbouqueau/works/dts/202106_cta-wave/CMAF Assets/Transient_UHD_SDR_422HQ_Stereo.mov"
             reps_command = "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4}/{5},res:{6},bitrate:{7},input:\"{8}\",sei:{9},vui_timing:{10},sd:{11}"\
                 .format(row[0], codec_v, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
                         filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
@@ -97,7 +100,8 @@ for input in inputs:
                 switching_set_X1_seg_dur = seg_dur
 
             # Add audio
-            codec_a="aac"
+            #Romain: codec_a="aac"
+            codec_a="copy"
             filename_a=input.root_folder + input_filename
             audio_command = "id:{0},type:audio,codec:{1},bitrate:{2},input:\"{3}\""\
                 .format("a", codec_a, "128k", filename_a)
@@ -124,7 +128,8 @@ for input in inputs:
             }
 
             # Extract copyright
-            annotation_filename = input.root_folder + input_basename + ".json"
+            #Romain: annotation_filename = input.root_folder + input_basename + ".json"
+            annotation_filename = filename_v + ".json"
             with open(annotation_filename, 'r') as annotations:
                  data = annotations.read()
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
@@ -198,6 +203,9 @@ for input in inputs:
 # Write Web exposed information
 with open(database_filepath, 'w') as outfile:
     json.dump(database, outfile)
+
+#Romain
+exit(1)
 
 # SFTP
 host = "dashstorage.upload.akamai.com"
