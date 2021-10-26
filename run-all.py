@@ -7,15 +7,13 @@ import json
 import pysftp
 from fractions import Fraction
 
-# NB: dry_run generates the json database
+gpac_executable = "/opt/bin/gpac"
+
+# NB: dry_run generates a local json database
 dry_run = False
 
 # Current run:
 batch_folder = "2021-09-09/" # uses mezzanine v2
-
-gpac_executable = "/opt/bin/gpac"
-
-dts_profile = "dtse"
 
 # TODO: should be sync'ed, cf Thomas Stockhammer's requests
 # Mezzanine characteristics:
@@ -129,6 +127,7 @@ for input in inputs:
                  data = annotations.read()
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
 
+            # Encode, package, and annotate (DASH-only)
             command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' {5}"\
                 .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, reps_command)
             print("Executing " + command)
@@ -167,7 +166,8 @@ for input in inputs:
                 if dry_run == False:
                     result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
-    #TODO: the Switching Set should not be regenerated but derived from the representations with a MPD construction (e.g. GPAC manifest writing from existing segments)
+    #TODO: the Switching Set should not be regenerated but derived from the representations with a MPD construction
+    #      (e.g. GPAC manifest writing from existing segments)
     print("===== " + "Switching Set " + output_folder_base + "X1 =====")
     switching_set_X1_command = "--reps=" + switching_set_X1_command
     command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1}/ss1 --dash=sd:{2},ft:duration --copyright='{3}' {4}"\
