@@ -45,5 +45,6 @@ The intent is to keep the size of the post-processing as small as possible.
 
 ## Validation
 
-Validation is done manually. The validation should include a local phase checking that specific parameters are applied. Then another API call to the DASH-IF conformance validator could be done.
+Validation is done manually. The validation should include a local phase checking that specific parameters are applied. Then another API call to the DASH-IF conformance validator could be done to check against MPD and CMAF conformance for CTA WAVE test content.
 
+The content shall be ammended with a conformance check output document.
