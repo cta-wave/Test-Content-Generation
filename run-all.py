@@ -15,7 +15,7 @@ batch_folder = "2021-09-09/" # uses mezzanine v2
 
 gpac_executable = "/opt/bin/gpac"
 
-dts_profile = "dtse"
+dts_profile = "dtsx_51_t1cc"
 
 # TODO: should be sync'ed, cf Thomas Stockhammer's requests
 # Mezzanine characteristics:

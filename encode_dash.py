@@ -377,7 +377,7 @@ class Representation:
 
     def form_command(self, index):
         input_file_command = "-i \"" + self.m_input + "\""
-        input_file_command += ":#ClampDur=" + self.m_max_duration + ":FID=" + "GEN" + self.m_id
+        input_file_command += ":FID=" + "GEN" + self.m_id
 
         command = ""
         if self.m_media_type in ("v", "video"):
@@ -597,7 +597,7 @@ if __name__ == "__main__":
     subprocess.run(command, shell=True)
 
     # Content Model
-    content_model = ContentModel(output_file)
+    content_model = ContentModel(output_file) #Romain: , Mode.CHUNKED.value)
     content_model.process(copyright_notice)
 
     # Save the log
