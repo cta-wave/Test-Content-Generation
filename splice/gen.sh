@@ -2,7 +2,10 @@
 set -eux
 # tested with GPAC version 1.1.0-DEV-rev1153-g4ad9b4f20-master
 
-export BATCH="2021-07-29"
+export BATCH="2021-07-30
+
+#TODO
+#get https://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2021-07-30/"
 
 export GPAC="gpac"
 # -threads=-1"
@@ -37,8 +40,7 @@ rm -rf $TID && \
 export CMD="$GPAC \
   --xps_inband=no \
   -i $MAIN_CONTENT \
-    @ resample:osr=48k \
-    @ @1#video reframer:raw=av:#ClampDur=6.4:xs=0,6.4::props=#PStart=0:#m=main1,#PStart=12.8:#m=main2 \
+    @ reframer:raw=av:#ClampDur=6.4:xs=0,6.4::props=#PStart=0:#m=main1,#PStart=12.8:#m=main2 \
     @ enc:gfloc:c=aac:b=128k:FID=GEN1A \
     @1 enc:gfloc:c=avc:b=2000k:fintra=32/15:profile=high:color_primaries=1:color_trc=1:colorspace=1:x264-params=level=42:no-open-gop=1:scenecut=0 @ bsrw:novsi:FID=GEN1V \
   -i $AD_CONTENT \
