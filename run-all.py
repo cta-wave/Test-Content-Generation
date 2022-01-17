@@ -49,6 +49,7 @@ database_filepath = './database.json'
 # Generate CMAF content: encode, package, annotate, and encrypt
 for input in inputs:
     copyright_notice = ""
+    source_notice = "CTA WAVE"
     output_folder_base = "{0}/{1}".format(input.set, input.fps_family)
     output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
 
@@ -126,10 +127,11 @@ for input in inputs:
             with open(annotation_filename, 'r') as annotations:
                  data = annotations.read()
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
+                 source_notice = " - " + json.loads(data)["Mezzanine"]["name"] + " version " + json.loads(data)["Mezzanine"]["version"] + " (" + json.loads(data)["Mezzanine"]["creation_date"] + ")"
 
             # Encode, package, and annotate (DASH-only)
-            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' {5}"\
-                .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, reps_command)
+            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' --source='{5}' {6}"\
+                .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, reps_command)
             print("Executing " + command)
             if dry_run == False:
                 result = subprocess.run(command, shell=True)
@@ -150,6 +152,7 @@ for input in inputs:
 
                 # Web exposed information
                 database["CENC"][output_switching_set_folder + "-cenc"] = {
+                    'source': source_notice,
                     'representations': reps,
                     'segmentDuration': str(seg_dur),
                     'fragmentType': row[7],
@@ -170,8 +173,8 @@ for input in inputs:
     #      (e.g. GPAC manifest writing from existing segments)
     print("===== " + "Switching Set " + output_folder_base + "X1 =====")
     switching_set_X1_command = "--reps=" + switching_set_X1_command
-    command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1}/ss1 --dash=sd:{2},ft:duration --copyright='{3}' {4}"\
-        .format(gpac_executable, output_folder_complete, switching_set_X1_seg_dur, copyright_notice, switching_set_X1_command)
+    command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1}/ss1 --dash=sd:{2},ft:duration --copyright='{3}' --source='{4}' {5}"\
+        .format(gpac_executable, output_folder_complete, switching_set_X1_seg_dur, copyright_notice, source_notice, switching_set_X1_command)
     print("Executing " + command)
     if dry_run == False:
         result = subprocess.run(command, shell=True)
