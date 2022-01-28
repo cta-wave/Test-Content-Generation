@@ -116,8 +116,6 @@ covered by the tests in clause 10.2.
 
 ### Test Content
 
-https://github.com/cta-wave/Test-Content-Generation/blob/master/Instructions/cuh1.md
-
 <table>
 <colgroup>
 <col style="width: 9%" />
