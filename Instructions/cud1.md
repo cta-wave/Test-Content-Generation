@@ -133,7 +133,7 @@ covered by the tests in clause 10.2.
 </thead>
 <tbody>
 <tr class="odd">
-<td>hevc10</td>
+<td>hevc11</td>
 <td>yes</td>
 <td>hvc1</td>
 <td>1</td>
@@ -141,7 +141,7 @@ covered by the tests in clause 10.2.
 <td><em>3840x2160p50</em></td>
 </tr>
 <tr class="even">
-<td>hevc11</td>
+<td>hevc12</td>
 <td>no</td>
 <td>hev1</td>
 <td>1</td>
@@ -149,7 +149,7 @@ covered by the tests in clause 10.2.
 <td><em>3840x2160p50</em></td>
 </tr>
 <tr class="odd">
-<td>hevc12</td>
+<td>hevc13</td>
 <td>yes</td>
 <td>hvc1</td>
 <td>10</td>
@@ -157,13 +157,22 @@ covered by the tests in clause 10.2.
 <td><em>3840x2160p50</em></td>
 </tr>
 <tr class="even">
-<td>hevc13</td>
+<td>hevc14</td>
 <td>yes</td>
 <td>hvc1</td>
 <td>1</td>
 <td>3 spatial (2160, 1440, 1080)<br />
 2 temporal (50 &amp; 25)</td>
 <td><em>3840x2160p50</em></td>
+</tr>
+<tr class="odd">
+<td>hevc15</td>
+<td>yes</td>
+<td>hvc1</td>
+<td>1</td>
+<td>3 spatial (2160, 1440, 1080)<br />
+2 temporal (60 &amp; 30)</td>
+<td><em>3840x2160p 60/1.001</em></td>
 </tr>
 </tbody>
 </table>
