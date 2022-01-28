@@ -1,3 +1,9 @@
+### Content Options
+
+The content options are based on clause 10.2.2, but only a subset is
+recommended to be tested as general constraints are expected to be
+covered by the tests in clause 10.2.
+
 **Proposed CMAF Options (see clause 7 of CMAF \[CMAF\])**
 
 -   Compositions offsets and Timing
@@ -33,7 +39,7 @@
 
 -   60Hz video, 60/1.001 Hz
 
--   *Priority is given to 1920x1080p25 and 1280x720p50*
+-   *Priority is given to 1920x1080p50 and 1920x1080p60*
 
 -   16:9 picture aspect ratio square pixel \[CMAF\], clause 9.2.3 and
     9.4.2.2.2.
@@ -103,12 +109,72 @@
 
     -   Settings according the requirements of the profile chh1 in Table
         B.1
-        
-**Proposed Test Content**
 
-| Number | Default flags | Sample entry | chunks | Spatial and temporal supsampling |
-|--------|---------------|--------------|--------|----------------------------------|
-| hevc1  | yes           | hvc1         | 1      | no                               |
-| hevc2  | no            | hev1         | 1      | no                               |
-| hevc3  | yes           | hvc1         | 10     | no                               |
-| hevc4  | Yes           | Hvc1         | 1      | 2 spatial and 2 temporal         |
+### Test Content
+
+https://github.com/cta-wave/Test-Content-Generation/blob/master/Instructions/chh1.md
+
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 11%" />
+<col style="width: 12%" />
+<col style="width: 8%" />
+<col style="width: 28%" />
+<col style="width: 28%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Number</th>
+<th>Default flags</th>
+<th>Sample entry</th>
+<th>chunks</th>
+<th>Spatial and temporal supsampling</th>
+<th>Source content</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>hevc1</td>
+<td>yes</td>
+<td>hvc1</td>
+<td>1</td>
+<td>no</td>
+<td><em>1920x1080p50</em></td>
+</tr>
+<tr class="even">
+<td>hevc2</td>
+<td>no</td>
+<td>hev1</td>
+<td>1</td>
+<td>no</td>
+<td><em>1920x1080p50</em></td>
+</tr>
+<tr class="odd">
+<td>hevc3</td>
+<td>yes</td>
+<td>hvc1</td>
+<td>10</td>
+<td>no</td>
+<td><em>1920x1080p50</em></td>
+</tr>
+<tr class="even">
+<td>hevc4</td>
+<td>yes</td>
+<td>hvc1</td>
+<td>1</td>
+<td>2 spatial (1080 &amp; 720)<br />
+2 temporal (50 &amp; 25)</td>
+<td><em>1920x1080p50</em></td>
+</tr>
+<tr class="odd">
+<td>hevc5</td>
+<td>yes</td>
+<td>hvc1</td>
+<td>1</td>
+<td>2 spatial (1080 &amp; 720)<br />
+2 temporal (30 &amp; 60)</td>
+<td><em>1920x1080p @ 60/1.001</em></td>
+</tr>
+</tbody>
+</table>
