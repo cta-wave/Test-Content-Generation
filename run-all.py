@@ -11,7 +11,7 @@ from fractions import Fraction
 dry_run = False
 
 # Current run:
-batch_folder = "2021-09-09/" # uses mezzanine v2
+batch_folder = "2022-01-17/" # uses mezzanine v2
 
 gpac_executable = "/opt/bin/gpac"
 
@@ -28,9 +28,6 @@ class InputContent:
         self.fps = fps
 
 inputs = [
-    #InputContent("croatia", "content_files/2021-09-09/", "avc_sets", "12.5_25_50",         Fraction(50)),
-    #InputContent("tos",     "content_files/2021-09-09/", "avc_sets", "15_30_60",           Fraction(60)),
-    #InputContent("tos",     "content_files/2021-09-09/", "avc_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
     InputContent("tos",     "content_files/dts/fixed/", "dts_sets/" + dts_profile, "23.976", Fraction(24000, 1001)),
 ]
 
