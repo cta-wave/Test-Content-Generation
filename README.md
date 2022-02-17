@@ -43,6 +43,10 @@ The intent is to keep the size of the post-processing as small as possible.
   * Inspect the [input list](switching_sets_single_track.csv).
 * Run ```./run-all.py```, and grab a cup of tea, or coffee.
 
+## Splicing tests
+
+The generation of current [splicing tests](https://github.com/cta-wave/Test-Content/issues/19) is done by executing ```splice/gen.sh ```.
+
 ## Validation
 
 Validation is done manually. The validation should include a local phase checking that specific parameters are applied. Then another API call to the DASH-IF conformance validator could be done to check against MPD and CMAF conformance for CTA WAVE test content.
