@@ -3,7 +3,7 @@ set -eux
 
 # tested with GPAC version 1.1.0-DEV-rev1641-gb5741da08-master
 # content: mezzanine v2
-export BATCH="2021-01-18"
+export BATCH="2022-01-18"
 
 export GPAC="/opt/bin/gpac \
  -threads=-1"
