@@ -1,4 +1,2 @@
 Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,resolution,framerate,bitrate
 1,L1_1920x1080,TRUE,FALSE,avc1,2,regular,duration,1920x1080,0.5,5100
-2,L1_1920x1080,FALSE,TRUE,avc3,5,single,pframes,1920x1080,0.5,5000
-3,L1_1920x1080,TRUE,FALSE,avc1+3,2,regular,every_frame,1920x1080,0.5,4900
