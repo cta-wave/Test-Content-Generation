@@ -27,14 +27,14 @@ class ContentModel:
         if mode is not None:
             self.m_mode = mode
 
-    def process(self, copyright_notice):
+    def process(self, copyright_notice, source_notice):
         DOMTree = xml.dom.minidom.parse(self.m_filename)
         mpd = DOMTree.documentElement
-        self.process_mpd(DOMTree, mpd, copyright_notice)
+        self.process_mpd(DOMTree, mpd, copyright_notice, source_notice)
         with open(self.m_filename, 'w') as f:
             f.write(DOMTree.toxml())
 
-    def process_mpd(self, DOMTree, mpd, copyright_notice):
+    def process_mpd(self, DOMTree, mpd, copyright_notice, source_notice):
         # @profiles
         profiles = mpd.getAttribute('profiles')
         cta_profile = "urn:cta:wave:test-content-media-profile"
@@ -56,7 +56,7 @@ class ContentModel:
         self.remove_element(program_informations)
         program_information = DOMTree.createElement("ProgramInformation")
         source = DOMTree.createElement("Source")
-        source_txt = DOMTree.createTextNode("CTA WAVE")
+        source_txt = DOMTree.createTextNode(source_notice)
         source.appendChild(source_txt)
         copyright = DOMTree.createElement("Copyright")
         copyright_txt = DOMTree.createTextNode(copyright_notice)
@@ -490,6 +490,7 @@ def parse_args(args):
     dashing = None
     outDir = None
     copyright_notice = None
+    source_notice = None
     for opt, arg in args:
         if opt == '-h':
             print('test.py -i <inputfile> -o <outputfile>')
@@ -506,9 +507,11 @@ def parse_args(args):
             outDir = arg
         elif opt in ("-c", "--copyright"):
             copyright_notice = arg
+        elif opt in ("-s", "--source"):
+            source_notice = arg
 
     print(representations)
-    return [gpac_path, output_file, representations, dashing, outDir, copyright_notice]
+    return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice]
 
 
 # Check if the input arguments are correctly given
@@ -542,7 +545,7 @@ def assert_configuration(configuration):
 if __name__ == "__main__":
     # Read input, parse and assert
     try:
-        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od:c', ['out=', 'reps=', 'dash=', 'path=', 'outdir=', 'copyright='])
+        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od:c:s', ['out=', 'reps=', 'dash=', 'path=', 'outdir=', 'copyright=', 'source='])
     except getopt.GetoptError:
         sys.exit(2)
     configuration = parse_args(arguments)
@@ -554,6 +557,7 @@ if __name__ == "__main__":
     dash = configuration[3]
     out_dir = configuration[4]
     copyright_notice = configuration[5]
+    source_notice = configuration[6]
 
     if out_dir is not None:
         output_file = out_dir + "/" + output_file
@@ -598,7 +602,7 @@ if __name__ == "__main__":
 
     # Content Model
     content_model = ContentModel(output_file) #Romain: , Mode.CHUNKED.value)
-    content_model.process(copyright_notice)
+    content_model.process(copyright_notice, source_notice)
 
     # Save the log
     generate_log(gpac_path, command)
