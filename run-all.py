@@ -204,10 +204,10 @@ for input in inputs:
     }
 
     # Create unencrypted archive
-    command = "zip {0}/ss1.zip {0}/*".format(output_switching_set_folder_ss1)
+    command = "zip {0}ss1.zip {0}*".format(output_folder_base + "/ss1/" + batch_folder)
     print("Executing " + command + " (cwd=" + local_output_folder + ")")
     if dry_run == False:
-        result = subprocess.run(command, shell=True, cwd=".")
+        result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
 # Write Web exposed information
 with open(database_filepath, 'w') as outfile:
