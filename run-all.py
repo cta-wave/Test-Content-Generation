@@ -13,7 +13,7 @@ gpac_executable = "/opt/bin/gpac"
 dry_run = False
 
 # Current run:
-batch_folder = "2022-01-17/" # uses mezzanine v2
+batch_folder = "2022-04-19/" # uses mezzanine v2
 
 #dts_profile = "dtsc"
 #dts_profile = "dtse"
