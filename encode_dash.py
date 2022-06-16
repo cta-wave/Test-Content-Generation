@@ -87,10 +87,7 @@ class ContentModel:
                     content_type = 'audio'
                     adaptation_set.setAttribute('contentType', content_type)
 
-            if self.m_mode == Mode.FRAGMENTED.value:
-                adaptation_set.setAttribute('segmentProfiles', 'cmfs, cmff')
-            elif self.m_mode == Mode.CHUNKED.value:
-                adaptation_set.setAttribute('segmentProfiles', 'cmfs, cmff, cmfl')
+                adaptation_set.setAttribute('containerProfiles', 'cmf2')
 
             representations = adaptation_set.getElementsByTagName('Representation')
             for representation in representations:
