@@ -65,11 +65,6 @@ class ContentModel:
         self.process_period(DOMTree, mpd, period)
 
     def process_period(self, DOMTree, mpd, period):
-        asset_identifier = DOMTree.createElement("AssetIdentifier")
-        asset_identifier.setAttribute("schemeIdUri", "urn:cta:org:wave-test-mezzanine:unique-id")
-        asset_identifier.setAttribute("value", "0")
-        adaptation_sets = period.getElementsByTagName("AdaptationSet")
-        period.insertBefore(asset_identifier, adaptation_sets.item(0))
         # Adaptation Set
         self.process_adaptation_sets(period.getElementsByTagName('AdaptationSet'))
 
