@@ -37,18 +37,13 @@ class ContentModel:
     def process_mpd(self, DOMTree, mpd, copyright_notice, source_notice):
         # @profiles
         profiles = mpd.getAttribute('profiles')
-        cta_profile = "urn:cta:wave:test-content-media-profile"
-        fragmented_profile = "urn:mpeg:dash:profile:isoff-live:2011"
         # TODO: could be added from the packager command-line
-        chunked_profile = "urn:mpeg:dash:profile:isoff-broadcast:2015"
-        if cta_profile not in profiles:
-            profiles += "," + cta_profile
-
-        #TODO: to check; they are partially added by the packager
-        if self.m_mode is Mode.FRAGMENTED.value and fragmented_profile not in profiles:
-            profiles += "," + fragmented_profile
-        if self.m_mode is Mode.CHUNKED.value and chunked_profile not in profiles:
-            profiles += "," + chunked_profile
+        cta_profile1 = "urn:cta:wave:test-content-media-profile:2022"
+        if cta_profile1 not in profiles:
+            profiles += "," + cta_profile1
+        cta_profile2 = "urn:mpeg:dash:profile:cmaf:2019"
+        if cta_profile2 not in profiles:
+            profiles += "," + cta_profile2
         mpd.setAttribute('profiles', profiles)
 
         # ProgramInformation
