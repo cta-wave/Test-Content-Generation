@@ -15,6 +15,8 @@ dry_run = False
 # Current run:
 batch_folder = "2022-01-17/" # uses mezzanine v2
 
+# This file implements dpctf-s00001-v033-WAVE-DPC-v1.21
+
 # Output file structure: <media_type>_sets/<sub_media_type (frame_rate_family|audio_codec)>/<stream_id>/<upload_date> e.g.
 #   avc_sets/15_30_60/ss1/2021-10-22/
 #   caac_sets/aac_lc/at1/2021-12-04
@@ -122,7 +124,7 @@ for input in inputs:
             with open(annotation_filename, 'r') as annotations:
                  data = annotations.read()
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
-                 source_notice = "CTA WAVE - " + json.loads(data)["Mezzanine"]["name"] + " version " + str(json.loads(data)["Mezzanine"]["version"]) + " (" + json.loads(data)["Mezzanine"]["creation_date"] + ")"
+                 source_notice = "" + json.loads(data)["Mezzanine"]["name"] + " version " + str(json.loads(data)["Mezzanine"]["version"]) + " (" + json.loads(data)["Mezzanine"]["creation_date"] + ")"
 
             # Web exposed information
             database["CFHD"][output_switching_set_folder] = {
