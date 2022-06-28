@@ -81,9 +81,10 @@ for input in inputs:
             print("===== Processing single track Switching Set " + switching_set_folder + " =====")
 
             # 0: Stream ID, 1: mezzanine radius, 2: pic timing, 3: VUI timing, 4: sample entry,
-            # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate, 10: bitrate
+            # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate,
+            # 10: bitrate, 11: duration
             fps = min(framerates, key=lambda x:abs(x-float(row[9])*input.fps))
-            input_basename = "{0}_{1}@{2}_60".format(input.content, row[1], fps)
+            input_basename = "{0}_{1}@{2}_{3}".format(input.content, row[1], fps, row[11])
             input_filename = input_basename + ".mp4"
             seg_dur = Fraction(row[5])
             if input.fps.denominator == 1001:
