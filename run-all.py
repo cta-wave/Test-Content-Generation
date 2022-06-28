@@ -9,22 +9,22 @@ from fractions import Fraction
 
 gpac_executable = "/opt/bin/gpac"
 
+# This file implements dpctf-s00001-v033-WAVE-DPC-v1.21
+# and uses 2021-04-21 mezzanine
+
 # NB: dry_run generates a local json database
 dry_run = False
 
-# Current run:
-batch_folder = "2022-01-17/" # uses mezzanine v2
-
-# This file implements dpctf-s00001-v033-WAVE-DPC-v1.21
+# Current subfolder
+batch_folder = "2022-06-28/"
 
 # Output file structure: <media_type>_sets/<sub_media_type (frame_rate_family|audio_codec)>/<stream_id>/<upload_date> e.g.
-#   avc_sets/15_30_60/ss1/2021-10-22/
-#   caac_sets/aac_lc/at1/2021-12-04
-#   caaa_sets/he_aac_v2/at1/2021-12-04
+#   cfhd_sets/15_30_60/ss1/2021-10-22/
+#   caac_sets/aac_lc/at1/2021-12-04/
+#   caaa_sets/he_aac_v2/at1/2021-12-04/
 #
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
-# TODO: should be sync'ed, cf Thomas Stockhammer's requests
 # Mezzanine characteristics:
 class InputContent:
     def __init__(self, content, root_folder, set, fps_family, fps):
@@ -35,9 +35,9 @@ class InputContent:
         self.fps = fps
 
 inputs = [
-    InputContent("croatia", "content_files/releases/2/", "avc_sets", "12.5_25_50",         Fraction(50)),
-    InputContent("tos",     "content_files/releases/2/", "avc_sets", "15_30_60",           Fraction(60)),
-    InputContent("tos",     "content_files/releases/2/", "avc_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
+    InputContent("croatia", "content_files/releases/2/", "cfhd_sets", "12.5_25_50",         Fraction(50)),
+    InputContent("tos",     "content_files/releases/2/", "cfhd_sets", "15_30_60",           Fraction(60)),
+    InputContent("tos",     "content_files/releases/2/", "cfhd_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
 ]
 
 # Used for folder names only
