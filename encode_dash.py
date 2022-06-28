@@ -27,14 +27,14 @@ class ContentModel:
         if mode is not None:
             self.m_mode = mode
 
-    def process(self, copyright_notice, source_notice):
+    def process(self, copyright_notice, source_notice, title_notice):
         DOMTree = xml.dom.minidom.parse(self.m_filename)
         mpd = DOMTree.documentElement
-        self.process_mpd(DOMTree, mpd, copyright_notice, source_notice)
+        self.process_mpd(DOMTree, mpd, copyright_notice, source_notice, title_notice)
         with open(self.m_filename, 'w') as f:
             f.write(DOMTree.toxml())
 
-    def process_mpd(self, DOMTree, mpd, copyright_notice, source_notice):
+    def process_mpd(self, DOMTree, mpd, copyright_notice, source_notice, title_notice):
         # @profiles
         profiles = mpd.getAttribute('profiles')
         # TODO: could be added from the packager command-line
@@ -56,8 +56,12 @@ class ContentModel:
         copyright = DOMTree.createElement("Copyright")
         copyright_txt = DOMTree.createTextNode(copyright_notice)
         copyright.appendChild(copyright_txt)
+        title = DOMTree.createElement("Title")
+        title_txt = DOMTree.createTextNode(title_notice)
+        title.appendChild(title_txt)
         program_information.appendChild(source)
         program_information.appendChild(copyright)
+        program_information.appendChild(title)
 
         # Period
         period = mpd.getElementsByTagName("Period").item(0)
@@ -496,6 +500,8 @@ def parse_args(args):
             copyright_notice = arg
         elif opt in ("-s", "--source"):
             source_notice = arg
+        elif opt in ("-t", "--title"):
+            title_notice = arg
 
     print(representations)
     return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice]
@@ -545,6 +551,7 @@ if __name__ == "__main__":
     out_dir = configuration[4]
     copyright_notice = configuration[5]
     source_notice = configuration[6]
+    title_notice = configuration[7]
 
     if out_dir is not None:
         output_file = out_dir + "/" + output_file
@@ -589,7 +596,7 @@ if __name__ == "__main__":
 
     # Content Model
     content_model = ContentModel(output_file)
-    content_model.process(copyright_notice, source_notice)
+    content_model.process(copyright_notice, source_notice, title_notice)
 
     # Save the log
     generate_log(gpac_path, command)

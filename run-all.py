@@ -126,6 +126,8 @@ for input in inputs:
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
                  source_notice = "" + json.loads(data)["Mezzanine"]["name"] + " version " + str(json.loads(data)["Mezzanine"]["version"]) + " (" + json.loads(data)["Mezzanine"]["creation_date"] + ")"
 
+            title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {5}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, cmaf_profile, row[0])
+
             # Web exposed information
             database["CFHD"][output_switching_set_folder] = {
                 'source': source_notice,
@@ -140,8 +142,8 @@ for input in inputs:
             }
 
             # Encode, package, and annotate (DASH-only)
-            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' --source='{5}' {6}"\
-                .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, reps_command)
+            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' --source='{5}' --title='{6}' {7}"\
+                .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, title_notice, reps_command)
             print("Executing " + command)
             if dry_run == False:
                 result = subprocess.run(command, shell=True)
