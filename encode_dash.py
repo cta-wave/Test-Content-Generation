@@ -368,7 +368,7 @@ class Representation:
 
     def form_command(self, index):
         input_file_command = "-i \"" + self.m_input + "\""
-        input_file_command += ":#ClampDur=" + self.m_max_duration + ":FID=" + "GEN" + self.m_id
+        input_file_command += ":#ClampDur=" + self.m_max_duration + ":#StartNumber=-1" + ":FID=" + "GEN" + self.m_id
 
         command = ""
         if self.m_media_type in ("v", "video"):
@@ -504,7 +504,7 @@ def parse_args(args):
             title_notice = arg
 
     print(representations)
-    return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice]
+    return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice, title_notice]
 
 
 # Check if the input arguments are correctly given
@@ -538,7 +538,7 @@ def assert_configuration(configuration):
 if __name__ == "__main__":
     # Read input, parse and assert
     try:
-        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od:c:s', ['out=', 'reps=', 'dash=', 'path=', 'outdir=', 'copyright=', 'source='])
+        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od:c:s:t', ['out=', 'reps=', 'dash=', 'path=', 'outdir=', 'copyright=', 'source=', 'title='])
     except getopt.GetoptError:
         sys.exit(2)
     configuration = parse_args(arguments)
