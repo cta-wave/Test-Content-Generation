@@ -49,6 +49,10 @@ The generation of current [splicing tests](https://github.com/cta-wave/Test-Cont
 
 ## Validation
 
-Validation is done manually. The validation should include a local phase checking that specific parameters are applied. Then another API call to the DASH-IF conformance validator could be done to check against MPD and CMAF conformance for CTA WAVE test content.
+Validation as of today is done manually. (NOTE: an improved more automated process may be available later). 
 
-The content shall be ammended with a conformance check output document.
+The process of validation includes:
+
+- The validation should include initial phase checking that required parameters according to the test content description are applied. 
+- An API call to the [DASH-IF conformance validator](http://conformance.dashif.org) should be done to check against MPD and CMAF conformance for CTA WAVE test content.
+- The content should be ammended with a conformance check output document. At this stage it is recommended to use the output for the DASH-IF conformance validator.
