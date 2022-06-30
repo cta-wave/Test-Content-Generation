@@ -218,10 +218,6 @@ class DASH:
             frag_dur = Fraction(Fraction(self.m_frame_rate).denominator, Fraction(self.m_frame_rate).numerator)
             dash_command += ":cdur=" + str(frag_dur)
 
-        if index_v == 0 or index_a != 1:
-            print("Exactly one audio and at least one video Representations must be provided to be DASHed")
-            sys.exit(1)
-
         dash_command += ":SID="
         if index_a > 0:
             dash_command += "A" + str(index_a - 1) + ","

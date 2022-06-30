@@ -42,17 +42,18 @@ class InputContent:
 inputs = [
     # Video
     InputContent("croatia", "content_files/2022-04-21/", "cfhd_sets", "12.5_25_50",         Fraction(50)),
-    InputContent("tos",     "content_files/2022-04-21/", "cfhd_sets", "15_30_60",           Fraction(60)),
-    InputContent("tos",     "content_files/2022-04-21/", "cfhd_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
+    InputContent("tos", "content_files/2022-04-21/", "cfhd_sets", "15_30_60",           Fraction(60)),
+    InputContent("tos", "content_files/2022-04-21/", "cfhd_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
 
     # Audio
     #TODO: replace with http://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2022-04-01/ when validated
-    InputContent("tos",     "content_files/2022-04-21/", "caac_sets", "AAC-LC", Fraction(60000, 1001)),
+    InputContent("tos", "content_files/2022-04-21/", "caac_sets", "AAC-LC", Fraction(60000, 1001)),
 ]
 
 profiles_type = {
     "cfhd": "video",
-    "caac": "audio"
+    "caac": "audio",
+    "cenc": "encrypted"
 }
 
 # Used for computing folder names only
@@ -71,12 +72,14 @@ for profile in profiles_type:
 
 # Generate CMAF content: encode, package, annotate, and encrypt
 for input in inputs:
+    wave_profile = input.set[:4]
+
     copyright_notice = ""
     source_notice = ""
     output_folder_base = "{0}/{1}".format(input.set, input.fps_family)
     output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
 
-    switching_set_X1_IDs = [ "19", "20", "23", "24", "25", "28", "32", "34" ] # keep ordered
+    switching_set_X1_IDs = [ "19", "20", "23", "24", "25", "28", "32", "34", "audio" ]
     switching_set_X1_command = ""
     switching_set_X1_reps = []
 
@@ -84,11 +87,22 @@ for input in inputs:
         csv_reader = csv.reader(csv_file, delimiter=',')
         csv_line_index = 0
         for row in csv_reader:
-            csv_line_index = csv_line_index + 1
-            if csv_line_index == 1:
-                continue
+            if row[0] == "Stream ID":
+                continue;
 
-            stream_id = "{0}{1}".format("t", row[0])
+            # Decide which stream to process based on the media type and the WAVE media profile
+            if profiles_type[wave_profile] == "video":
+                if row[0] == "audio":
+                    continue;
+                stream_id = "{0}{1}".format("t", row[0])
+            else:
+                if row[0] != "audio":
+                    continue;
+                stream_id = row[0]
+
+            # Count index for index-based processing (e.g. CENC)
+            csv_line_index = csv_line_index + 1
+
             switching_set_folder_suffix = stream_id + "/" + batch_folder
             switching_set_folder = "{0}/{1}".format(output_folder_complete, switching_set_folder_suffix)
             output_switching_set_folder = "{0}/{1}".format(output_folder_base, switching_set_folder_suffix)
@@ -107,37 +121,27 @@ for input in inputs:
             reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
 
             # TODO: these should be input parameters
-            codec_v = "h264"
             cmaf_profile = "avchdhf"
+            if profiles_type[wave_profile] == "video":
+                codec = "h264"
+            else:
+                codec = "aac"
 
-            wave_profile = input.set[:4]
             filename_v=input.root_folder + input_filename
             reps_command = "id:{0},type:{1},codec:{2},vse:{3},cmaf:{4},fps:{5}/{6},res:{7},bitrate:{8},input:\"{9}\",sei:{10},vui_timing:{11},sd:{12}"\
-                .format(row[0], profiles_type[wave_profile], codec_v, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
+                .format(row[0], profiles_type[wave_profile], codec, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
                         filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
 
             # SS-X1
             if row[0] in switching_set_X1_IDs:
-                if row[0] != switching_set_X1_IDs[0]: # assumes orderness
+                if switching_set_X1_command:
                     switching_set_X1_command += "\|"
                 switching_set_X1_command += reps_command
                 switching_set_X1_reps += reps
                 switching_set_X1_seg_dur = seg_dur
 
-            # Add audio
-            codec_a="aac"
-            filename_a=input.root_folder + input_filename
-            audio_command = "id:{0},type:audio,codec:{1},bitrate:{2},input:\"{3}\""\
-                .format("a", codec_a, "128k", filename_a)
-            reps_command += "\|"
-            reps_command += audio_command
-
+            # Finalize one-AdaptationSet formatting
             reps_command = "--reps=" + reps_command
-
-            # SS-X1: select the first available audio
-            if csv_line_index == 2:
-                switching_set_X1_command += "\|"
-                switching_set_X1_command += audio_command
 
             # Extract copyright
             annotation_filename = input.root_folder + input_basename + ".json"
@@ -149,7 +153,7 @@ for input in inputs:
             title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {4}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, cmaf_profile, row[0])
 
             # Web exposed information
-            database["CFHD"][output_switching_set_folder] = {
+            database[wave_profile.upper()][output_switching_set_folder] = {
                 'source': source_notice,
                 'representations': reps,
                 'segmentDuration': str(seg_dur),
@@ -174,9 +178,10 @@ for input in inputs:
             if dry_run == False:
                 result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
-            # Special case for first encoding: create side streams
-            if csv_line_index == 2:
-                # CENC
+            print("")
+
+            # Special case for first encoding: create side CENC streams
+            if csv_line_index == 1:
                 output_switching_set_folder_cenc = "{0}/{1}-cenc/{2}".format(output_folder_base, stream_id, batch_folder)
                 command = gpac_executable + " -i " + output_switching_set_folder + "stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_switching_set_folder_cenc + "stream.mpd:pssh=mv"
                 print("Executing " + command + " (cwd=" + local_output_folder + ")")
@@ -203,35 +208,41 @@ for input in inputs:
                 if dry_run == False:
                     result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
-    #TODO: the Switching Set should not be regenerated but derived from the representations with a MPD construction
-    #      (e.g. GPAC manifest writing from existing segments)
-    output_switching_set_folder_ss1 = "{0}/{1}/{2}".format(output_folder_complete, "ss1", batch_folder)
-    print("===== " + "Switching Set " + output_switching_set_folder_ss1 + " =====")
-    switching_set_X1_command = "--reps=" + switching_set_X1_command
-    command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1} --dash=sd:{2},ft:duration --copyright='{3}' --source='{4}' {5}"\
-        .format(gpac_executable, output_switching_set_folder_ss1, switching_set_X1_seg_dur, copyright_notice, source_notice, switching_set_X1_command)
-    print("Executing " + command)
-    if dry_run == False:
-        result = subprocess.run(command, shell=True)
+                print("")
 
-    # Web exposed information
-    database["CFHD"][output_folder_base + "/ss1"] = {
-        'source': "CTA WAVE",
-        'representations': switching_set_X1_reps,
-        'segmentDuration': str(switching_set_X1_seg_dur),
-        'fragmentType': row[7],
-        'hasSEI': row[2].lower() == 'true',
-        'hasVUITiming': row[3].lower() == 'true',
-        'visualSampleEntry': row[4],
-        'mpdPath': '{0}/ss1/stream.mpd'.format(server_access_url + output_folder_base),
-        'zipPath': '{0}/ss1.zip'.format(server_access_url + output_folder_base)
-    }
+    # Generate a SwitchingSet when there is more than 1 stream (i.e. more than 0 "\|" separator) in it
+    if switching_set_X1_command.count("\|") > 0:
+        #TODO: the Switching Set chould be derived from the representations with a MPD construction
+        #      (e.g. GPAC manifest writing from existing segments)
+        output_switching_set_folder_ss1 = "{0}/{1}/{2}".format(output_folder_complete, "ss1", batch_folder)
+        print("===== " + "Switching Set " + output_switching_set_folder_ss1 + " =====")
+        switching_set_X1_command = "--reps=" + switching_set_X1_command
+        command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1} --dash=sd:{2},ft:duration --copyright='{3}' --source='{4}' {5}"\
+            .format(gpac_executable, output_switching_set_folder_ss1, switching_set_X1_seg_dur, copyright_notice, source_notice, switching_set_X1_command)
+        print("Executing " + command)
+        if dry_run == False:
+            result = subprocess.run(command, shell=True)
 
-    # Create unencrypted archive
-    command = "zip {0}ss1.zip {0}*".format(output_folder_base + "/ss1/" + batch_folder)
-    print("Executing " + command + " (cwd=" + local_output_folder + ")")
-    if dry_run == False:
-        result = subprocess.run(command, shell=True, cwd=local_output_folder)
+        # Web exposed information
+        database["CFHD"][output_folder_base + "/ss1"] = {
+            'source': "CTA WAVE",
+            'representations': switching_set_X1_reps,
+            'segmentDuration': str(switching_set_X1_seg_dur),
+            'fragmentType': row[7],
+            'hasSEI': row[2].lower() == 'true',
+            'hasVUITiming': row[3].lower() == 'true',
+            'visualSampleEntry': row[4],
+            'mpdPath': '{0}/ss1/stream.mpd'.format(server_access_url + output_folder_base),
+            'zipPath': '{0}/ss1.zip'.format(server_access_url + output_folder_base)
+        }
+
+        # Create unencrypted archive
+        command = "zip {0}ss1.zip {0}*".format(output_folder_base + "/ss1/" + batch_folder)
+        print("Executing " + command + " (cwd=" + local_output_folder + ")")
+        if dry_run == False:
+            result = subprocess.run(command, shell=True, cwd=local_output_folder)
+
+        print("")
 
 # Write Web exposed information
 with open(database_filepath, 'w') as outfile:
