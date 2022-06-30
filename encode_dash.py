@@ -32,7 +32,8 @@ class ContentModel:
         mpd = DOMTree.documentElement
         self.process_mpd(DOMTree, mpd, copyright_notice, source_notice, title_notice)
         with open(self.m_filename, 'w') as f:
-            f.write(DOMTree.toxml())
+            prettyOutput = '\n'.join([line for line in DOMTree.toprettyxml(indent=' '*2).split('\n') if line.strip()])
+            f.write(prettyOutput)
 
     def process_mpd(self, DOMTree, mpd, copyright_notice, source_notice, title_notice):
         # @profiles
@@ -50,15 +51,15 @@ class ContentModel:
         program_informations = mpd.getElementsByTagName("ProgramInformation")
         self.remove_element(program_informations)
         program_information = DOMTree.createElement("ProgramInformation")
+        title = DOMTree.createElement("Title")
+        title_txt = DOMTree.createTextNode(title_notice)
+        title.appendChild(title_txt)
         source = DOMTree.createElement("Source")
         source_txt = DOMTree.createTextNode(source_notice)
         source.appendChild(source_txt)
         copyright = DOMTree.createElement("Copyright")
         copyright_txt = DOMTree.createTextNode(copyright_notice)
         copyright.appendChild(copyright_txt)
-        title = DOMTree.createElement("Title")
-        title_txt = DOMTree.createTextNode(title_notice)
-        title.appendChild(title_txt)
         program_information.appendChild(source)
         program_information.appendChild(copyright)
         program_information.appendChild(title)
@@ -206,6 +207,10 @@ class DASH:
                         ":cmaf=cmf2" + \
                         ":segdur=" + self.m_segment_duration + \
                         ":tpl" # segment template
+
+        # Segment naming
+        dash_command += ":template=\$RepresentationID\$/\$Time\$"
+
         if self.m_segment_signaling == "timeline":
             dash_command += ":stl"
 
