@@ -7,16 +7,16 @@ import json
 import pysftp
 from fractions import Fraction
 
-gpac_executable = "/opt/bin/gpac"
-
+################################################################################
 # This file implements dpctf-s00001-v033-WAVE-DPC-v1.21
-# and uses 2021-04-21 mezzanine
+# and uses 2021-04-21 mezzanine (merge with symlinks from releases/2/ for the 60s content):
+#   for i in `ls ../releases/2` ; do if [ -f $i ] ; then echo "exists $i" ; else ln -s ../releases/2/$i $i ; fi ; done
+################################################################################
+
+gpac_executable = "/opt/bin/gpac"
 
 # NB: dry_run generates a local json database
 dry_run = False
-
-# Current subfolder
-batch_folder = "2022-06-28/"
 
 # Output file structure: <media_type>_sets/<sub_media_type (frame_rate_family|audio_codec)>/<stream_id>/<upload_date> e.g.
 #   cfhd_sets/15_30_60/ss1/2021-10-22/
@@ -25,22 +25,37 @@ batch_folder = "2022-06-28/"
 #
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
+# Current subfolder
+batch_folder = "2022-06-28/"
+
 # Mezzanine characteristics:
 class InputContent:
     def __init__(self, content, root_folder, set, fps_family, fps):
         self.content = content
         self.root_folder = root_folder
         self.set = set
-        self.fps_family = fps_family
+        self.fps_family = fps_family # video: frame_rate_family ; audio: audio_codec
+
+        # Video only
         self.fps = fps
 
 inputs = [
-    InputContent("croatia", "content_files/releases/2/", "cfhd_sets", "12.5_25_50",         Fraction(50)),
-    InputContent("tos",     "content_files/releases/2/", "cfhd_sets", "15_30_60",           Fraction(60)),
-    InputContent("tos",     "content_files/releases/2/", "cfhd_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
+    # Video
+    InputContent("croatia", "content_files/2022-04-21/", "cfhd_sets", "12.5_25_50",         Fraction(50)),
+    InputContent("tos",     "content_files/2022-04-21/", "cfhd_sets", "15_30_60",           Fraction(60)),
+    InputContent("tos",     "content_files/2022-04-21/", "cfhd_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
+
+    # Audio
+    #TODO: replace with http://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2022-04-01/ when validated
+    InputContent("tos",     "content_files/2022-04-21/", "caac_sets", "AAC-LC", Fraction(60000, 1001)),
 ]
 
-# Used for folder names only
+profiles_type = {
+    "cfhd": "video",
+    "caac": "audio"
+}
+
+# Used for computing folder names only
 framerates = [12.5, 25, 50, 15, 30, 60, 14.985, 29.97, 59.94, 23.976]
 
 # Output parameters
@@ -49,10 +64,10 @@ server_output_folder = "/129021/dash/WAVE/vectors/"
 
 # Web database to be exported
 server_access_url = "https://dash.akamaized.net/WAVE/vectors/"
-database = { }
-database["CFHD"] = { }
-database["CENC"] = { }
 database_filepath = './database.json'
+database = { }
+for profile in profiles_type:
+    database[profile.upper()] = { }
 
 # Generate CMAF content: encode, package, annotate, and encrypt
 for input in inputs:
@@ -61,7 +76,7 @@ for input in inputs:
     output_folder_base = "{0}/{1}".format(input.set, input.fps_family)
     output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
 
-    switching_set_X1_IDs = [ "1", "20", "23", "24", "25", "28", "32", "34" ] # keep ordered
+    switching_set_X1_IDs = [ "19", "20", "23", "24", "25", "28", "32", "34" ] # keep ordered
     switching_set_X1_command = ""
     switching_set_X1_reps = []
 
@@ -90,11 +105,15 @@ for input in inputs:
             if input.fps.denominator == 1001:
                 seg_dur = Fraction(row[5]) * Fraction(1001, 1000)
             reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
-            codec_v="h264"
-            cmaf_profile="avchdhf"
+
+            # TODO: these should be input parameters
+            codec_v = "h264"
+            cmaf_profile = "avchdhf"
+
+            wave_profile = input.set[:4]
             filename_v=input.root_folder + input_filename
-            reps_command = "id:{0},type:video,codec:{1},vse:{2},cmaf:{3},fps:{4}/{5},res:{6},bitrate:{7},input:\"{8}\",sei:{9},vui_timing:{10},sd:{11}"\
-                .format(row[0], codec_v, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
+            reps_command = "id:{0},type:{1},codec:{2},vse:{3},cmaf:{4},fps:{5}/{6},res:{7},bitrate:{8},input:\"{9}\",sei:{10},vui_timing:{11},sd:{12}"\
+                .format(row[0], profiles_type[wave_profile], codec_v, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
                         filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
 
             # SS-X1
@@ -127,7 +146,7 @@ for input in inputs:
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
                  source_notice = "" + json.loads(data)["Mezzanine"]["name"] + " version " + str(json.loads(data)["Mezzanine"]["version"]) + " (" + json.loads(data)["Mezzanine"]["creation_date"] + ")"
 
-            title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {5}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, cmaf_profile, row[0])
+            title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {4}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, cmaf_profile, row[0])
 
             # Web exposed information
             database["CFHD"][output_switching_set_folder] = {
