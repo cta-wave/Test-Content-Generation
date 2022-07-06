@@ -402,9 +402,9 @@ class Representation:
                 command += " @ bsrw:setsar=" + self.m_aspect_ratio_x + "/" + self.m_aspect_ratio_y + ""
 
             if self.m_codec == VideoCodecOptions.AVC.value:
-                command += ":x264-params=\""
+                command += "::x264-params=\""
             elif self.m_codec == VideoCodecOptions.HEVC.value:
-                command += ":x265-params=\""
+                command += "::x265-params=\""
 
             command += "level=" + self.m_level + ":" \
                        "no-open-gop=1" + ":" \
@@ -428,16 +428,16 @@ class Representation:
             else:
                 input_file_command += ":FID=A" + index
 
-        #TODO: move: this is a video-only muxing option not an encoding option. Setting as global.
+        #TODO: move: this is a video-only muxing option, not an encoding option. Setting as global.
         if self.m_video_sample_entry is not None:
             if self.m_video_sample_entry == "avc1":
-                command += " --xps_inband=no"
+                command += " --bs_switch=off"
             elif self.m_video_sample_entry == "avc3":
-                command += " --xps_inband=all"
+                command += " --bs_switch=all"
             elif self.m_video_sample_entry == "avc1+3":
-                command += " --xps_inband=both"
+                command += " --bs_switch=both"
             else:
-                print("Supported video sample entries are \"avc1\", \"avc3\", and \"avc1+3\",.")
+                print("Supported video sample entries are \"avc1\", \"avc3\", and \"avc1+3\".")
                 sys.exit(1)
 
         return [input_file_command, command]
