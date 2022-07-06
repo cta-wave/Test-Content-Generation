@@ -38,7 +38,7 @@ export SOURCE='splice_main_croatia_A1_1280x720@25_10 version 2 (2021-08-05)'
 export TITLE='Croatia, 1280 x 720, 25fps, splice_main, Test Vector 1'
 rm -rf output/avc_sets/15_30_60/$STREAM_ID/$BATCH/
 ./encode_dash.py --path="$GPAC" --out="$MPD" --outdir=output/avc_sets/15_30_60/$STREAM_ID/$BATCH/ --dash=sd:$SEGDUR,fd:$SEGDUR,ft:duration,fr:25: --copyright="$COPYRIGHT" --source="$SOURCE" --title="$TITLE" \
-  --reps=id:1,type:video,codec:h264,vse:avc1,cmaf:avchdhf,fps:25/1,res:1280x720,bitrate:2000,input:$CONTENT_MAIN,sei:True,vui_timing:False,sd:$SEGDUR\|id:a,type:audio,codec:aac,bitrate:128k,input:$CONTENT_MAIN
+  --reps=id:1,type:video,codec:h264,vse:avc1,cmaf:avchdhf,fps:25/1,res:1280x720,bitrate:2000,input:$CONTENT_MAIN,sei:True,vui_timing:False,sd:$SEGDUR,input:$CONTENT_MAIN
 
 #encrypt
 $GPAC -i output/avc_sets/15_30_60/$STREAM_ID/$BATCH/$MPD:forward=mani cecrypt:cfile=DRM.xml @ -o output/avc_sets/15_30_60/$STREAM_ID-cenc/$BATCH/$MPD:pssh=mv
@@ -50,7 +50,7 @@ export SOURCE='splice_ad_bbb_AD-A1_1280x720@25_5.76 version 2 (2021-08-05)'
 export TITLE='Big Buck Bunny, 1280 x 720, 25fps, splice_ad, Test Vector 1'
 rm -rf output/avc_sets/15_30_60/$STREAM_ID/$BATCH/
 ./encode_dash.py --path="$GPAC" --out="$MPD" --outdir=output/avc_sets/15_30_60/$STREAM_ID/$BATCH/ --dash=sd:$SEGDUR,fd:$SEGDUR,ft:duration,fr:25: --copyright="$COPYRIGHT" --source="$SOURCE" --title="$TITLE" \
-  --reps=id:1,type:video,codec:h264,vse:avc1,cmaf:avchdhf,fps:25/1,res:1280x720,bitrate:2000,input:$CONTENT_AD,sei:True,vui_timing:False,sd:$SEGDUR\|id:a,type:audio,codec:aac,bitrate:128k,input:$CONTENT_AD
+  --reps=id:1,type:video,codec:h264,vse:avc1,cmaf:avchdhf,fps:25/1,res:1280x720,bitrate:2000,input:$CONTENT_AD,sei:True,vui_timing:False,sd:$SEGDUR,input:$CONTENT_AD
 
 #encrypt
 $GPAC -i output/avc_sets/15_30_60/$STREAM_ID/$BATCH/$MPD:forward=mani cecrypt:cfile=DRM.xml @ -o output/avc_sets/15_30_60/$STREAM_ID-cenc/$BATCH/$MPD:pssh=mv
