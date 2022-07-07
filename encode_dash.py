@@ -425,7 +425,7 @@ class Representation:
                         ":c=" + self.m_codec + \
                         ":b=" + "128" + "k" #FIXME: self.m_bitrate
 
-                command += ":SID=" + "GEN" + "a"
+                command += ":SID=" + "GEN" + self.m_id
                 command += ":FID=A" + index
             else:
                 input_file_command += ":FID=A" + index

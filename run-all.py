@@ -47,7 +47,7 @@ inputs = [
 
     # Audio
     #TODO: replace with http://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2022-04-01/ when validated
-    InputContent("tos", "content_files/2022-04-21/", "caac_sets", "AAC-LC", Fraction(60000, 1001)),
+    #InputContent("tos", "content_files/2022-04-21/", "caac_sets", "AAC-LC", Fraction(60000, 1001)),
 ]
 
 profiles_type = {
