@@ -217,7 +217,7 @@ class DASH:
         if self.m_fragment_type == "duration":
             dash_command += ":cdur=" + self.m_fragment_duration
         elif self.m_fragment_type == "pframes":
-            frag_dur = Fraction(self.m_fragment_duration) / 2
+            frag_dur = (self.m_num_b_frames + 1) / self.m_frame_rate
             dash_command += ":cdur=" + str(frag_dur)
         elif self.m_fragment_type == "every_frame":
             frag_dur = Fraction(Fraction(self.m_frame_rate).denominator, Fraction(self.m_frame_rate).numerator)
@@ -273,6 +273,7 @@ class Representation:
     m_vui_timing = None
     m_segment_duration = None
     m_max_duration = "60" #FIXME
+    m_num_b_frames = "2"
 
     def __init__(self, representation_config):
         config = representation_config.split(",")
@@ -391,6 +392,7 @@ class Representation:
             command += ":c=" + self.m_codec
             command += ":b=" + self.m_bitrate + "k"
             command += ":r=" + self.m_frame_rate
+            command += ":bf=" + self.m_num_b_frames + ":b_strategy=0"
             command += ":fintra=" + self.m_segment_duration
             command += ":profile=" + self.m_profile
             command += ":color_primaries=" + self.m_color_primary
@@ -433,7 +435,7 @@ class Representation:
             if self.m_video_sample_entry == "avc1":
                 command += " --bs_switch=off"
             elif self.m_video_sample_entry == "avc3":
-                command += " --bs_switch=all"
+                command += " --bs_switch=inband"
             elif self.m_video_sample_entry == "avc1+3":
                 command += " --bs_switch=both"
             else:
