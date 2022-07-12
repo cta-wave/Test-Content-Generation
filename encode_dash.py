@@ -209,7 +209,8 @@ class DASH:
                         ":tpl" # segment template
 
         # Segment naming
-        dash_command += ":template=\$RepresentationID\$/\$Time\$"
+        # Note: this requirement may actually create chunk name collision when multiple streams are present
+        dash_command += ":template=\$Init=1/init\$\$Segment=1/\$"
 
         if self.m_segment_signaling == "timeline":
             dash_command += ":stl"
@@ -379,7 +380,7 @@ class Representation:
 
     def form_command(self, index):
         input_file_command = "-i \"" + self.m_input + "\""
-        input_file_command += ":#ClampDur=" + self.m_max_duration + ":#StartNumber=-1" + ":FID=" + "GEN" + self.m_id
+        input_file_command += ":#ClampDur=" + self.m_max_duration + ":#StartNumber=+I:#Representation=1" + ":FID=" + "GEN" + self.m_id
 
         command = ""
         if self.m_media_type in ("v", "video"):
