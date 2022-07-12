@@ -121,7 +121,7 @@ for input in inputs:
             reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
 
             # TODO: these should be input parameters
-            cmaf_profile = "avchdhf"
+            cmaf_profile = "avchd"
             if profiles_type[wave_profile] == "video":
                 codec = "h264"
             else:
@@ -171,7 +171,7 @@ for input in inputs:
             print("Executing " + command)
             if dry_run == False:
                 result = subprocess.run(command, shell=True)
-
+            exit(1) #Romain
             # Create unencrypted archive
             command = "zip " + output_switching_set_folder + stream_id + ".zip " + output_switching_set_folder + "*"
             print("Executing " + command + " (cwd=" + local_output_folder + ")")
