@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2022-06-28/"
+batch_folder = "2022-07-12/"
 
 # Mezzanine characteristics:
 class InputContent:
@@ -47,7 +47,7 @@ inputs = [
 
     # Audio
     #TODO: replace with http://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2022-04-01/ when validated
-    #InputContent("tos", "content_files/2022-04-21/", "caac_sets", "AAC-LC", Fraction(60000, 1001)),
+    InputContent("tos", "content_files/2022-04-21/", "caac_sets", "AAC-LC", Fraction(60000, 1001)),
 ]
 
 profiles_type = {
@@ -76,6 +76,7 @@ for input in inputs:
 
     copyright_notice = ""
     source_notice = ""
+    title_notice = ""
     output_folder_base = "{0}/{1}".format(input.set, input.fps_family)
     output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
 
@@ -171,9 +172,9 @@ for input in inputs:
             print("Executing " + command)
             if dry_run == False:
                 result = subprocess.run(command, shell=True)
-            exit(1) #Romain
+
             # Create unencrypted archive
-            command = "zip " + output_switching_set_folder + stream_id + ".zip " + output_switching_set_folder + "*"
+            command = "zip -r " + output_switching_set_folder + stream_id + ".zip " + output_switching_set_folder + "*"
             print("Executing " + command + " (cwd=" + local_output_folder + ")")
             if dry_run == False:
                 result = subprocess.run(command, shell=True, cwd=local_output_folder)
@@ -203,7 +204,7 @@ for input in inputs:
                 }
 
                 # Create CENC archive
-                command = "zip " + output_switching_set_folder_cenc + stream_id + "-cenc.zip " + output_switching_set_folder_cenc + "*"
+                command = "zip -r " + output_switching_set_folder_cenc + stream_id + "-cenc.zip " + output_switching_set_folder_cenc + "*"
                 print("Executing " + command + " (cwd=" + local_output_folder + ")")
                 if dry_run == False:
                     result = subprocess.run(command, shell=True, cwd=local_output_folder)
@@ -217,8 +218,8 @@ for input in inputs:
         output_switching_set_folder_ss1 = "{0}/{1}/{2}".format(output_folder_complete, "ss1", batch_folder)
         print("===== " + "Switching Set " + output_switching_set_folder_ss1 + " =====")
         switching_set_X1_command = "--reps=" + switching_set_X1_command
-        command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1} --dash=sd:{2},ft:duration --copyright='{3}' --source='{4}' {5}"\
-            .format(gpac_executable, output_switching_set_folder_ss1, switching_set_X1_seg_dur, copyright_notice, source_notice, switching_set_X1_command)
+        command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1} --dash=sd:{2},ft:duration --copyright='{3}' --source='{4}' --title='{5}' {6}"\
+            .format(gpac_executable, output_switching_set_folder_ss1, switching_set_X1_seg_dur, copyright_notice, source_notice, title_notice, switching_set_X1_command)
         print("Executing " + command)
         if dry_run == False:
             result = subprocess.run(command, shell=True)
@@ -237,7 +238,7 @@ for input in inputs:
         }
 
         # Create unencrypted archive
-        command = "zip {0}ss1.zip {0}*".format(output_folder_base + "/ss1/" + batch_folder)
+        command = "zip -r {0}ss1.zip {0}*".format(output_folder_base + "/ss1/" + batch_folder)
         print("Executing " + command + " (cwd=" + local_output_folder + ")")
         if dry_run == False:
             result = subprocess.run(command, shell=True, cwd=local_output_folder)

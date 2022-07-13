@@ -171,6 +171,7 @@ class DASH:
     m_segment_signaling = "timeline"
     m_fragment_type = "duration"
     m_fragment_duration = "2"
+    m_num_b_frames = "2" # necessary for p-to-p fragmentation, see https://github.com/cta-wave/Test-Content-Generation/issues/54
     m_frame_rate = None
 
     def __init__(self, dash_config=None):
@@ -231,6 +232,9 @@ class DASH:
             dash_command += "V" + str(i)
             if i + 1 != index_v:
                 dash_command += ","
+
+        if dash_command[-1] == ",":
+            dash_command = dash_command[:-1]
 
         return dash_command
 
@@ -380,7 +384,7 @@ class Representation:
 
     def form_command(self, index):
         input_file_command = "-i \"" + self.m_input + "\""
-        input_file_command += ":#ClampDur=" + self.m_max_duration + ":#StartNumber=+I:#Representation=1" + ":FID=" + "GEN" + self.m_id
+        input_file_command += ":#ClampDur=" + self.m_max_duration + ":#StartNumber=-2000000:#Representation=1" + ":FID=" + "GEN" + self.m_id
 
         command = ""
         if self.m_media_type in ("v", "video"):
@@ -411,7 +415,7 @@ class Representation:
 
             command += "level=" + self.m_level + ":" \
                        "no-open-gop=1" + ":" \
-                       "scenecut=0\""
+                       "scenecut=0\":"
 
             if self.m_sei == "False":
                 command += " @ bsrw:rmsei"
