@@ -383,7 +383,17 @@ class Representation:
 
     def form_command(self, index):
         input_file_command = "-i \"" + self.m_input + "\""
-        input_file_command += ":#StartNumber=-2000000:#Representation=1" + ":FID=" + "GEN" + self.m_id
+        input_file_command += ":#StartNumber=-2000000" + ":#Representation=1"
+
+        if self.m_cmaf_profile == "avchd":
+            input_file_command +=  ":#IsoBrand=cfhd"
+        elif self.m_cmaf_profile == "avchdhf":
+            input_file_command +=  ":#IsoBrand=chdf"
+        elif self.m_cmaf_profile == "caac":
+            input_file_command +=  ":#IsoBrand=caac"
+        # other media need to have the brand embedded in the source
+
+        input_file_command +=  ":FID=" + "GEN" + self.m_id
 
         command = ""
         if self.m_media_type in ("v", "video"):

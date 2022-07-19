@@ -30,10 +30,9 @@ batch_folder = "2022-07-12/"
 
 # Mezzanine characteristics:
 class InputContent:
-    def __init__(self, content, root_folder, set, fps_family, fps):
+    def __init__(self, content, root_folder, fps_family, fps):
         self.content = content
         self.root_folder = root_folder
-        self.set = set
         self.fps_family = fps_family # video: frame_rate_family ; audio: audio_codec
 
         # Video only
@@ -41,17 +40,18 @@ class InputContent:
 
 inputs = [
     # Video
-    InputContent("croatia", "content_files/2022-04-21/", "cfhd_sets", "12.5_25_50",         Fraction(50)),
-    InputContent("tos", "content_files/2022-04-21/", "cfhd_sets", "15_30_60",           Fraction(60)),
-    InputContent("tos", "content_files/2022-04-21/", "cfhd_sets", "14.985_29.97_59.94", Fraction(60000, 1001)),
+    InputContent("croatia", "content_files/2022-04-21/", "12.5_25_50",         Fraction(50)),
+    InputContent("tos",     "content_files/2022-04-21/", "15_30_60",           Fraction(60)),
+    InputContent("tos",     "content_files/2022-04-21/", "14.985_29.97_59.94", Fraction(60000, 1001)),
 
     # Audio
     #TODO: replace with http://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2022-04-01/ when validated
-    InputContent("tos", "content_files/2022-04-21/", "caac_sets", "AAC-LC", Fraction(60000, 1001)),
+    InputContent("tos", "content_files/2022-04-21/", "AAC-LC", Fraction(60000, 1001)),
 ]
 
 profiles_type = {
     "cfhd": "video",
+    "chdf": "video",
     "caac": "audio",
     "cenc": "encrypted"
 }
@@ -72,13 +72,9 @@ for profile in profiles_type:
 
 # Generate CMAF content: encode, package, annotate, and encrypt
 for input in inputs:
-    wave_profile = input.set[:4]
-
     copyright_notice = ""
     source_notice = ""
     title_notice = ""
-    output_folder_base = "{0}/{1}".format(input.set, input.fps_family)
-    output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
 
     switching_set_X1_IDs = [ "19", "20", "23", "24", "25", "28", "32", "34", "audio" ]
     switching_set_X1_command = ""
@@ -92,6 +88,7 @@ for input in inputs:
                 continue;
 
             # Decide which stream to process based on the media type and the WAVE media profile
+            wave_profile = row[12]
             if profiles_type[wave_profile] == "video":
                 if row[0] == "audio":
                     continue;
@@ -101,8 +98,25 @@ for input in inputs:
                     continue;
                 stream_id = row[0]
 
+            cmaf_profile = "avchd"
+            if wave_profile == "cfhd":
+                codec = "h264"
+                cmaf_profile = "avchd"
+            elif wave_profile == "chdf":
+                codec = "h264"
+                cmaf_profile = "avchdhf"
+            elif wave_profile == "caac":
+                codec = "aac"
+                cmaf_profile = "caac"
+            else:
+                codec = "copy"
+
+            output_folder_base = "{0}/{1}".format(cmaf_profile, input.fps_family)
+            output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
+
             # Count index for index-based processing (e.g. CENC)
             csv_line_index = csv_line_index + 1
+
 
             switching_set_folder_suffix = stream_id + "/" + batch_folder
             switching_set_folder = "{0}/{1}".format(output_folder_complete, switching_set_folder_suffix)
@@ -121,14 +135,7 @@ for input in inputs:
                 seg_dur = Fraction(row[5]) * Fraction(1001, 1000)
             reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
 
-            # TODO: these should be input parameters
-            cmaf_profile = "avchd"
-            if profiles_type[wave_profile] == "video":
-                codec = "h264"
-            else:
-                codec = "aac"
-
-            filename_v=input.root_folder + input_filename
+            filename_v = input.root_folder + input_filename
             reps_command = "id:{0},type:{1},codec:{2},vse:{3},cmaf:{4},fps:{5}/{6},res:{7},bitrate:{8},input:\"{9}\",sei:{10},vui_timing:{11},sd:{12}"\
                 .format(row[0], profiles_type[wave_profile], codec, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
                         filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
