@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2022-07-12/"
+batch_folder = "2022-09-29/"
 
 # Mezzanine characteristics:
 class InputContent:
@@ -46,7 +46,7 @@ inputs = [
 
     # Audio
     #TODO: replace with http://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2022-04-01/ when validated
-    InputContent("tos", "content_files/2022-04-21/", "AAC-LC", Fraction(60000, 1001)),
+    #InputContent("tos", "content_files/2022-04-21/", "AAC-LC", Fraction(60000, 1001)),
 ]
 
 profiles_type = {
@@ -111,7 +111,7 @@ for input in inputs:
             else:
                 codec = "copy"
 
-            output_folder_base = "{0}/{1}".format(cmaf_profile, input.fps_family)
+            output_folder_base = "{0}_sets/{1}".format(wave_profile, input.fps_family)
             output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
 
             # Count index for index-based processing (e.g. CENC)
@@ -124,7 +124,7 @@ for input in inputs:
             server_switching_set_access_url = server_access_url + output_switching_set_folder
             print("===== Processing single track Switching Set " + switching_set_folder + " =====")
 
-            # 0: Stream ID, 1: mezzanine radius, 2: pic timing, 3: VUI timing, 4: sample entry,
+            # 0: Stream ID, 1: mezzanine radius, 2: pic timing SEI, 3: VUI timing, 4: sample entry,
             # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate,
             # 10: bitrate, 11: duration
             fps = min(framerates, key=lambda x:abs(x-float(row[9])*input.fps))
@@ -136,9 +136,9 @@ for input in inputs:
             reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
 
             filename_v = input.root_folder + input_filename
-            reps_command = "id:{0},type:{1},codec:{2},vse:{3},cmaf:{4},fps:{5}/{6},res:{7},bitrate:{8},input:\"{9}\",sei:{10},vui_timing:{11},sd:{12}"\
+            reps_command = "id:{0},type:{1},codec:{2},vse:{3},cmaf:{4},fps:{5}/{6},res:{7},bitrate:{8},input:\"{9}\",pic_timing:{10},vui_timing:{11},sd:{12},bf:{13}"\
                 .format(row[0], profiles_type[wave_profile], codec, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
-                        filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur))
+                        filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur), row[7])
 
             # SS-X1
             if row[0] in switching_set_X1_IDs:
@@ -158,7 +158,7 @@ for input in inputs:
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
                  source_notice = "" + json.loads(data)["Mezzanine"]["name"] + " version " + str(json.loads(data)["Mezzanine"]["version"]) + " (" + json.loads(data)["Mezzanine"]["creation_date"] + ")"
 
-            title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {4}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, cmaf_profile, row[0])
+            title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {4}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, wave_profile, row[0])
 
             # Web exposed information
             database[wave_profile.upper()][output_switching_set_folder] = {
@@ -174,8 +174,8 @@ for input in inputs:
             }
 
             # Encode, package, and annotate (DASH-only)
-            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' --source='{5}' --title='{6}' {7}"\
-                .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, title_notice, reps_command)
+            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' --source='{5}' --title='{6}' --profile={7} {8}"\
+                .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, title_notice, wave_profile, reps_command)
             print("Executing " + command)
             if dry_run == False:
                 result = subprocess.run(command, shell=True)

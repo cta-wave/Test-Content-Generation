@@ -20,10 +20,12 @@ class Mode(Enum):
 
 class ContentModel:
     m_filename = ""
+    m_wave_media_profile = ""
     m_mode = Mode.FRAGMENTED.value
 
-    def __init__(self, filename, mode=None):
+    def __init__(self, filename, wave_media_profile, mode=None):
         self.m_filename = filename
+        self.m_wave_media_profile = wave_media_profile
         if mode is not None:
             self.m_mode = mode
 
@@ -101,7 +103,7 @@ class ContentModel:
                     content_type = 'audio'
                     adaptation_set.setAttribute('contentType', content_type)
 
-                adaptation_set.setAttribute('containerProfiles', 'cmf2')
+                adaptation_set.setAttribute('containerProfiles', '\'cmf2\', \'' + self.m_wave_media_profile + '\'')
 
             representations = adaptation_set.getElementsByTagName('Representation')
             for representation in representations:
@@ -146,7 +148,7 @@ class AVCSD:
     m_color_primary = "1"
     m_resolution_w = "864"
     m_resolution_h = "576"
-    m_frame_rate = "60"
+    m_frame_rate = 60
 
 class AVCHD:
     m_profile = "high"
@@ -154,7 +156,7 @@ class AVCHD:
     m_color_primary = "1"
     m_resolution_w = "1920"
     m_resolution_h = "1080"
-    m_frame_rate = "60"
+    m_frame_rate = 60
 
 class AVCHDHF:
     m_profile = "high"
@@ -162,7 +164,7 @@ class AVCHDHF:
     m_color_primary = "1"
     m_resolution_w = "1920"
     m_resolution_h = "1080"
-    m_frame_rate = "60"
+    m_frame_rate = 60
 
 
 # DASHing
@@ -171,7 +173,7 @@ class DASH:
     m_segment_signaling = "timeline"
     m_fragment_type = "duration"
     m_fragment_duration = "2"
-    m_num_b_frames = "2" # necessary for p-to-p fragmentation, see https://github.com/cta-wave/Test-Content-Generation/issues/54
+    m_num_b_frames = 2 # necessary for p-to-p fragmentation, see https://github.com/cta-wave/Test-Content-Generation/issues/54
     m_frame_rate = None
 
     def __init__(self, dash_config=None):
@@ -197,6 +199,8 @@ class DASH:
                         exit(1)
                     else:
                         self.m_fragment_type = value
+                        if value == "every_frame":
+                            self.m_num_b_frames = 0 # only P-frames
                 elif name == "fd":
                     self.m_fragment_duration = value
                 elif name == "fr":
@@ -219,7 +223,7 @@ class DASH:
         if self.m_fragment_type == "duration":
             dash_command += ":cdur=" + self.m_fragment_duration
         elif self.m_fragment_type == "pframes":
-            frag_dur = (self.m_num_b_frames + 1) / self.m_frame_rate
+            frag_dur = (self.m_num_b_frames + 1) / Fraction(self.m_frame_rate)
             dash_command += ":cdur=" + str(frag_dur)
         elif self.m_fragment_type == "every_frame":
             frag_dur = Fraction(Fraction(self.m_frame_rate).denominator, Fraction(self.m_frame_rate).numerator)
@@ -256,6 +260,7 @@ class DASH:
 #### profile: codec profile (such as high, baseline, main, etc.)
 #### level: codec level (such as 32, 40, 42, etc.)
 #### color: color primary (1 for bt709, etc.)
+#### bframes: duration or pframes (2 B-Frames), every_frame (no B-Frames)
 # The first six configuration parameters shall be provided. The rest can be filled according to the specified
 # cmaf profile. When optional parameters are present these will override the default values for the specified CMAF profile
 class Representation:
@@ -274,10 +279,10 @@ class Representation:
     m_profile = None
     m_level = None
     m_color_primary = None
-    m_sei = None
+    m_pic_timing = None
     m_vui_timing = None
     m_segment_duration = None
-    m_num_b_frames = "2"
+    m_num_b_frames = None
 
     def __init__(self, representation_config):
         config = representation_config.split(",")
@@ -362,10 +367,15 @@ class Representation:
                 self.m_profile = value
             elif name == "level":
                 self.m_level = value
+            elif name == "bf":
+                if value == "every_frame":
+                    self.m_num_b_frames = 0
+                else:
+                    self.m_num_b_frames = 2
             elif name == "color":
                 self.m_color_primary = value
-            elif name == "sei":
-                self.m_sei = value
+            elif name == "pic_timing":
+                self.m_pic_timing = value
             elif name == "vui_timing":
                 self.m_vui_timing = value
             elif name == "sd":
@@ -401,21 +411,20 @@ class Representation:
             command += "ffsws:osize=" + self.m_resolution_w + "x" + self.m_resolution_h
             command += ":SID=" + "GEN" + self.m_id
 
+            # Encode
             command += " @ "
             command += "enc:gfloc"
             command += ":c=" + self.m_codec
             command += ":b=" + self.m_bitrate + "k"
             command += ":r=" + self.m_frame_rate
-            command += ":bf=" + self.m_num_b_frames + ":b_strategy=0"
+            command += ":bf=" + str(self.m_num_b_frames)
+            if self.m_num_b_frames != 0:
+                 command += ":b_strategy=0"
             command += ":fintra=" + self.m_segment_duration
             command += ":profile=" + self.m_profile
             command += ":color_primaries=" + self.m_color_primary
             command += ":color_trc=" + self.m_color_primary
             command += ":colorspace=" + self.m_color_primary
-
-            #TODO: factorize @bsrw calls
-            if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
-                command += " @ bsrw:setsar=" + self.m_aspect_ratio_x + "/" + self.m_aspect_ratio_y + ""
 
             if self.m_codec == VideoCodecOptions.AVC.value:
                 command += "::x264-params=\""
@@ -424,12 +433,21 @@ class Representation:
 
             command += "level=" + self.m_level + ":" \
                        "no-open-gop=1" + ":" \
-                       "scenecut=0\":"
+                       "scenecut=0"
 
-            if self.m_sei == "False":
-                command += " @ bsrw:rmsei"
+            if self.m_pic_timing == "True":
+                command +=  ":" \
+                       "nal-hrd=vbr" + ":" \
+                       "vbv-bufsize=" + self.m_bitrate + ":" \
+                       "vbv-maxrate=" + str(int(self.m_bitrate) * 2)
+
+            command += "\":" #closing codec-specific parameters
+
             if self.m_vui_timing == "False":
-                command += " @ bsrw:novsi"
+                command += " @ bsrw:novuitiming"
+
+            if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
+                command += " @ bsrw:setsar=" + self.m_aspect_ratio_x + "/" + self.m_aspect_ratio_y + ""
 
             command += ":FID=V" + index
 
@@ -481,7 +499,7 @@ def generate_log(gpac_path, command):
     f.write("-----------------------------------\n")
     f.write("GPAC Information:\n")
     f.write("-----------------------------------\n")
-    f.write("%s\n\n\n\n" % result.stdout.decode('ascii'))
+    f.write("%s\n\n\n\n" % result.stderr.decode('ascii'))
 
     f.write("-----------------------------------\n")
     f.write("Command run:\n")
@@ -508,6 +526,8 @@ def parse_args(args):
     outDir = None
     copyright_notice = None
     source_notice = None
+    bframes = None
+    wave_media_profile = None
     for opt, arg in args:
         if opt == '-h':
             print('test.py -i <inputfile> -o <outputfile>')
@@ -528,9 +548,13 @@ def parse_args(args):
             source_notice = arg
         elif opt in ("-t", "--title"):
             title_notice = arg
+        elif opt in ("-t", "--title"):
+            title_notice = arg
+        elif opt in ("-pf", "--profile"):
+            wave_media_profile = arg
 
     print(representations)
-    return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice, title_notice]
+    return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice, title_notice, wave_media_profile]
 
 
 # Check if the input arguments are correctly given
@@ -564,7 +588,7 @@ def assert_configuration(configuration):
 if __name__ == "__main__":
     # Read input, parse and assert
     try:
-        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od:c:s:t', ['out=', 'reps=', 'dash=', 'path=', 'outdir=', 'copyright=', 'source=', 'title='])
+        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od:c:s:t:pf', ['out=', 'reps=', 'dash=', 'path=', 'outdir=', 'copyright=', 'source=', 'title=', 'profile='])
     except getopt.GetoptError:
         sys.exit(2)
     configuration = parse_args(arguments)
@@ -578,6 +602,7 @@ if __name__ == "__main__":
     copyright_notice = configuration[5]
     source_notice = configuration[6]
     title_notice = configuration[7]
+    wave_media_profile = configuration[8]
 
     if out_dir is not None:
         output_file = out_dir + "/" + output_file
@@ -621,7 +646,7 @@ if __name__ == "__main__":
     subprocess.run(command, shell=True)
 
     # Content Model
-    content_model = ContentModel(output_file)
+    content_model = ContentModel(output_file, wave_media_profile)
     content_model.process(copyright_notice, source_notice, title_notice)
 
     # Save the log
