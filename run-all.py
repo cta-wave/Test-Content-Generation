@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2022-09-29/"
+batch_folder = "2022-09-30/"
 
 # Mezzanine characteristics:
 class InputContent:
@@ -220,16 +220,9 @@ for input in inputs:
 
     # Generate a SwitchingSet when there is more than 1 stream (i.e. more than 0 "\|" separator) in it
     if switching_set_X1_command.count("\|") > 0:
-        #TODO: the Switching Set chould be derived from the representations with a MPD construction
-        #      (e.g. GPAC manifest writing from existing segments)
         output_switching_set_folder_ss1 = "{0}/{1}/{2}".format(output_folder_complete, "ss1", batch_folder)
         print("===== " + "Switching Set " + output_switching_set_folder_ss1 + " =====")
         switching_set_X1_command = "--reps=" + switching_set_X1_command
-        command = "./encode_dash.py --path={0} --out=stream.mpd --outdir={1} --dash=sd:{2},ft:duration --copyright='{3}' --source='{4}' --title='{5}' {6}"\
-            .format(gpac_executable, output_switching_set_folder_ss1, switching_set_X1_seg_dur, copyright_notice, source_notice, title_notice, switching_set_X1_command)
-        print("Executing " + command)
-        if dry_run == False:
-            result = subprocess.run(command, shell=True)
 
         # Web exposed information
         database["CFHD"][output_folder_base + "/ss1"] = {

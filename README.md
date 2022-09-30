@@ -46,6 +46,10 @@ The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gp
   * Inspect the [input list](switching_sets_single_track.csv).
 * Run ```./run-all.py```, and grab a cup of tea, or coffee.
 
+### Switching Set X1 (ss1)
+
+```ss1/switching_set_X1.sh```
+
 ### Splicing tests
 
 The generation of current [splicing tests](https://github.com/cta-wave/Test-Content/issues/19) is done by executing ```splice/gen.sh ```.
