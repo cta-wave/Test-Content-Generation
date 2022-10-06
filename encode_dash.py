@@ -62,9 +62,9 @@ class ContentModel:
         copyright = DOMTree.createElement("Copyright")
         copyright_txt = DOMTree.createTextNode(copyright_notice)
         copyright.appendChild(copyright_txt)
+        program_information.appendChild(title)
         program_information.appendChild(source)
         program_information.appendChild(copyright)
-        program_information.appendChild(title)
 
         # Period
         period = mpd.getElementsByTagName("Period").item(0)
