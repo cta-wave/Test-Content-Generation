@@ -548,8 +548,6 @@ def parse_args(args):
             source_notice = arg
         elif opt in ("-t", "--title"):
             title_notice = arg
-        elif opt in ("-t", "--title"):
-            title_notice = arg
         elif opt in ("-pf", "--profile"):
             wave_media_profile = arg
 
