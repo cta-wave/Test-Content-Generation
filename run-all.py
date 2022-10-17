@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2022-09-30/"
+batch_folder = "2022-10-17/"
 
 # Mezzanine characteristics:
 class InputContent:
@@ -70,7 +70,7 @@ database = { }
 for profile in profiles_type:
     database[profile.upper()] = { }
 
-# Generate CMAF content: encode, package, annotate, and encrypt
+# Generate CMAF content: encode, package (CMAF), generate manifest, and encrypt
 for input in inputs:
     copyright_notice = ""
     source_notice = ""
@@ -173,7 +173,7 @@ for input in inputs:
                 'zipPath': '{0}{1}.zip'.format(server_switching_set_access_url, stream_id)
             }
 
-            # Encode, package, and annotate (DASH-only)
+            # Encode, package, and manifest generation (DASH-only)
             command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' --source='{5}' --title='{6}' --profile={7} {8}"\
                 .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, title_notice, wave_profile, reps_command)
             print("Executing " + command)
@@ -237,11 +237,7 @@ for input in inputs:
             'zipPath': '{0}/ss1.zip'.format(server_access_url + output_folder_base)
         }
 
-        # Create unencrypted archive
-        command = "zip -r {0}ss1.zip {0}*".format(output_folder_base + "/ss1/" + batch_folder)
-        print("Executing " + command + " (cwd=" + local_output_folder + ")")
-        if dry_run == False:
-            result = subprocess.run(command, shell=True, cwd=local_output_folder)
+        # Don't generate here, see ss1/
 
         print("")
 

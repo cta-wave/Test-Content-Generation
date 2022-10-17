@@ -2,9 +2,9 @@
 <!-- MPD file Generated with GPAC version 2.1-DEV-rev348-gf1b2ba890-master at 2022-09-29T17:24:12.543Z -->
 <MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.000S" type="static" mediaPresentationDuration="PT0H0M30.000S" maxSegmentDuration="PT0H0M2.000S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
   <ProgramInformation>
+    <Title>tos, 1920x1080, 30.0fps, cfhd, Test Vector SS1</Title>
     <Source>tos_L1_1920x1080@30_30 version 3 (2022-04-20)</Source>
     <Copyright>© Tears of Steel (https://mango.blender.org/about/) (2012) by Blender Institute, credited to Ton Roosendaal and Ian Hubert, used and licensed under Creative Commons Attribution 3.0 Unported (CC BY 3.0) (https://creativecommons.org/licenses/by/3.0/) by the Consumer Technology Association (CTA)® / annotated, encoded and compressed from original.</Copyright>
-    <Title>tos, 1920x1080, 30.0fps, cfhd, Test Vector SS1</Title>
   </ProgramInformation>
   <Period duration="PT0H0M30.000S">
     <AssetIdentifier schemeIdUri="urn:cta:org:wave-test-mezzanine:unique-id" value="0.1"/>

@@ -3,7 +3,7 @@ set -eux
 
 INPUT_DIR="$PWD/output/"
 OUTPUT_DIR="$PWD/output_ss1/"
-BATCH="2022-09-30"
+BATCH="2022-10-17"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 cd $OUTPUT_DIR
@@ -36,7 +36,4 @@ for FR in "${FRAMERATES[@]}" ; do
 
     popd
 done
-
-#TODO: manipulate manifest: replace old batch with new + take gpac version/generation date from another MPD
-#      MPD could be stored in this repo?
 
