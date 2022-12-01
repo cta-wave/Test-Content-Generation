@@ -12,7 +12,7 @@ FRAMERATES=( '12.5_25_50' '15_30_60' '14.985_29.97_59.94' )
 for FR in "${FRAMERATES[@]}" ; do
     mkdir -p cfhd_sets/$FR/ss1/$BATCH
     pushd cfhd_sets/$FR/ss1/$BATCH
-    cp $SCRIPT_DIR/ss1_$FR.mpd stream.mpd
+    cp $SCRIPT_DIR/avc_$FR_ss1_stream.mpd avc_$FR_ss1_stream.mpd
 
     mkdir -p cfhd_sets/$FR/
     pushd cfhd_sets/$FR/
