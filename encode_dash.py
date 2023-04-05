@@ -94,7 +94,7 @@ class ContentModel:
                     content_type = 'audio'
                     adaptation_set.setAttribute('contentType', content_type)
 
-                adaptation_set.setAttribute('containerProfiles', '\'cmf2\', \'' + self.m_wave_media_profile + '\'')
+                adaptation_set.setAttribute('containerProfiles', 'cmf2 ' + self.m_wave_media_profile)
 
             representations = adaptation_set.getElementsByTagName('Representation')
             for representation in representations:
