@@ -8,7 +8,7 @@
   </ProgramInformation>
   <Period duration="PT0H1M0.000S">
     <AssetIdentifier schemeIdUri="urn:cta:org:wave-test-mezzanine:unique-id" value="0.1"/>
-    <AdaptationSet segmentAlignment="true" maxWidth="1920" maxHeight="1080" maxFrameRate="60" par="16:9" lang="und" startWithSAP="1" contentType="video" containerProfiles="'cmf2','cfhd'" initializationPrinciple="cfhd_sets/15_30_60/t19/init.mp4" >
+    <AdaptationSet segmentAlignment="true" maxWidth="1920" maxHeight="1080" maxFrameRate="60" par="16:9" lang="und" startWithSAP="1" contentType="video" containerProfiles="'cmf2','cfhd'" initializationPrincipale="cfhd_sets/15_30_60/t19/init.mp4" >
       <SegmentTemplate media="$RepresentationID$/$Time$.m4s" initialization="$RepresentationID$/init.mp4" timescale="15360">
         <SegmentTimeline>
           <S t="0" d="30720" r="29"/>
