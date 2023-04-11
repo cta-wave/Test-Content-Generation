@@ -382,6 +382,10 @@ class Representation:
                     .format(self.m_id, self.m_input, self.m_media_type, self.m_codec, self.m_bitrate, self.m_cmaf_profile))
             sys.exit(1)
 
+        if Fraction(self.m_frame_rate) < 14:
+            print("Low framerate detected: disabling B-Frames.")
+            self.m_num_b_frames = 0
+
     def form_command(self, index):
         input_file_command = "-i \"" + self.m_input + "\""
         input_file_command += ":#StartNumber=-2000000" + ":#Representation=1"

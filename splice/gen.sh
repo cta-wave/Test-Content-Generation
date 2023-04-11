@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eux
 
-# tested with GPAC version 2.3-DEV-rev124-g6c77c0307-master
+# tested with GPAC version 2.3-DEV-rev125-g1f032d6e7-master
 export MEZZANINE_VERSION="4"
 export BATCH="2023-04-06"
 

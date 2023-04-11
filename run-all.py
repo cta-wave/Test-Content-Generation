@@ -3,17 +3,17 @@ import subprocess
 import os
 import csv
 import os.path
+import sys
 import json
 import pysftp
 from fractions import Fraction
 
 ################################################################################
 # This file implements dpctf-s00001-v033-WAVE-DPC-v1.21
-# and uses 2021-04-21 mezzanine (merge with symlinks from releases/2/ for the 60s content):
-#   for i in `ls ../releases/2` ; do if [ -f $i ] ; then echo "exists $i" ; else ln -s ../releases/2/$i $i ; fi ; done
+# and uses releases/4/ mezzanine.
 ################################################################################
 
-gpac_executable = "/opt/bin/gpac"
+gpac_executable = "/opt/bin/gpac -strict-error"
 
 # NB: dry_run generates a local json database
 dry_run = False
@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2022-10-17/"
+batch_folder = "2023-04-06/"
 
 # Mezzanine characteristics:
 class InputContent:
@@ -40,9 +40,9 @@ class InputContent:
 
 inputs = [
     # Video
-    InputContent("croatia", "content_files/2022-04-21/", "12.5_25_50",         Fraction(50)),
-    InputContent("tos",     "content_files/2022-04-21/", "15_30_60",           Fraction(60)),
-    InputContent("tos",     "content_files/2022-04-21/", "14.985_29.97_59.94", Fraction(60000, 1001)),
+    InputContent("croatia", "content_files/releases/4/", "12.5_25_50",         Fraction(50)),
+    InputContent("tos",     "content_files/releases/4/", "15_30_60",           Fraction(60)),
+    InputContent("tos",     "content_files/releases/4/", "14.985_29.97_59.94", Fraction(60000, 1001)),
 
     # Audio
     #TODO: replace with http://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2022-04-01/ when validated
@@ -191,7 +191,7 @@ for input in inputs:
             # Special case for first encoding: create side CENC streams
             if csv_line_index == 1:
                 output_switching_set_folder_cenc = "{0}/{1}-cenc/{2}".format(output_folder_base, stream_id, batch_folder)
-                command = gpac_executable + " -i " + output_switching_set_folder + "stream.mpd:forward=mani cecrypt:cfile=DRM.xml @ -o " + output_switching_set_folder_cenc + "stream.mpd:pssh=mv"
+                command = gpac_executable + " -i " + output_switching_set_folder + "stream.mpd:forward=mani cecrypt:cfile=" + sys.path[0] + "/DRM.xml @ -o " + output_switching_set_folder_cenc + "stream.mpd:pssh=mv"
                 print("Executing " + command + " (cwd=" + local_output_folder + ")")
                 if dry_run == False:
                     result = subprocess.run(command, shell=True, cwd=local_output_folder)
