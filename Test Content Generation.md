@@ -28,7 +28,9 @@ All the steps are provided in the encode_dash.py script. The process flow is as 
         * __input:__ Input file name. The media type mentioned in “type” will be extracted from this input file for the Representation
         * __codec:__ codec value for the media. Can be “h264”, “h265” or “aac”
         * __bitrate:__ encoding bitrate for the media in kbits/s
-        * __cmaf:__ cmaf profile that is desired. Supported ones are avcsd, avchd, avchdhf (taken from 23000-19 A.1)
+        * __cmaf:__ cmaf profile that is desired. Supported ones are:
+             * AVC/H264: avcsd, avchd, avchdhf (taken from 23000-19 A.1), and
+             * HEVC/H265: hhd8 (taken from 23000-19 B.5)
         * vse: visual sample entry. Supported video sample entries for AVC are "avc1" and "avc3" and for HEVC "hev1" and "hvc1"
         * res: resolution width and resolution height provided as “wxh”
         * fps: frame rate

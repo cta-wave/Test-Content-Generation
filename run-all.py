@@ -52,6 +52,7 @@ inputs = [
 profiles_type = {
     "cfhd": "video",
     "chdf": "video",
+    "chh1": "video",
     "caac": "audio",
     "cenc": "encrypted"
 }
@@ -105,6 +106,9 @@ for input in inputs:
             elif wave_profile == "chdf":
                 codec = "h264"
                 cmaf_profile = "avchdhf"
+            elif wave_profile == "chh1":
+                codec = "h265"
+                cmaf_profile = "chh1"
             elif wave_profile == "caac":
                 codec = "aac"
                 cmaf_profile = "caac"

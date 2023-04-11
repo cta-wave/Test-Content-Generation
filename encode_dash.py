@@ -132,7 +132,7 @@ class VisualSampleEntry(Enum):
 
 
 # CMAF Profiles
-# ISO/IEC 23000-19 Annex A.1
+# AVC: ISO/IEC 23000-19 Annex A.1
 class AVCSD:
     m_profile = "high"
     m_level = "31"
@@ -152,6 +152,15 @@ class AVCHD:
 class AVCHDHF:
     m_profile = "high"
     m_level = "42"
+    m_color_primary = "1"
+    m_resolution_w = "1920"
+    m_resolution_h = "1080"
+    m_frame_rate = 60
+
+# HEVC: ISO/IEC 23000-19 Annex B.5
+class HEVCCHHD:
+    m_profile = "main"
+    m_level = "41"
     m_color_primary = "1"
     m_resolution_w = "1920"
     m_resolution_h = "1080"
@@ -342,6 +351,20 @@ class Representation:
                     if self.m_resolution_w is None and self.m_resolution_h is None:
                         self.m_resolution_w = AVCHDHF.m_resolution_w
                         self.m_resolution_h = AVCHDHF.m_resolution_h
+                elif value == "chh1":
+                    if self.m_profile is None:
+                        self.m_profile = HEVCCHHD.m_profile
+                    if self.m_level is None:
+                        self.m_level = HEVCCHHD.m_level
+                    if self.m_frame_rate is None:
+                        self.m_frame_rate = HEVCCHHD.m_frame_rate
+                    if self.m_color_primary is None:
+                        self.m_color_primary = HEVCCHHD.m_color_primary
+                    if self.m_resolution_w is None and self.m_resolution_h is None:
+                        self.m_resolution_w = HEVCCHHD.m_resolution_w
+                        self.m_resolution_h = HEVCCHHD.m_resolution_h
+                else:
+                    print("Unknown CMAF profile: " + name)
             elif name == "bitrate":
                 self.m_bitrate = value
             elif name == "res":
@@ -459,11 +482,11 @@ class Representation:
 
         #TODO: move: this is a video-only muxing option, not an encoding option. Setting as global.
         if self.m_video_sample_entry is not None:
-            if self.m_video_sample_entry == "avc1":
+            if self.m_video_sample_entry == "avc1" or self.m_video_sample_entry == "hvc1": #Romain: call them inband, outband, both
                 command += " --bs_switch=off"
-            elif self.m_video_sample_entry == "avc3":
+            elif self.m_video_sample_entry == "avc3" or self.m_video_sample_entry == "hev1":
                 command += " --bs_switch=inband"
-            elif self.m_video_sample_entry == "avc1+3":
+            elif self.m_video_sample_entry == "avc1+3" or self.m_video_sample_entry == "hevc1+3":
                 command += " --bs_switch=both"
             else:
                 print("Supported video sample entries are \"avc1\", \"avc3\", and \"avc1+3\".")
