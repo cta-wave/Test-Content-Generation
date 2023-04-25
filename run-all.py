@@ -157,6 +157,9 @@ for input in inputs:
 
             # Extract copyright
             annotation_filename = input.root_folder + input_basename + ".json"
+            if not os.path.exists(annotation_filename):
+                continue
+
             with open(annotation_filename, 'r') as annotations:
                  data = annotations.read()
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
