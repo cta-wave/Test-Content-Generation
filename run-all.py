@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2023-04-06/"
+batch_folder = "2023-04-25/"
 
 # Mezzanine characteristics:
 class InputContent:
@@ -77,6 +77,7 @@ for input in inputs:
     source_notice = ""
     title_notice = ""
 
+    # Used only to fill database.json
     switching_set_X1_IDs = [ "19", "20", "23", "24", "25", "28", "32", "34", "audio" ]
     switching_set_X1_command = ""
     switching_set_X1_reps = []
@@ -228,7 +229,7 @@ for input in inputs:
     # Generate a SwitchingSet when there is more than 1 stream (i.e. more than 0 "\|" separator) in it
     if switching_set_X1_command.count("\|") > 0:
         output_switching_set_folder_ss1 = "{0}/{1}/{2}".format(output_folder_complete, "ss1", batch_folder)
-        print("===== " + "Switching Set " + output_switching_set_folder_ss1 + " =====")
+        print("===== " + "Switching Set " + output_switching_set_folder_ss1 + " (database) =====")
         switching_set_X1_command = "--reps=" + switching_set_X1_command
 
         # Web exposed information

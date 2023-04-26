@@ -3,7 +3,7 @@ set -eux
 
 INPUT_DIR="$PWD/output/"
 OUTPUT_DIR="$PWD/output_ss1/" # make it different of $INPUT_DIR to avoid collisions and deletions of input files
-BATCH="2023-04-06"
+BATCH="2023-04-25"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 mkdir -p $OUTPUT_DIR
@@ -30,7 +30,7 @@ for FR in "${FRAMERATES[@]}" ; do
     #find . -name '*.zip' | xargs rm
 
     # create archive
-    zip -r $SS1_OUTPUT_RELDIR/ss1.zip cfhd_sets chdf_sets
+    zip -r $SS1_OUTPUT_RELDIR/ss1.zip cfhd_sets chdf_sets $SS1_OUTPUT_RELDIR
 
     # delete duplicated files
     rm -rf cfhd_sets chdf_sets

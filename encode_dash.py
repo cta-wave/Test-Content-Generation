@@ -456,8 +456,8 @@ class Representation:
             if self.m_pic_timing == "True":
                 command +=  ":" \
                        "nal-hrd=vbr" + ":" \
-                       "vbv-bufsize=" + self.m_bitrate + ":" \
-                       "vbv-maxrate=" + str(int(self.m_bitrate) * 2)
+                       "vbv-bufsize=" + str(int(self.m_bitrate) * 3) + ":" \
+                       "vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
 
             command += "\":" #closing codec-specific parameters
 
