@@ -438,6 +438,7 @@ class Representation:
             if self.m_num_b_frames != 0:
                  command += ":b_strategy=0"
             command += ":fintra=" + self.m_segment_duration
+            command += ":gop=" + self.m_segment_duration
             command += ":profile=" + self.m_profile
             command += ":color_primaries=" + self.m_color_primary
             command += ":color_trc=" + self.m_color_primary
