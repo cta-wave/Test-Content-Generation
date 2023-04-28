@@ -434,7 +434,6 @@ class Representation:
             command += "enc:gfloc"
             command += ":c=" + self.m_codec
             command += ":b=" + self.m_bitrate + "k"
-            command += ":r=" + self.m_frame_rate
             command += ":bf=" + str(self.m_num_b_frames)
             if self.m_num_b_frames != 0:
                  command += ":b_strategy=0"
