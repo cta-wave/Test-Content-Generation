@@ -11,39 +11,36 @@
     <AdaptationSet segmentAlignment="true" maxWidth="1920" maxHeight="1080" maxFrameRate="60000/1001" par="16:9" lang="und" startWithSAP="1" contentType="video" containerProfiles="cmf2 cfhd" initializationPrincipal="cfhd_sets/14.985_29.97_59.94/t19/init.mp4" >
       <SegmentTemplate media="$RepresentationID$/$Time$.m4s" initialization="$RepresentationID$/init.mp4" timescale="30000">
         <SegmentTimeline>
-          <S t="0" d="58058"/>
-          <S d="60060" r="28"/>
+          <S t="0" d="60060" r="28"/>
+          <S d="58058"/>
         </SegmentTimeline>
       </SegmentTemplate>
-      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t19/2023-04-25/1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="30/1001" sar="1:1" bandwidth="5100000"/>
-      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t24/2023-04-25/1" mimeType="video/mp4" codecs="avc1.640028" width="1024" height="576" frameRate="30/1001" sar="1:1" bandwidth="1200000"/>
-      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t25/2023-04-25/1" mimeType="video/mp4" codecs="avc1.640028" width="1024" height="576" frameRate="30/1001" sar="1:1" bandwidth="1500000"/>
-      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t28/2023-04-25/1" mimeType="video/mp4" codecs="avc1.640028" width="768" height="432" frameRate="30/1001" sar="1:1" bandwidth="900000"/>
-      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t32/2023-04-25/1" mimeType="video/mp4" codecs="avc1.640028" width="512" height="288" frameRate="30/1001" sar="1:1" bandwidth="450000"/>
-      <Representation id="../../../../chdf_sets/14.985_29.97_59.94/t20/2023-04-25/1" mimeType="video/mp4" codecs="avc1.64002A" width="1920" height="1080" frameRate="60/1001" sar="1:1" bandwidth="6000000">
+      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t19/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="30/1001" sar="1:1" bandwidth="5100000"/>
+      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t24/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="1024" height="576" frameRate="30/1001" sar="1:1" bandwidth="1200000"/>
+      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t25/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="1024" height="576" frameRate="30/1001" sar="1:1" bandwidth="1500000"/>
+      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t28/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="768" height="432" frameRate="30/1001" sar="1:1" bandwidth="900000"/>
+      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t32/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="512" height="288" frameRate="30/1001" sar="1:1" bandwidth="450000"/>
+      <Representation id="../../../../chdf_sets/14.985_29.97_59.94/t20/2023-04-28/1" mimeType="video/mp4" codecs="avc1.64002A" width="1920" height="1080" frameRate="60/1001" sar="1:1" bandwidth="6000000">
         <SegmentTemplate media="$RepresentationID$/$Time$.m4s" initialization="$RepresentationID$/init.mp4" timescale="60000">
           <SegmentTimeline>
-          <S t="0" d="118118"/>
-          <S d="120120" r="27"/>
-          <S d="118118"/>
+          <S t="0" d="120120" r="28"/>
+          <S d="116116"/>
           </SegmentTimeline>
         </SegmentTemplate>
       </Representation>
-      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t23/2023-04-25/1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="30/1001" sar="1:1" bandwidth="4900000">
+      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t23/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="30/1001" sar="1:1" bandwidth="4900000">
         <SegmentTemplate media="$RepresentationID$/$Time$.m4s" initialization="$RepresentationID$/init.mp4" timescale="60000">
           <SegmentTimeline>
-          <S t="0" d="118118"/>
-          <S d="120120" r="27"/>
-          <S d="118118"/>
+          <S t="0" d="120120" r="28"/>
+          <S d="116116"/>
           </SegmentTimeline>
         </SegmentTemplate>
       </Representation>
-      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t34/2023-04-25/1" mimeType="video/mp4" codecs="avc1.640028" width="480" height="270" frameRate="15/1001" sar="1:1" bandwidth="300000">
+      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t34/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="480" height="270" frameRate="15/1001" sar="1:1" bandwidth="300000">
         <SegmentTemplate media="$RepresentationID$/$Time$.m4s" initialization="$RepresentationID$/init.mp4" timescale="15000">
           <SegmentTimeline>
-          <S t="0" d="28028"/>
-          <S d="30030" r="27"/>
-          <S d="31031"/>
+          <S t="0" d="30030" r="28"/>
+          <S d="29029"/>
           </SegmentTimeline>
         </SegmentTemplate>
       </Representation>

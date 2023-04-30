@@ -3,7 +3,7 @@ set -eux
 
 INPUT_DIR="$PWD/output/"
 OUTPUT_DIR="$PWD/output_ss1/" # make it different of $INPUT_DIR to avoid collisions and deletions of input files
-BATCH="2023-04-25"
+BATCH="2023-04-28"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 mkdir -p $OUTPUT_DIR
