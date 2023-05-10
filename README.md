@@ -10,25 +10,35 @@ The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gp
 
 ## Workflow
 
-* Download mezzanine content from https://dash.akamaized.net/WAVE/Mezzanine/. To be done manually.
+* Download mezzanine content from https://dash.akamaized.net/WAVE/Mezzanine/. See section below for a script.
 * Launch scripts:
   * Encode mezzanine content:
     * Encode to conform to CTA Proposed Test content.
     * Encode at least one option of source content according to media profile.
-    * Special codec value "copy" to bypass the encoding. Not exposed in the CSV at the moment.
+    * Special codec value "copy" to bypass the encoding. Useful for proprietary codecs such as DTS or Dolby. Not exposed in the CSV at the moment.
   * Package (markup) the content with an MPD according to the CTA Content Model format.
     * NB: done in Python right now, but could eventually an extension to [GPAC](http://gpac.io) to produce this.
   * Encrypt the content in-place using [GPAC](http://gpac.io) encryption and manifest-forwarding capabilities.
   * Upload the proposed test content to the CTA-WAVE server using SFTP.
   * Update the Webpage: update [database.json](https://github.com/cta-wave/Test-Content/blob/master/database.json).
-    * NB: updates and merges are done manually.
-    * NB: the Web page code is at https://github.com/cta-wave/Test-Content/.
+    * NB: updates and merges are [done manually](https://github.com/cta-wave/Test-Content-Generation/issues/45).
+    * NB: the Web page code is located at https://github.com/cta-wave/Test-Content/.
     * NB: when the JSON format needs to be updated, open an issue at https://github.com/cta-wave/dpctf-deploy/issues/.
 * Validate that the content conforms to:
-  * Its own constraints and flags
-  * CMAF
+  * Its own constraints and flags. [Script](https://github.com/nicholas-fr/test-content-validation/).
+  * CMAF: use the [DASH-IF hosted conformance tool](https://conformance.dashif.org/).
   * CTA WAVE Test content format **needs to be extended to format validation**
  
+## Downloading mezzanine
+
+Sample script for mezzanine v4:
+```
+mkdir -p releases/4
+cd releases/4
+curl http://dash.akamaized.net/WAVE/Mezzanine/releases/4/| sed -n 's/^<IMG SRC=\"\/icons\/generic.gif\" ALT=\"\[FILE\]\"> <A HREF=\"\(.*\)\".*$/\1/p' | grep -v croatia_M1 | grep -v croatia_N1 | grep -v croatia_O1 | xargs -I % wget http://dash.akamaized.net/WAVE/Mezzanine/releases/4/%
+cd ..
+```
+
 ## Encoding to test content
  
 * Content and encoding options are documented here for AVC:
@@ -38,21 +48,21 @@ The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gp
   
 ## How to generate the content
 
-### Main content
+### Main content (clear and encrypted)
 
-* Modify run-all.py to:
+* Modify ```run-all.py``` to:
   * Modify the [executable locations, input and output files location, codec media profile, framerate family](run-all.py) to match your own.
   * Make sure the DRM.xml file is accessible from the output folder.
   * Inspect the [input list](switching_sets_single_track.csv).
-* Run ```./run-all.py```, and grab a cup of tea, or coffee.
-
-### Switching Set X1 (ss1)
-
-```ss1/switching_set_X1.sh```
+* Run ```./run-all.py```, and grab a cup of tea (or coffee).
 
 ### Splicing tests
 
 The generation of current [splicing tests](https://github.com/cta-wave/Test-Content/issues/19) is done by executing ```splice/gen.sh ```.
+
+### Chunked tests
+
+The generation of current [chunked tests](https://github.com/cta-wave/Test-Content/issues/41) is done by executing ```chunked/gen.sh ```.
 
 ## Validation
 
