@@ -56,6 +56,10 @@ cd ..
   * Inspect the [input list](switching_sets_single_track.csv).
 * Run ```./run-all.py```, and grab a cup of tea (or coffee).
 
+### Switching Set X1 (ss1)
+
+The generation of current [Switching Set X1 (ss1)](https://github.com/cta-wave/Test-Content-Generation/issues/60) is done by executing ```ss1/gen.sh```
+
 ### Splicing tests
 
 The generation of current [splicing tests](https://github.com/cta-wave/Test-Content/issues/19) is done by executing ```splice/gen.sh ```.

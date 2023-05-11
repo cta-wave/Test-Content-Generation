@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<!-- MPD file Generated with GPAC version 2.3-DEV-rev222-g4c2ad897f-ffenc_timescale_cbr at 2023-04-29T11:15:38.134Z -->
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.000S" type="static" mediaPresentationDuration="PT0H0M30.000S" maxSegmentDuration="PT0H0M2.000S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
+  <ProgramInformation>
+    <Title>croatia, 1920x1080, 25.0fps, cfhd, Test Vector 16</Title>
+    <Source>croatia_L1_1920x1080@25_30 version 4 (2023-02-13)</Source>
+    <Copyright>© Croatia (2019), credited to EBU, used and licensed under Creative Commons Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/) by the Consumer Technology Association (CTA)® / annotated, encoded and compressed from original.</Copyright>
+  </ProgramInformation>
+  <Period duration="PT0H0M30.000S">
+    <AdaptationSet segmentAlignment="true" maxWidth="1920" maxHeight="1080" maxFrameRate="25" par="16:9" lang="und" startWithSAP="1" subsegmentAlignment="true" subsegmentStartsWithSAP="1" contentType="video" containerProfiles="cmf2 cfhd">
+      <SegmentTemplate media="1/$Time$_$SubNumber$.m4s" initialization="1/init.mp4" timescale="12800">
+        <SegmentTimeline>
+          <S t="0" d="25600" k="2" r="14"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation id="1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="25" sar="1:1" bandwidth="4600000">
+   </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>
