@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2023-04-28/"
+batch_folder = "2023-05-12/"
 
 # Mezzanine characteristics:
 class InputContent:

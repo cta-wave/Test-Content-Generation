@@ -253,7 +253,7 @@ class DASH:
 #### input: Input file name. The media type mentioned in “type” will be extracted from this input file for the Representation
 #### codec: codec value for the media. Can be “h264”, “h265”, “aac”, or "copy" to disable transcoding.
 #### bitrate: encoding bitrate for the media in kbits/s
-#### cmaf: cmaf profile that is desired. Supported ones are avcsd, avchd, avchdhf (taken from 23000-19 A.1)
+#### cmaf: cmaf profile that is desired. Supported ones are avcsd, avchd, avchdhf, chh1 (taken from 23000-19 A.1)
 #### res: resolution width and resolution height provided as “wxh”
 #### fps: framerate
 #### sar: aspect ratio provided as “x/y”
@@ -417,6 +417,8 @@ class Representation:
             input_file_command +=  ":#IsoBrand=cfhd"
         elif self.m_cmaf_profile == "avchdhf":
             input_file_command +=  ":#IsoBrand=chdf"
+        elif self.m_cmaf_profile == "chh1":
+            input_file_command +=  ":#IsoBrand=chh1"
         elif self.m_cmaf_profile == "caac":
             input_file_command +=  ":#IsoBrand=caac"
         # other media need to have the brand embedded in the source
@@ -427,6 +429,8 @@ class Representation:
         if self.m_media_type in ("v", "video"):
             # Resize
             command += "ffsws:osize=" + self.m_resolution_w + "x" + self.m_resolution_h
+            if self.m_cmaf_profile == "chh1":
+                command += ":ofmt=yuv420_10"
             command += ":SID=" + "GEN" + self.m_id
 
             # Encode
@@ -438,8 +442,11 @@ class Representation:
             if self.m_num_b_frames != 0:
                  command += ":b_strategy=0"
             command += ":fintra=" + self.m_segment_duration
-            command += ":gop=" + self.m_segment_duration
-            command += ":profile=" + self.m_profile
+            if self.m_cmaf_profile == "chh1":
+                command += ":profile=" + self.m_profile + "10"
+            else:
+                command += ":gop=" + self.m_segment_duration
+                command += ":profile=" + self.m_profile
             command += ":color_primaries=" + self.m_color_primary
             command += ":color_trc=" + self.m_color_primary
             command += ":colorspace=" + self.m_color_primary
