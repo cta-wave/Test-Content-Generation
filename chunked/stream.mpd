@@ -10,7 +10,7 @@
     <AdaptationSet segmentAlignment="true" maxWidth="1920" maxHeight="1080" maxFrameRate="25" par="16:9" lang="und" startWithSAP="1" subsegmentAlignment="true" subsegmentStartsWithSAP="1" contentType="video" containerProfiles="cmf2 cfhd">
       <SegmentTemplate media="1/$Time$_$SubNumber$.m4s" initialization="1/init.mp4" timescale="12800">
         <SegmentTimeline>
-          <S t="0" d="25600" k="2" r="14"/>
+          <S t="0" d="25600" k="5" r="14"/>
         </SegmentTimeline>
       </SegmentTemplate>
       <Representation id="1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="25" sar="1:1" bandwidth="4600000">
