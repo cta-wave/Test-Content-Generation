@@ -85,7 +85,7 @@ if __name__ == "__main__":
             i_chunk += 1
             fo = open(input_file + "_" + str(i_chunk) + ".m4s", 'wb')
             styp = open("styp", 'rb')
-            fo.write(styp.read(12))
+            fo.write(styp.read(28))
             styp.close();
         
         fo.write(bytes)
