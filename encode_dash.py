@@ -445,7 +445,7 @@ class Representation:
             if self.m_cmaf_profile == "chh1":
                 command += ":profile=" + self.m_profile + "10"
             else:
-                command += ":gop=" + self.m_segment_duration
+                command += ":gop=" + str(Fraction(self.m_segment_duration) * Fraction(self.m_frame_rate))
                 command += ":profile=" + self.m_profile
             command += ":color_primaries=" + self.m_color_primary
             command += ":color_trc=" + self.m_color_primary
