@@ -2,7 +2,7 @@
 set -eux
 
 export INPUT_BATCH="2023-04-28"
-export OUTPUT_BATCH="2023-05-20"
+export OUTPUT_BATCH="2023-05-21"
 
 export MPD=stream.mpd
 export INPUT_STREAM_ID=t16

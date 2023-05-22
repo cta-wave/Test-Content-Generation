@@ -83,7 +83,7 @@ if __name__ == "__main__":
             if fo is not None:
                 fo.close()
             i_chunk += 1
-            fo = open(input_file + "_" + str(i_chunk) + ".m4s", 'wb')
+            fo = open(input_file + "_" + str(i_chunk+1) + ".m4s", 'wb')
             styp = open("styp", 'rb')
             fo.write(styp.read(28))
             styp.close();
