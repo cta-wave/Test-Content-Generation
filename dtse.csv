@@ -1,0 +1,3 @@
+Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,resolution,framerate,bitrate,duration,wave_profile
+at1,PN01-dtse-192kbps,FALSE,FALSE,avc1,2.048,regular,duration,480x270,0.25,256,60,dts1
+at2,PN01-dtse-192kbps,FALSE,FALSE,avc1,2.048,regular,every_frame,480x270,0.25,256,60,dts1

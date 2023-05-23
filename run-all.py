@@ -38,6 +38,11 @@ class InputContent:
         # Video only
         self.fps = fps
 
+# Input csv file: default is switching_sets_single_track.csv
+input_csv = 'switching_sets_single_track.csv'
+if len(sys.argv) > 1:
+    input_csv = sys.argv[1]
+
 inputs = [
     # Video
     InputContent("croatia", "content_files/releases/4/", "12.5_25_50",         Fraction(50)),
@@ -47,6 +52,9 @@ inputs = [
     # Audio
     #TODO: replace with http://dash-large-files.akamaized.net/WAVE/Mezzanine/under_review/2022-04-01/ when validated
     #InputContent("tos", "content_files/2022-04-21/", "AAC-LC", Fraction(60000, 1001)),
+    #InputContent("", "content_files/dts_wave/dtsc/", "dtsc", Fraction(50)),
+    #InputContent("", "content_files/dts_wave/dtse/", "dtse", Fraction(50)),
+    #InputContent("", "content_files/dts_wave/dtsx/", "dtsx", Fraction(50)),
 ]
 
 profiles_type = {
@@ -54,6 +62,8 @@ profiles_type = {
     "chdf": "video",
     "chh1": "video",
     "caac": "audio",
+    "dts1": "audio",
+    "dts2": "audio",
     "cenc": "encrypted"
 }
 
@@ -70,7 +80,7 @@ database_filepath = './database.json'
 database = { }
 for profile in profiles_type:
     database[profile.upper()] = { }
-
+ 
 # Generate CMAF content: encode, package (CMAF), generate manifest, and encrypt
 for input in inputs:
     copyright_notice = ""
@@ -82,7 +92,7 @@ for input in inputs:
     switching_set_X1_command = ""
     switching_set_X1_reps = []
 
-    with open('switching_sets_single_track.csv') as csv_file:
+    with open(input_csv) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         csv_line_index = 0
         for row in csv_reader:
@@ -91,12 +101,13 @@ for input in inputs:
 
             # Decide which stream to process based on the media type and the WAVE media profile
             wave_profile = row[12]
+
             if profiles_type[wave_profile] == "video":
-                if row[0] == "audio":
+                if row[0][0] == 'a':
                     continue;
                 stream_id = "{0}{1}".format("t", row[0])
             else:
-                if row[0] != "audio":
+                if row[0][0] != 'a':
                     continue;
                 stream_id = row[0]
 
@@ -133,7 +144,11 @@ for input in inputs:
             # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate,
             # 10: bitrate, 11: duration
             fps = min(framerates, key=lambda x:abs(x-float(row[9])*input.fps))
-            input_basename = "{0}_{1}@{2}_{3}".format(input.content, row[1], fps, row[11])
+            input_basename = ""
+            if profiles_type[wave_profile] == "video":
+                input_basename = "{0}_{1}@{2}_{3}".format(input.content, row[1], fps, row[11])
+            else:
+                input_basename = "{0}{1}".format(input.content, row[1])
             input_filename = input_basename + ".mp4"
             seg_dur = Fraction(row[5])
             if input.fps.denominator == 1001:
@@ -159,6 +174,7 @@ for input in inputs:
             # Extract copyright
             annotation_filename = input.root_folder + input_basename + ".json"
             if not os.path.exists(annotation_filename):
+                print("Annotation file \"" + annotation_filename + "\" not found. Skipping entry.")
                 continue
 
             with open(annotation_filename, 'r') as annotations:
@@ -166,7 +182,10 @@ for input in inputs:
                  copyright_notice = json.loads(data)["Mezzanine"]["license"]
                  source_notice = "" + json.loads(data)["Mezzanine"]["name"] + " version " + str(json.loads(data)["Mezzanine"]["version"]) + " (" + json.loads(data)["Mezzanine"]["creation_date"] + ")"
 
-            title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {4}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, wave_profile, row[0])
+            if profiles_type[wave_profile] == "video":
+                title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {4}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, wave_profile, row[0])
+            else:
+                title_notice = "{0}, Test Vector {1}".format(wave_profile, row[0])
 
             # Web exposed information
             database[wave_profile.upper()][output_switching_set_folder] = {

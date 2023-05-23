@@ -4,7 +4,7 @@
 
 This repository provides the information and scripts to generate the CTA Wave Test Content.
 
-The ```run-all.py``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
+The ```run-all.py [optional_csv_file]``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
 
 The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gpac.io) leveraging libavcodec with x264 and x265 to generate the CMAF content with some DASH manifest. The intent is to keep the size of the post-processing (e.g. manifest manipulation) as small as possible.
 
@@ -15,7 +15,7 @@ The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gp
   * Encode mezzanine content:
     * Encode to conform to CTA Proposed Test content.
     * Encode at least one option of source content according to media profile.
-    * Special codec value "copy" to bypass the encoding. Useful for proprietary codecs such as DTS or Dolby. Not exposed in the CSV at the moment.
+    * Special codec value "copy" to bypass the encoding. Useful for proprietary codecs such as DTS or Dolby.
   * Package (markup) the content with an MPD according to the CTA Content Model format.
     * NB: done in Python right now, but could eventually an extension to [GPAC](http://gpac.io) to produce this.
   * Encrypt the content in-place using [GPAC](http://gpac.io) encryption and manifest-forwarding capabilities.
@@ -53,8 +53,8 @@ cd ..
 * Modify ```run-all.py``` to:
   * Modify the [executable locations, input and output files location, codec media profile, framerate family](run-all.py) to match your own.
   * Make sure the DRM.xml file is accessible from the output folder.
-  * Inspect the [input list](switching_sets_single_track.csv).
-* Run ```./run-all.py```, and grab a cup of tea (or coffee).
+  * Inspect the input list ([default](switching_sets_single_track.csv)).
+* Run ```./run-all.py``` (with optionally your custom csv file as an argument), and grab a cup of tea (or coffee).
 
 ### Switching Set X1 (ss1)
 
@@ -78,4 +78,4 @@ The process of validation includes:
   - Media: https://github.com/nicholas-fr/test-content-validation
   - CMAF and manifests: TODO
 - An API call to the [DASH-IF conformance validator](http://conformance.dashif.org) should be done to check against MPD and CMAF conformance for CTA WAVE test content.
-- The content should be ammended with a conformance check output document. At this stage it is recommended to use the output for the DASH-IF conformance validator.
+- The content should be amended with a conformance check output document. At this stage it is recommended to use the output for the DASH-IF conformance validator.
