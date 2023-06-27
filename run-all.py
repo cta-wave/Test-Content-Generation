@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2023-05-12/"
+batch_folder = "2023-06-26/"
 
 # Mezzanine characteristics:
 class InputContent:
@@ -44,6 +44,7 @@ if len(sys.argv) > 1:
     input_csv = sys.argv[1]
 
 inputs = [
+    # Comment or uncomment manually TODO: this should be a parameter
     # Video
     InputContent("croatia", "content_files/releases/4/", "12.5_25_50",         Fraction(50)),
     InputContent("tos",     "content_files/releases/4/", "15_30_60",           Fraction(60)),
@@ -126,6 +127,7 @@ for input in inputs:
                 cmaf_profile = "caac"
             else:
                 codec = "copy"
+                cmaf_profile = wave_profile
 
             output_folder_base = "{0}_sets/{1}".format(wave_profile, input.fps_family)
             output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)

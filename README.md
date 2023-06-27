@@ -68,6 +68,10 @@ The generation of current [splicing tests](https://github.com/cta-wave/Test-Cont
 
 The generation of current [chunked tests](https://github.com/cta-wave/Test-Content/issues/41) is done by executing ```chunked/gen.sh ```.
 
+### Audio content (XPERI/DTS)
+
+Comment/uncomment the ```inputs``` array entries in ```run-all.py```. Then `````` to generate the ```dtsc``` content.
+
 ## Validation
 
 Validation as of today is done manually. (NOTE: an improved more automated process may be available later). 

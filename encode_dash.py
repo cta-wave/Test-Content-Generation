@@ -417,10 +417,8 @@ class Representation:
             input_file_command +=  ":#IsoBrand=cfhd"
         elif self.m_cmaf_profile == "avchdhf":
             input_file_command +=  ":#IsoBrand=chdf"
-        elif self.m_cmaf_profile == "chh1":
-            input_file_command +=  ":#IsoBrand=chh1"
-        elif self.m_cmaf_profile == "caac":
-            input_file_command +=  ":#IsoBrand=caac"
+        else:
+            input_file_command +=  ":#IsoBrand=" + self.m_cmaf_profile
         # other media need to have the brand embedded in the source
 
         input_file_command +=  ":FID=" + "GEN" + self.m_id
