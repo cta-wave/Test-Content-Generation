@@ -70,7 +70,7 @@ The generation of current [chunked tests](https://github.com/cta-wave/Test-Conte
 
 ### Audio content (XPERI/DTS)
 
-Comment/uncomment the ```inputs``` array entries in ```run-all.py```. Then `````` to generate the ```dtsc``` content.
+Comment/uncomment the ```inputs``` array entries in ```run-all.py```. Then ```./run-all.py dtsc.csv``` to generate the ```dtsc``` content.
 
 ## Validation
 
