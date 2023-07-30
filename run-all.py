@@ -26,7 +26,7 @@ dry_run = False
 # More at https://github.com/cta-wave/dpctf-tests/issues/59
 
 # Current subfolder
-batch_folder = "2023-06-26/"
+batch_folder = "2023-07-30/"
 
 # Mezzanine characteristics:
 class InputContent:
@@ -38,10 +38,11 @@ class InputContent:
         # Video only
         self.fps = fps
 
-# Input csv file: default is switching_sets_single_track.csv
-input_csv = 'switching_sets_single_track.csv'
-if len(sys.argv) > 1:
-    input_csv = sys.argv[1]
+if len(sys.argv) < 2:
+    print("Usage: " + sys.argv[0] + " input_csv")
+    exit(1)
+
+input_csv = sys.argv[1]
 
 inputs = [
     # Comment or uncomment manually TODO: this should be a parameter
@@ -88,11 +89,6 @@ for input in inputs:
     source_notice = ""
     title_notice = ""
 
-    # Used only to fill database.json
-    switching_set_X1_IDs = [ "19", "20", "23", "24", "25", "28", "32", "34", "audio" ]
-    switching_set_X1_command = ""
-    switching_set_X1_reps = []
-
     with open(input_csv) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         csv_line_index = 0
@@ -136,11 +132,11 @@ for input in inputs:
             csv_line_index = csv_line_index + 1
 
 
-            switching_set_folder_suffix = stream_id + "/" + batch_folder
-            switching_set_folder = "{0}/{1}".format(output_folder_complete, switching_set_folder_suffix)
-            output_switching_set_folder = "{0}/{1}".format(output_folder_base, switching_set_folder_suffix)
-            server_switching_set_access_url = server_access_url + output_switching_set_folder
-            print("===== Processing single track Switching Set " + switching_set_folder + " =====")
+            test_stream_folder_suffix = stream_id + "/" + batch_folder
+            test_stream_folder = "{0}/{1}".format(output_folder_complete, test_stream_folder_suffix)
+            output_test_stream_folder = "{0}/{1}".format(output_folder_base, test_stream_folder_suffix)
+            server_test_stream_access_url = server_access_url + output_test_stream_folder
+            print("===== Processing test stream " + test_stream_folder + " =====")
 
             # 0: Stream ID, 1: mezzanine radius, 2: pic timing SEI, 3: VUI timing, 4: sample entry,
             # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate,
@@ -162,14 +158,6 @@ for input in inputs:
                 .format(row[0], profiles_type[wave_profile], codec, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
                         filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur), row[7])
 
-            # SS-X1
-            if row[0] in switching_set_X1_IDs:
-                if switching_set_X1_command:
-                    switching_set_X1_command += "\|"
-                switching_set_X1_command += reps_command
-                switching_set_X1_reps += reps
-                switching_set_X1_seg_dur = seg_dur
-
             # Finalize one-AdaptationSet formatting
             reps_command = "--reps=" + reps_command
 
@@ -190,7 +178,7 @@ for input in inputs:
                 title_notice = "{0}, Test Vector {1}".format(wave_profile, row[0])
 
             # Web exposed information
-            database[wave_profile.upper()][output_switching_set_folder] = {
+            database[wave_profile.upper()][output_test_stream_folder] = {
                 'source': source_notice,
                 'representations': reps,
                 'segmentDuration': str(seg_dur),
@@ -198,19 +186,19 @@ for input in inputs:
                 'hasSEI': row[2].lower() == 'true',
                 'hasVUITiming': row[3].lower() == 'true',
                 'visualSampleEntry': row[4],
-                'mpdPath': '{0}stream.mpd'.format(server_switching_set_access_url),
-                'zipPath': '{0}{1}.zip'.format(server_switching_set_access_url, stream_id)
+                'mpdPath': '{0}stream.mpd'.format(server_test_stream_access_url),
+                'zipPath': '{0}{1}.zip'.format(server_test_stream_access_url, stream_id)
             }
 
             # Encode, package, and manifest generation (DASH-only)
             command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' --source='{5}' --title='{6}' --profile={7} {8}"\
-                .format(switching_set_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, title_notice, wave_profile, reps_command)
+                .format(test_stream_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, title_notice, wave_profile, reps_command)
             print("Executing " + command)
             if dry_run == False:
                 result = subprocess.run(command, shell=True)
 
             # Create unencrypted archive
-            command = "zip -r " + output_switching_set_folder + stream_id + ".zip " + output_switching_set_folder + "*"
+            command = "zip -r " + output_test_stream_folder + stream_id + ".zip " + output_test_stream_folder + "*"
             print("Executing " + command + " (cwd=" + local_output_folder + ")")
             if dry_run == False:
                 result = subprocess.run(command, shell=True, cwd=local_output_folder)
@@ -219,15 +207,15 @@ for input in inputs:
 
             # Special case for first encoding: create side CENC streams
             if csv_line_index == 1:
-                output_switching_set_folder_cenc = "{0}/{1}-cenc/{2}".format(output_folder_base, stream_id, batch_folder)
-                command = gpac_executable + " -i " + output_switching_set_folder + "stream.mpd:forward=mani cecrypt:cfile=" + sys.path[0] + "/DRM.xml @ -o " + output_switching_set_folder_cenc + "stream.mpd:pssh=mv"
+                output_test_stream_folder_cenc = "{0}/{1}-cenc/{2}".format(output_folder_base, stream_id, batch_folder)
+                command = gpac_executable + " -i " + output_test_stream_folder + "stream.mpd:forward=mani cecrypt:cfile=" + sys.path[0] + "/DRM.xml @ -o " + output_test_stream_folder_cenc + "stream.mpd:pssh=mv"
                 print("Executing " + command + " (cwd=" + local_output_folder + ")")
                 if dry_run == False:
                     result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
                 # Web exposed information
-                server_switching_set_access_url_cenc = server_access_url + output_switching_set_folder_cenc
-                database["CENC"][output_switching_set_folder_cenc] = {
+                server_test_stream_access_url_cenc = server_access_url + output_test_stream_folder_cenc
+                database["CENC"][output_test_stream_folder_cenc] = {
                     'source': source_notice,
                     'representations': reps,
                     'segmentDuration': str(seg_dur),
@@ -235,38 +223,17 @@ for input in inputs:
                     'hasSEI': row[2].lower() == 'true',
                     'hasVUITiming': row[3].lower() == 'true',
                     'visualSampleEntry': row[4],
-                    'mpdPath': '{0}stream.mpd'.format(server_switching_set_access_url_cenc),
-                    'zipPath': '{0}{1}.zip'.format(server_switching_set_access_url_cenc, stream_id + "-cenc")
+                    'mpdPath': '{0}stream.mpd'.format(server_test_stream_access_url_cenc),
+                    'zipPath': '{0}{1}.zip'.format(server_test_stream_access_url_cenc, stream_id + "-cenc")
                 }
 
                 # Create CENC archive
-                command = "zip -r " + output_switching_set_folder_cenc + stream_id + "-cenc.zip " + output_switching_set_folder_cenc + "*"
+                command = "zip -r " + output_test_stream_folder_cenc + stream_id + "-cenc.zip " + output_test_stream_folder_cenc + "*"
                 print("Executing " + command + " (cwd=" + local_output_folder + ")")
                 if dry_run == False:
                     result = subprocess.run(command, shell=True, cwd=local_output_folder)
 
                 print("")
-
-    # Generate a SwitchingSet when there is more than 1 stream (i.e. more than 0 "\|" separator) in it
-    if switching_set_X1_command.count("\|") > 0:
-        output_switching_set_folder_ss1 = "{0}/{1}/{2}".format(output_folder_complete, "ss1", batch_folder)
-        print("===== " + "Switching Set " + output_switching_set_folder_ss1 + " (database) =====")
-        switching_set_X1_command = "--reps=" + switching_set_X1_command
-
-        # Web exposed information
-        database["CFHD"][output_folder_base + "/ss1"] = {
-            'source': "CTA WAVE",
-            'representations': switching_set_X1_reps,
-            'segmentDuration': str(switching_set_X1_seg_dur),
-            'fragmentType': row[7],
-            'hasSEI': row[2].lower() == 'true',
-            'hasVUITiming': row[3].lower() == 'true',
-            'visualSampleEntry': row[4],
-            'mpdPath': '{0}/ss1/stream.mpd'.format(server_access_url + output_folder_base),
-            'zipPath': '{0}/ss1.zip'.format(server_access_url + output_folder_base)
-        }
-
-        # Don't generate here, see ss1/
 
         print("")
 
