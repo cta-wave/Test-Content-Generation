@@ -378,7 +378,7 @@ class Representation:
             elif name == "fps":
                 self.m_frame_rate = value
             elif name == "sar":
-                sar_x_y = value.split(':')
+                sar_x_y = value.split('/')
                 self.m_aspect_ratio_x = sar_x_y[0]
                 self.m_aspect_ratio_y = sar_x_y[1]
             elif name == "profile":
@@ -468,13 +468,13 @@ class Representation:
                        "vbv-bufsize=" + str(int(self.m_bitrate) * 3) + ":" \
                        "vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
 
+            if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
+                command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
+
             command += "\":" #closing codec-specific parameters
 
             if self.m_vui_timing == "False":
                 command += " @ bsrw:novuitiming"
-
-            if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
-                command += " @ bsrw:setsar=" + self.m_aspect_ratio_x + "/" + self.m_aspect_ratio_y + ""
 
             command += ":FID=V" + index
 
