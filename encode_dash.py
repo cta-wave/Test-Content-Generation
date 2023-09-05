@@ -468,8 +468,8 @@ class Representation:
                        "vbv-bufsize=" + str(int(self.m_bitrate) * 3) + ":" \
                        "vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
 
-            if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
-                command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
+            #if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
+            #    command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
 
             command += "\":" #closing codec-specific parameters
 

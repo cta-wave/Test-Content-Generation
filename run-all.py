@@ -161,10 +161,10 @@ for input in inputs:
                 .format(row[0], profiles_type[wave_profile], codec, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
                         filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur), row[7])
 
-            if row[2].find(row[8]) != -1:
-                mezzanine_par = row[2].split('_')[1].split('x')
-                encoding_par = row[8].split('x')
-                reps_command += ",sar:" + mezzanine_par[0]*encoding_par[1] + "/" + mezzanine_par[1]*encoding_par[0]
+            #if row[1].find(row[8]) == -1:
+            #    mezzanine_par = row[1].split('_')[1].split('x')
+            #    encoding_par = row[8].split('x')
+            #    reps_command += ",sar:" + str(int(mezzanine_par[0])*int(encoding_par[1])) + "/" + str(int(mezzanine_par[1])*int(encoding_par[0]))
 
             # Finalize one-AdaptationSet formatting
             reps_command = "--reps=" + reps_command
