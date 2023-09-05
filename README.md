@@ -4,7 +4,7 @@
 
 This repository provides the information and scripts to generate the CTA Wave Test Content.
 
-The ```run-all.py csv_file``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
+The ```run-all.py profiles/csv_file``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
 
 The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gpac.io) leveraging libavcodec with x264 and x265 to generate the CMAF content with some DASH manifest. The intent is to keep the size of the post-processing (e.g. manifest manipulation) as small as possible.
 
@@ -53,7 +53,7 @@ cd ..
 * Modify ```run-all.py``` to:
   * Modify the [executable locations, input and output files location, codec media profile, framerate family](run-all.py) to match your own.
   * Make sure the DRM.xml file is accessible from the output folder.
-  * Inspect the input list ([default](switching_sets_single_track.csv)).
+  * Inspect the input list e.g. ([default](profiles/avc.csv)).
 * Run ```./run-all.py csv_file``` (with optionally your custom csv file as an argument), and grab a cup of tea (or coffee).
 
 ### Switching Set X1 (ss1)
@@ -70,7 +70,7 @@ The generation of current [chunked tests](https://github.com/cta-wave/Test-Conte
 
 ### Audio content (XPERI/DTS)
 
-Comment/uncomment the ```inputs``` array entries in ```run-all.py```. Then ```./run-all.py dtsc.csv``` to generate the ```dtsc``` content.
+Comment/uncomment the ```inputs``` array entries in ```run-all.py```. Then ```./run-all.py profiles/dtsc.csv``` to generate the ```dtsc``` content.
 
 ## Validation
 
