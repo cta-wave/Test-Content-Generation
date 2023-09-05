@@ -58,15 +58,15 @@ cd ..
 
 ### Switching Set X1 (ss1)
 
-The generation of current [Switching Set X1 (ss1)](https://github.com/cta-wave/Test-Content-Generation/issues/60) is done by executing ```ss1/gen.sh```
+The generation of current [Switching Sets (ss1 for avc, ss2 for hevc/chh1)](https://github.com/cta-wave/Test-Content-Generation/issues/60) is done by executing ```ss/gen_ss1.sh``` and ```ss/gen_ss2.sh```.
 
 ### Splicing tests
 
-The generation of current [splicing tests](https://github.com/cta-wave/Test-Content/issues/19) is done by executing ```splice/gen.sh ```.
+The generation of current [splicing tests](https://github.com/cta-wave/Test-Content/issues/19) is done by executing ```splice/gen_avc.sh``` and ```splice/gen_hevc_chh1.sh```.
 
 ### Chunked tests
 
-The generation of current [chunked tests](https://github.com/cta-wave/Test-Content/issues/41) is done by executing ```chunked/gen.sh ```.
+The generation of current [chunked tests](https://github.com/cta-wave/Test-Content/issues/41) is done by executing ```chunked/gen.sh cfhd t16``` and ```chunked/gen.sh chh1 t2```.
 
 ### Audio content (XPERI/DTS)
 

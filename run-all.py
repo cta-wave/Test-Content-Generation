@@ -97,7 +97,7 @@ for input in inputs:
                 continue;
 
             # Decide which stream to process based on the media type and the WAVE media profile
-            wave_profile = row[12]
+            wave_profile = row[13]
 
             if profiles_type[wave_profile] == "video":
                 if row[0][0] == 'a':
@@ -191,8 +191,8 @@ for input in inputs:
             }
 
             # Encode, package, and manifest generation (DASH-only)
-            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3} --copyright='{4}' --source='{5}' --title='{6}' --profile={7} {8}"\
-                .format(test_stream_folder, seg_dur, row[7], input.fps, copyright_notice, source_notice, title_notice, wave_profile, reps_command)
+            command = "./encode_dash.py --path=/opt/bin/gpac --out=stream.mpd --outdir={0} --dash=sd:{1},fd:{1},ft:{2},fr:{3}:cmaf={4} --copyright='{5}' --source='{6}' --title='{7}' --profile={8} {9}"\
+                .format(test_stream_folder, seg_dur, row[7], input.fps, row[12], copyright_notice, source_notice, title_notice, wave_profile, reps_command)
             print("Executing " + command)
             if dry_run == False:
                 result = subprocess.run(command, shell=True)

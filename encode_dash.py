@@ -175,6 +175,7 @@ class DASH:
     m_fragment_duration = "2"
     m_num_b_frames = 2 # necessary for p-to-p fragmentation, see https://github.com/cta-wave/Test-Content-Generation/issues/54
     m_frame_rate = None
+    m_cmaf_brand = "cmf2"
 
     def __init__(self, dash_config=None):
         if dash_config is not None:
@@ -205,11 +206,14 @@ class DASH:
                     self.m_fragment_duration = value
                 elif name == "fr":
                     self.m_frame_rate = value
+                elif name == "cmaf":
+                    self.m_cmaf_brand = value
 
     def dash_package_command(self, index_v, index_a, output_file):
         dash_command = "-o " + output_file
         dash_command += ":profile=live" + \
-                        ":cmaf=cmf2" + \
+                        ":ctmode=negctts" + \
+                        ":cmaf=" + self.m_cmaf_brand + \
                         ":segdur=" + self.m_segment_duration + \
                         ":tpl" # segment template
 

@@ -4,12 +4,14 @@ set -eux
 export INPUT_BATCH="2023-09-01"
 export OUTPUT_BATCH="2023-09-01"
 
+export SET_NAME=$1
+export INPUT_STREAM_ID=$2
+
 export MPD=stream.mpd
-export INPUT_STREAM_ID=t16
-export INPUT_DIR=output/cfhd_sets/12.5_25_50/$INPUT_STREAM_ID/$INPUT_BATCH/
+export INPUT_DIR=output/$SET_NAME_sets/12.5_25_50/$INPUT_STREAM_ID/$INPUT_BATCH/
 export OUTPUT_STREAM_ID=chunked
 export OUTPUT=chunked
-export OUTPUT_DIR=output/cfhd_sets/12.5_25_50/$OUTPUT_STREAM_ID/$OUTPUT_BATCH/
+export OUTPUT_DIR=output/$SET_NAME_sets/12.5_25_50/$OUTPUT_STREAM_ID/$OUTPUT_BATCH/
 
 readonly SCRIPT_DIR=$(dirname $(readlink -f $0))
 
@@ -40,6 +42,6 @@ popd
 
 # zip
 pushd output
-rm cfhd_sets/12.5_25_50/$OUTPUT_STREAM_ID/$OUTPUT_BATCH/$INPUT_STREAM_ID.zip
-zip -r cfhd_sets/12.5_25_50/$OUTPUT_STREAM_ID/$OUTPUT_BATCH/$OUTPUT_STREAM_ID.zip cfhd_sets/12.5_25_50/$OUTPUT_STREAM_ID/$OUTPUT_BATCH/*
+rm $SET_NAME_sets/12.5_25_50/$OUTPUT_STREAM_ID/$OUTPUT_BATCH/$INPUT_STREAM_ID.zip
+zip -r $SET_NAME_sets/12.5_25_50/$OUTPUT_STREAM_ID/$OUTPUT_BATCH/$OUTPUT_STREAM_ID.zip $SET_NAME_sets/12.5_25_50/$OUTPUT_STREAM_ID/$OUTPUT_BATCH/*
 popd

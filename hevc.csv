@@ -1,6 +1,12 @@
-Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,ROMAIN default_sample_flags, sample_flags and first_sample_flags in the TrackFragmentHeaderBox and TrackRunBox,resolution,framerate,bitrate,duration,wave_profile
-1,L1_1920x1080,FALSE,TRUE,hvc1,2,regular,duration,ROMAIN,1920x1080,0.5,3500,30,chh1
-=> how does GPAC add this?	default_sample_flags, sample_flags and first_sample_flags shall be set in the TrackFragmentHeaderBox and/or TrackRunBox to provide sample dependency information within each CMAF chunk and CMAF fragment.
-   /!\ mandatory in cmf2 /!\
-=> then add a new column processing in run.py
-
+Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,CMAF brand,resolution,framerate,bitrate,duration,wave_profile
+#1,L1_1920x1080,FALSE,TRUE,hvc1,2,regular,duration,1920x1080,1,3500,30,cmfc,chh1
+#2,L1_1920x1080,TRUE,FALSE,hev1,2,regular,pframes,1920x1080,1,3600,30,cmfc,chh1
+#3,L1_1920x1080,TRUE,TRUE,hvc1,2,regular,duration,1920x1080,1,3300,30,cmfc,chh1
+#4,L1_1920x1080,FALSE,FALSE,hvc1,2,regular,duration,1920x1080,1,3200,30,cmfc,chh1
+#5,L1_1920x1080,FALSE,TRUE,hev1,2,regular,duration,1920x1080,1,3100,30,cmfc,chh1
+#6,L1_1920x1080,FALSE,TRUE,hvc1,2,regular,pframes,1920x1080,1,3800,30,cmfc,chh1
+#7,L1_1920x1080,FALSE,TRUE,hvc1,2,regular,duration,1920x1080,1,3700,30,cmf2,chh1
+#10,L1_1920x1080,FALSE,TRUE,hvc1,2,regular,duration,1920x1080,1,3400,60,cmfc,chh1
+#11,L2_1920x1080,FALSE,TRUE,hvc1,2,regular,duration,1920x1080,0.5,3500,60,cmfc,chh1
+#12,J1_1280x720,FALSE,TRUE,hvc1,2,regular,duration,1280x720,0.5,2000,60,cmfc,chh1
+non_square_par,M1_1440x1080,FALSE,hvc1,2,regular,duration,1440x1080,1,2800,60,cmfc,chh1
