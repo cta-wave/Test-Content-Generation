@@ -74,12 +74,12 @@ Comment/uncomment the ```inputs``` array entries in ```run-all.py```. Then ```./
 
 ## Validation
 
-Validation as of today is done manually. (NOTE: an improved more automated process may be available later). 
+Validation as of today is done manually. 
 
 The process of validation includes:
 
-- The validation should include initial phase checking that required parameters according to the test content description are applied:
+- A initial phase checking that required parameters according to the test content description are applied:
   - Media: https://github.com/nicholas-fr/test-content-validation
   - CMAF and manifests: TODO
-- An API call to the [DASH-IF conformance validator](http://conformance.dashif.org) should be done to check against MPD and CMAF conformance for CTA WAVE test content.
-- The content should be amended with a conformance check output document. At this stage it is recommended to use the output for the DASH-IF conformance validator.
+- An API call to the [DASH-IF conformance validator](http://conformance.dashif.org) is [done](https://github.com/nicholas-fr/test-content-validation) to check against MPD and CMAF conformance for CTA WAVE test content. Some conformance [reported issues](https://github.com/cta-wave/Test-Content-Generation/issues/55) remain.
+- The content should be amended with a conformance check output document: [TODO](https://github.com/cta-wave/Test-Content/issues/49).
