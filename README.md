@@ -6,19 +6,20 @@ This repository provides the information and scripts to generate the CTA Wave Te
 
 The ```run-all.py profiles/csv_file``` script gathers the data and content from input tables/parameters. Then it sends them for processing. Then it uploads the result.
 
-The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gpac.io) leveraging libavcodec with x264 and x265 to generate the CMAF content with some DASH manifest. The intent is to keep the size of the post-processing (e.g. manifest manipulation) as small as possible.
+The processing happens mainly in ```encode_dash.py```. This script is primarily about the usage of [GPAC](http://gpac.io) leveraging [libavcodec](https://ffmpeg.org/libavcodec.html) with [x264](http://www.videolan.org/developers/x264.html) and [x265](https://www.x265.org/) to generate the CMAF content along with a DASH manifest. The intent is to keep the size of the post-processing (e.g. manifest manipulation) as small as possible.
 
 ## Workflow
 
-* Download mezzanine content from https://dash.akamaized.net/WAVE/Mezzanine/. See section below for a script.
+* Download mezzanine content from https://dash.akamaized.net/WAVE/Mezzanine/. See section below.
 * Launch scripts:
   * Encode mezzanine content:
     * Encode to conform to CTA Proposed Test content.
     * Encode at least one option of source content according to media profile.
-    * Special codec value "copy" to bypass the encoding. Useful for proprietary codecs such as DTS or Dolby.
+    * NB; the codec value "copy" instructs to bypass the encoding. Useful for proprietary codecs such as DTS or Dolby.
   * Package (markup) the content with an MPD according to the CTA Content Model format.
     * NB: done in Python right now, but could eventually an extension to [GPAC](http://gpac.io) to produce this.
   * Encrypt the content in-place using [GPAC](http://gpac.io) encryption and manifest-forwarding capabilities.
+  * Generate side streams: switching sets, spliced and chunked content, etc.. See sections below.
   * Upload the proposed test content to the CTA-WAVE server using SFTP.
   * Update the Webpage: update [database.json](https://github.com/cta-wave/Test-Content/blob/master/database.json).
     * NB: updates and merges are [done manually](https://github.com/cta-wave/Test-Content-Generation/issues/45).
@@ -27,7 +28,7 @@ The ```encode_dash.py``` script is primarily about the usage of [GPAC](http://gp
 * Validate that the content conforms to:
   * Its own constraints and flags. [Script](https://github.com/nicholas-fr/test-content-validation/).
   * CMAF: use the [DASH-IF hosted conformance tool](https://conformance.dashif.org/).
-  * CTA WAVE Test content format **needs to be extended to format validation**
+  * CTA WAVE Test content format **needs to be extended to format validation**.
  
 ## Downloading mezzanine
 
@@ -42,9 +43,17 @@ cd ..
 ## Encoding to test content
  
 * Content and encoding options are documented here for AVC:
-  * https://docs.google.com/spreadsheets/d/1hxbqBdJEEdVIDEkpjZ8f5kvbat_9VGxwFP77AXA_0Ao/edit#gid=0
+  * https://docs.google.com/spreadsheets/d/1hxbqBdJEEdVIDEkpjZ8f5kvbat_9VGxwFP77AXA_0Ao
   * https://github.com/cta-wave/Test-Content-Generation/issues/13
-  * https://github.com/cta-wave/Test-Content-Generation/wiki/CFHD-Test-Streams
+  * https://github.com/cta-wave/Test-Content-Generation/blob/master/Instructions/cfhd.md
+
+* Content and encoding options are documented here for HEVC (chh1):
+  * https://docs.google.com/spreadsheets/d/1Bmgv6-cfbWfgwn7l-z0McUUI1rMjaWEwrN_Q30jaWk4
+  * https://github.com/cta-wave/Test-Content/issues/38
+  * https://github.com/cta-wave/Test-Content-Generation/blob/master/Instructions/chh1.md
+
+* Content and encoding options are documented here for DTS:
+  * https://github.com/cta-wave/Test-Content/issues/26
   
 ## How to generate the content
 
@@ -56,9 +65,9 @@ cd ..
   * Inspect the input list e.g. ([default](profiles/avc.csv)).
 * Run ```./run-all.py csv_file``` (with optionally your custom csv file as an argument), and grab a cup of tea (or coffee).
 
-### Switching Set X1 (ss1)
+### Switching Sets (ss1, ss2, etc.)
 
-The generation of current [Switching Sets (ss1 for avc, ss2 for hevc/chh1)](https://github.com/cta-wave/Test-Content-Generation/issues/60) is done by executing ```ss/gen_ss1.sh``` and ```ss/gen_ss2.sh```.
+The generation of current [Switching Sets (ss1 for avc, ss2 for hevc/chh1)](https://github.com/cta-wave/Test-Content-Generation/issues/60) is done by executing ```switching_sets/gen_ss1.sh``` and ```switching_sets/gen_ss2.sh```.
 
 ### Splicing tests
 
