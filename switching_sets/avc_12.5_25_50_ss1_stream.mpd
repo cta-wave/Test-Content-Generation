@@ -14,14 +14,14 @@
           <S t="0" d="25600" r="29"/>
         </SegmentTimeline>
       </SegmentTemplate>
-      <Representation id="../../../../cfhd_sets/12.5_25_50/t19/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="25" sar="1:1" bandwidth="5100000"/>
-      <Representation id="../../../../chdf_sets/12.5_25_50/t20/2023-04-28/1" mimeType="video/mp4" codecs="avc1.64002A" width="1920" height="1080" frameRate="50" sar="1:1" bandwidth="6000000"/>
-      <Representation id="../../../../cfhd_sets/12.5_25_50/t23/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="50" sar="1:1" bandwidth="4900000"/>
-      <Representation id="../../../../cfhd_sets/12.5_25_50/t24/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="1024" height="576" frameRate="25" sar="1:1" bandwidth="1200000"/>
-      <Representation id="../../../../cfhd_sets/12.5_25_50/t25/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="1024" height="576" frameRate="25" sar="1:1" bandwidth="1500000"/>
-      <Representation id="../../../../cfhd_sets/12.5_25_50/t28/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="768" height="432" frameRate="25" sar="1:1" bandwidth="900000"/>
-      <Representation id="../../../../cfhd_sets/12.5_25_50/t32/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="512" height="288" frameRate="25" sar="1:1" bandwidth="450000"/>
-      <Representation id="../../../../cfhd_sets/12.5_25_50/t34/2023-04-28/1" mimeType="video/mp4" codecs="avc1.640028" width="480" height="270" frameRate="12800/1024" sar="1:1" bandwidth="300000"/>
+      <Representation id="../../../../cfhd_sets/12.5_25_50/t19/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="25" sar="1:1" bandwidth="5100000"/>
+      <Representation id="../../../../chdf_sets/12.5_25_50/t20/2023-09-01/1" mimeType="video/mp4" codecs="avc1.64002A" width="1920" height="1080" frameRate="50" sar="1:1" bandwidth="6000000"/>
+      <Representation id="../../../../cfhd_sets/12.5_25_50/t23/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="1920" height="1080" frameRate="50" sar="1:1" bandwidth="4900000"/>
+      <Representation id="../../../../cfhd_sets/12.5_25_50/t24/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="1024" height="576" frameRate="25" sar="1:1" bandwidth="1200000"/>
+      <Representation id="../../../../cfhd_sets/12.5_25_50/t25/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="1024" height="576" frameRate="25" sar="1:1" bandwidth="1500000"/>
+      <Representation id="../../../../cfhd_sets/12.5_25_50/t28/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="768" height="432" frameRate="25" sar="1:1" bandwidth="900000"/>
+      <Representation id="../../../../cfhd_sets/12.5_25_50/t32/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="512" height="288" frameRate="25" sar="1:1" bandwidth="450000"/>
+      <Representation id="../../../../cfhd_sets/12.5_25_50/t34/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="480" height="270" frameRate="12800/1024" sar="1:1" bandwidth="300000"/>
     </AdaptationSet>
   </Period>
 </MPD>
