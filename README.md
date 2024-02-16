@@ -92,3 +92,75 @@ The process of validation includes:
   - CMAF and manifests: TODO
 - An API call to the [DASH-IF conformance validator](http://conformance.dashif.org) is [done](https://github.com/nicholas-fr/test-content-validation) to check against MPD and CMAF conformance for CTA WAVE test content. Some conformance [reported issues](https://github.com/cta-wave/Test-Content-Generation/issues/55) remain.
 - The content should be amended with a conformance check output document: [TODO](https://github.com/cta-wave/Test-Content/issues/49).
+
+---
+### Audio content (AAC / AC-4 / E-AC-3)
+
+The workflow to generate AAC / AC-4 / E-AC-3 audio content is essentially as described [here](https://github.com/cta-wave/Test-Content-Generation?tab=readme-ov-file#workflow):
+1.	Download mezzanine content.
+2.	Encode to test content.
+3.	Generate DASH segments and manifest.
+4.	Patch ISOBMFF.
+5.	Patch MPD according to the CTA Content Model format.
+6.	Validate content.
+7.	Upload to CTA WAVE server and update the Webpage.
+
+**Note**, steps 1 and 7 are the same as for video content so not repeated.
+
+#### Prerequisites
+
+1.	Mezzanine content.
+2.	Encoding tool:
+   * For AAC: **ffmpeg WITH libfdk_aac** available here: https://www.gyan.dev/ffmpeg/builds/  
+   **Note**, the standard FFmpeg build available doesn't include the AAC library (libfdk). As this library is critical, you will need to build the FFmpeg from the source; instructions are available here: [FFmpeg: compilation_guide](https://trac.ffmpeg.org/wiki/CompilationGuide "compilation guide").
+   * For AC-4/E-AC-3: **Dolby Hybrik** tool with AC-4 & E-AC-3 support
+3.	Latest version of GPAC available here: https://gpac.io/downloads/gpac-nightly-builds/
+ 
+#### 2. Encoding
+
+Content and encoding options are documented for AAC & AC-4/E-AC-3 in this [Sparse Matrix](https://github.com/cta-wave/Test-Content/issues/58).
+
+* AC-4/E-AC-3: use the **Dolby Hybrik** proprietary tool.
+
+* AAC: use **ffmpeg** with the following command (depending on the required codec):
+
+  a)	AAC-LC:
+
+  `ffmpeg -i {source} -c:a libfdk_aac aac_lc -ar {Sample Rate} -b:a {Bitrate} {channel_config} -t {Duration} -use_editlist {elst_present} {output1}.mp4`
+
+  b)	HE-AAC or HE-AAC-V2:
+
+  `ffmpeg -i {source} -c:a libfdk_aac -profile:a {codec} -ar {Sample Rate} -frag_duration 1963000 -flags2 local_header -latm 1 -header_period 44 -signaling 1 -movflags empty_moov -movflags delay_moov -b:a {Bitrate} {channel_config} -t {Duration} -use_editlist {elst_present} {output1}.mp4`
+
+  c)	Encrypted:
+
+  If the content is to be encrypted, it should be done before generating DASH segments; MP4box (part of gpac) supports encrypting media.
+ 
+#### 3.	Generate DASH segments and manifest
+
+To DASH the content gpac is used with the following command:
+
+`gpac -i {output1}.mp4:FID=A1 -o {output2}.mpd:profile=live:muxtype=mp4:segdur={segmentduration}:cmaf=cmf2:stl:tpl:template="1/$Time$":SID=A1'`
+
+#### 4.	Patching ISOBMFF
+
+This is required to fix metadata stored in some ISOBMFF boxes that make up the DASH segments, or fixing the structure/format. 
+
+An example of what needs to be changed is: `styp` compatibility brands set to `["msdh", "msix", "cmfs", "cmff", "cmf2", "cmfc", "cmf2"]`
+
+#### 5.	Patching MPD to CTA Content Model
+
+The required changes to the MPD are defined in the [CTA WAVE Device Playback Capabilities Specification CTA-5003-A (current version: CTA-5003-A, Published September 2023)](https://cdn.cta.tech/cta/media/media/resources/standards/pdfs/cta-5003-a-final_1.pdf), section “5.3.4.2 Content Model Format for Single Media Profile”.
+
+An example of a change to the MPD is adding the CTA copyright notice.
+
+#### 6.	Validation
+
+Content is validated to ensure conformity with:
+* CMAF: using the [DASH-IF validator](https://conformance.dashif.org/)
+* Specified content options, and the CTA WAVE Test Content Format: manually using the following tools:
+  * ffprobe
+  *	MP4box
+  *	Mp4dump
+  *	MediaInfo  
+and by comparing the generated content to the Content and encoding options [Sparse Matrix](https://github.com/cta-wave/Test-Content/issues/58) / [CTA WAVE Content/Device Playback Specifications](https://www.cta.tech/Resources/Standards/WAVE-Project#specs).
