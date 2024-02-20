@@ -1,4 +1,4 @@
-Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,CMAF brand,resolution,framerate,bitrate,duration,wave_profile,cmaf_profile
+Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,resolution,framerate,bitrate,duration,cmaf_profile,wave_profile
 1,L1_1920x1080,FALSE,TRUE,hvc1,2,regular,duration,1920x1080,1,3500,30,cmfc,chh1
 2,L1_1920x1080,TRUE,FALSE,hev1,2,regular,pframes,1920x1080,1,3600,30,cmfc,chh1
 3,L1_1920x1080,TRUE,TRUE,hvc1,2,regular,duration,1920x1080,1,3300,30,cmfc,chh1
