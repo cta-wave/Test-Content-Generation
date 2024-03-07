@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<!-- MPD file Generated with GPAC version 2.3-DEV-rev516-g30809661e-master at 2023-09-04T20:00:49.294Z -->
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.002S" type="static" mediaPresentationDuration="PT0H0M29.996S" maxSegmentDuration="PT0H0M2.036S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
+  <ProgramInformation>
+    <Title>tos, 1920x1080, 29.97002997002997fps, chh1, Test Vector 1</Title>
+    <Source>tos_L1_1920x1080@29.97_30 version 4 (2023-02-13)</Source>
+    <Copyright>© Tears of Steel (https://mango.blender.org/about/) (2012) by Blender Institute, credited to Ton Roosendaal and Ian Hubert, used and licensed under Creative Commons Attribution 3.0 Unported (CC BY 3.0) (https://creativecommons.org/licenses/by/3.0/) by the Consumer Technology Association (CTA)® / annotated, encoded and compressed from original.</Copyright>
+  </ProgramInformation>
+  <Period duration="PT0H0M29.996S">
+    <AdaptationSet segmentAlignment="true" maxWidth="1920" maxHeight="1080" maxFrameRate="30000/1001" par="16:9" startWithSAP="1" contentType="video" containerProfiles="cmf2 chh1">
+      <SegmentTemplate media="1/$Time$.m4s" initialization="1/init.mp4" timescale="30000">
+        <SegmentTimeline>
+          <S t="0" d="58058"/>
+          <S d="60060" r="12"/>
+          <S d="61061"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation id="1" mimeType="video/mp4" codecs="hvc1.2.4.L123.90" width="1920" height="1080" frameRate="30000/1001" sar="1:1" bandwidth="3500000"/>
+    </AdaptationSet>
+  </Period>
+</MPD>
