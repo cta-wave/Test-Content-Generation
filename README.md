@@ -282,3 +282,8 @@ Content is validated to ensure conformity with:
   *	Mp4dump
   *	MediaInfo  
 and by comparing the generated content to the Content and encoding options [Sparse Matrix](https://github.com/cta-wave/Test-Content/issues/58) / [CTA WAVE Content/Device Playback Specifications](https://www.cta.tech/Resources/Standards/WAVE-Project#specs).
+
+### About AAC / AC-4 / E-AC-3 Audio
+
+The initial set of audio test vectors as defined in the [Sparse Matrix](https://github.com/cta-wave/Test-Content/issues/58) were created by Resillion on behalf of [Fraunhofer IIS](https://www.iis.fraunhofer.de/en.html) for AAC, and on behalf of [Dolby](https://www.dolby.com) for AC-4/E-AC-3.
+Any future requests for content should be addressed to Dolby or Fraunhofer IIS, respectively.
