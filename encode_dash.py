@@ -85,7 +85,7 @@ class ContentModel:
             if  content_type == "":
                 representations = adaptation_set.getElementsByTagName('Representation')
                 mime_type = representations.item(0).getAttribute('mimeType') if representations.item(0).getAttribute('mimeType') != '' \
-                    else adaptation_set.getAttribte('mimeType')
+                    else adaptation_set.getAttribute('mimeType')
 
                 if 'video' in mime_type:
                     content_type = 'video'
