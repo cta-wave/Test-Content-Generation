@@ -1,0 +1,2 @@
+Stream ID;mezzanine radius;pic timing;VUI timing;sample entry;CMAF frag dur;init constraints;frag_type;resolution;framerate;bitrate;duration;wave_profile;cmaf_profile
+audio;A1_480x270;FALSE;FALSE;avc1;2;regular;duration;480x270;0.25;128;60;cmf2;caac

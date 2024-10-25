@@ -23,6 +23,7 @@ import argparse
 
 ################################################################################
 
+CSV_DELIMITER = ";"
 
 GPAC_EXECUTABLE = "/usr/local/bin/gpac"
 
@@ -45,18 +46,21 @@ SERVER_ACCESS_URL = "https://dash.akamaized.net/WAVE/vectors/"
 
 # Mezzanine characteristics:
 class InputContent:
-    def __init__(self, content, root_folder, fps_family, fps:Fraction):
-        self.content = content
-        self.root_folder = root_folder
-        self.fps_family = fps_family # video: frame_rate_family ; audio: audio_codec
-        self.fps = fps
+    def __init__(self, *args, **row):
+        self.content = row['basename']
+        self.root_folder = row['location']
+        self.fps_family = row['fps_family']
+        fps_num = int(row['fps_num'])
+        fps_den = row['fps_den']
+        fps_den = 1 if fps_den == '' else int(fps_den)
+        self.fps = Fraction(fps_num, fps_den)
+        self.encoder_hdr_opts = row.get('encoder_hdr_opts', '')
     
     def get_annotations(self, input_basename):
         # Extract copyright
         annotation_filename = input.root_folder + input_basename + ".json"
         if not os.path.exists(annotation_filename):
             errtxt = "Annotation file \"" + annotation_filename + "\" not found. Skipping entry."
-            print(errtxt)
             raise FileNotFoundError(errtxt)
         with open(annotation_filename, 'r') as fo:
             data = json.load(fo)
@@ -73,44 +77,60 @@ def create_new_db():
     return database
 
 
-def iter_csv(input_csv):
-    with open(input_csv) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        for row in csv_reader:
-            if row[0] == "Stream ID":
-                continue
-            yield row
+class OutputContent:
+    
+    @staticmethod
+    def _parse_csv_bool(value):
+        return True if value == 'TRUE' else False
+
+    @staticmethod
+    def iter_test_streams(input_csv):
+        with open(input_csv) as csv_file:
+            csv_reader = csv.DictReader(csv_file, delimiter=CSV_DELIMITER)
+            for row in csv_reader:
+                stream = OutputContent(**row)
+                if not stream.skip:                
+                    yield stream
+
+    def __init__(self, *args, **row):
+        # required
+        self.stream_id = row['Stream ID']
+        if self.stream_id.isdigit():
+            self.stream_id = f't{self.stream_id}'
+        self.mezzanine_radius = row['mezzanine radius']
+        self.pic_timing = self._parse_csv_bool(row['pic timing'])
+        self.vui_timing = self._parse_csv_bool(row['VUI timing'])
+        self.sample_entry = row['sample entry']
+        self.cmaf_frag_dur = row['CMAF frag dur']
+        self.init_constraints = row['init constraints']
+        self.frag_type = row['frag_type']
+        self.resolution = row['resolution']
+        self.framerate = row['framerate']
+        self.bitrate = row['bitrate']
+        self.duration = row['duration']
+        self.cmaf_profile = row['cmaf_profile']
+        self.wave_profile = row['wave_profile']
+        self.cenc = self._parse_csv_bool(row['cenc'])
+        # optinal
+        self.sar = row.get('sar', '')
+        self.enc_opts = row.get('enc_opts', '')
+        self.skip = bool(row.get('skip', ''))
+
+def format_db_entry(o:OutputContent, source_notice, reps, seg_dur, mpdPath, zipPath):
+    return {
+        'source': source_notice,
+        'representations': reps,
+        'segmentDuration': str(seg_dur),
+        'fragmentType': o.frag_type,
+        'hasSEI': o.pic_timing,
+        'hasVUITiming': o.vui_timing,
+        'visualSampleEntry': o.sample_entry,
+        'mpdPath': mpdPath,
+        'zipPath': zipPath
+    }
 
 
-def iter_test_streams(input_csv):
-    csv_line_index = 0
-    for row in iter_csv(input_csv):
-
-        if row[0] == "Stream ID":
-            continue
-
-        # Decide which stream to process based on the media type and the WAVE media profile
-        wave_profile = row[13]
-        if PROFILES_TYPE[wave_profile] == "video":
-            if row[0][0] == 'a':
-                continue
-            if row[0][0].isdigit():
-                stream_id = "{0}{1}".format("t", row[0])
-            else:
-                stream_id = row[0]
-        else:
-            if row[0][0] != 'a':
-                continue
-            stream_id = row[0]
-        
-        # do CENC for 1st stream only
-        csv_line_index += 1
-        cenc_stream = csv_line_index == 1
-
-        yield stream_id, wave_profile, row, cenc_stream
-
-
-def process_mezzanine(input:InputContent, input_csv, local_output_folder, batch_folder, database={}, encode=True, cenc=True, zip=True, dry_run=False):
+def process_mezzanine(input:InputContent, input_csv, local_output_folder, batch_folder, database={}, encode=True, cenc=True, zip=True, dry_run=False, quiet=False):
     
     if not (encode or cenc or zip):
         return
@@ -120,97 +140,96 @@ def process_mezzanine(input:InputContent, input_csv, local_output_folder, batch_
     source_notice = ""
     title_notice = ""
 
-    for (stream_id, wave_profile, row) in iter_test_streams(input_csv):
-            
-            cmaf_profile = "avchd"
-            if wave_profile == "cfhd":
+    for o in OutputContent.iter_test_streams(input_csv):
+            if o.wave_profile == "cfhd":
                 codec = "h264"
                 cmaf_profile = "avchd"
-            elif wave_profile == "chdf":
+            elif o.wave_profile == "chdf":
                 codec = "h264"
                 cmaf_profile = "avchdhf"
-            elif wave_profile == "chh1":
+            elif o.wave_profile == "chh1":
                 codec = "h265"
                 cmaf_profile = "chh1"
-            elif wave_profile == "chd1":
+            elif o.wave_profile == "chd1":
                 codec = "h265"
                 cmaf_profile = "chd1"
-            elif wave_profile == "caac":
+            elif o.wave_profile == "caac":
                 codec = "aac"
                 cmaf_profile = "caac"
             else:
                 codec = "copy"
-                cmaf_profile = wave_profile
+                cmaf_profile = o.wave_profile
 
-            # test_stream.get_output_folder_base(input.fps_family)
-            output_folder_base = "{0}_sets/{1}".format(wave_profile, input.fps_family)
-            output_folder_complete = "{0}/{1}".format(local_output_folder, output_folder_base)
-            test_stream_folder_suffix = stream_id + "/" + batch_folder
+            output_folder_base = f"{o.wave_profile}_sets/{input.fps_family}"
+            output_folder_complete = f"{local_output_folder}/{output_folder_base}"
+            test_stream_folder_suffix = f"{o.stream_id}/{batch_folder}"
 
-            test_stream_folder = "{0}/{1}".format(output_folder_complete, test_stream_folder_suffix)
-            output_test_stream_folder = "{0}/{1}".format(output_folder_base, test_stream_folder_suffix)
+            test_stream_folder = f"{output_folder_complete}/{test_stream_folder_suffix}"
+            output_test_stream_folder = f"{output_folder_base}/{test_stream_folder_suffix}"
             server_test_stream_access_url = SERVER_ACCESS_URL + output_test_stream_folder
-
-            print("\n##### Processing test stream " + test_stream_folder + " #####\n")
 
             # 0: Stream ID, 1: mezzanine radius, 2: pic timing SEI, 3: VUI timing, 4: sample entry,
             # 5: CMAF frag dur, 6: init constraints, 7: frag_type, 8: resolution, 9: framerate,
             # 10: bitrate, 11: duration
-            fps = min(FRAMERATES, key=lambda x:abs(x-float(row[9])*input.fps))
+            fps = min(FRAMERATES, key=lambda x:abs(x-float(o.framerate)*input.fps))
 
             input_basename = ""
-            if PROFILES_TYPE[wave_profile] == "video":
-                input_basename = "{0}_{1}@{2}_{3}".format(input.content, row[1], fps, row[11])
+            if PROFILES_TYPE[o.wave_profile] == "video":
+                input_basename = f"{input.content}_{o.mezzanine_radius}@{fps}_{o.duration}"
             else:
-                input_basename = "{0}{1}".format(input.content, row[1])
+                input_basename = f"{input.content}{o.mezzanine_radius}"
             input_filename = input_basename + ".mp4"
             copyright_notice, source_notice = None, None
             try:
                 copyright_notice, source_notice = input.get_annotations(input_basename)
             except FileNotFoundError as e:
+                if not quiet:
+                    print("\n##### Error while processing " + test_stream_folder + " #####\n")
+                    print(e)
                 continue
 
-            seg_dur = Fraction(row[5])
+            print("\n##### Processing test stream " + test_stream_folder + " #####\n")
+
+            seg_dur = Fraction(o.cmaf_frag_dur)
             if input.fps.denominator == 1001:
-                seg_dur = Fraction(row[5]) * Fraction(1001, 1000)
-            reps = [{"resolution": row[8], "framerate": fps, "bitrate": row[10], "input": input_filename}]
+                seg_dur = Fraction(o.cmaf_frag_dur) * Fraction(1001, 1000)
+            reps = [{"resolution": o.resolution, "framerate": fps, "bitrate": o.bitrate, "input": input_filename}]
 
             filename_v = input.root_folder + input_filename
-            reps_command = "id:{0},type:{1},codec:{2},vse:{3},cmaf:{4},fps:{5}/{6},res:{7},bitrate:{8},input:\"{9}\",pic_timing:{10},vui_timing:{11},sd:{12},bf:{13}"\
-                .format(row[0], PROFILES_TYPE[wave_profile], codec, row[4], cmaf_profile, int(float(row[9])*input.fps.numerator), input.fps.denominator, row[8], row[10],
-                        filename_v, row[2].capitalize(), row[3].capitalize(), str(seg_dur), row[7])
 
-            #if row[1].find(row[8]) == -1:
-            #    mezzanine_par = row[1].split('_')[1].split('x')
-            #    encoding_par = row[8].split('x')
-            #    reps_command += ",sar:" + str(int(mezzanine_par[0])*int(encoding_par[1])) + "/" + str(int(mezzanine_par[1])*int(encoding_par[0]))
+            reps_command = f"id:{o.stream_id},type:{PROFILES_TYPE[o.wave_profile]},codec:{codec},vse:{o.sample_entry},cmaf:{cmaf_profile}"
+            reps_command += f",fps:{int(float(o.framerate)*input.fps.numerator)}/{input.fps.denominator},res:{o.resolution},bitrate:{o.bitrate}"
+            reps_command += f",input:\"{filename_v}\",pic_timing:{o.pic_timing},vui_timing:{o.vui_timing},sd:{str(seg_dur)},bf:{o.frag_type}"
+
+            if o.sar:
+                reps_command += f",sar:{o.sar}"
+
+            if input.encoder_hdr_opts:
+                reps_command += f",enc_opts:{input.encoder_hdr_opts}"
 
             # Finalize one-AdaptationSet formatting
             reps_command = "--reps=" + reps_command
                         
-            if PROFILES_TYPE[wave_profile] == "video":
-                title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {4}".format(input.content, row[8], float(row[9])*input.fps.numerator/input.fps.denominator, wave_profile, row[0])
+            if PROFILES_TYPE[o.wave_profile] == "video":
+                title_notice = "{0}, {1}, {2}fps, {3}, Test Vector {4}".format(input.content, o.bitrate, float(o.framerate)*input.fps.numerator/input.fps.denominator, o.wave_profile, o.stream_id)
             else:
-                title_notice = "{0}, Test Vector {1}".format(wave_profile, row[0])
+                title_notice = "{0}, Test Vector {1}".format(o.wave_profile, o.stream_id)
 
             # Web exposed information
-            database[wave_profile.upper()][output_test_stream_folder] = {
-                'source': source_notice,
-                'representations': reps,
-                'segmentDuration': str(seg_dur),
-                'fragmentType': row[7],
-                'hasSEI': row[2].lower() == 'true',
-                'hasVUITiming': row[3].lower() == 'true',
-                'visualSampleEntry': row[4],
-                'mpdPath': '{0}stream.mpd'.format(server_test_stream_access_url),
-                'zipPath': '{0}{1}.zip'.format(server_test_stream_access_url, stream_id)
-            }
+            database[o.wave_profile.upper()][output_test_stream_folder] = format_db_entry(
+                o,
+                source_notice,
+                reps,
+                str(seg_dur),
+                '{0}/stream.mpd'.format(server_test_stream_access_url),
+                '{0}/{1}.zip'.format(server_test_stream_access_url, o.stream_id)
+            )
 
             if encode:
                 # Encode, package, and manifest generation (DASH-only)
                 encode_dash_cmd = f"./encode_dash.py --path={GPAC_EXECUTABLE} --out=stream.mpd --outdir={test_stream_folder}"
-                encode_dash_cmd += f" --dash=sd:{seg_dur},fd:{seg_dur},ft:{row[7]},fr:{input.fps},cmaf:{row[12]}"
-                encode_dash_cmd += f" --copyright=\'{copyright_notice}\' --source=\'{source_notice}\' --title=\'{title_notice}\' --profile={wave_profile} {reps_command}"
+                encode_dash_cmd += f" --dash=sd:{seg_dur},fd:{seg_dur},ft:{o.frag_type},fr:{input.fps},cmaf:{o.cmaf_profile}"
+                encode_dash_cmd += f" --copyright=\'{copyright_notice}\' --source=\'{source_notice}\' --title=\'{title_notice}\' --profile={o.wave_profile} {reps_command}"
                 print("# Encoding:\n")
                 if dry_run:
                     encode_dash_cmd += " --dry-run"
@@ -218,7 +237,7 @@ def process_mezzanine(input:InputContent, input_csv, local_output_folder, batch_
                 result = subprocess.run(encode_dash_cmd, shell=True)
 
             if zip:
-                zip_cmd = "zip -r " + output_test_stream_folder + stream_id + ".zip " + output_test_stream_folder + "*"
+                zip_cmd = "zip -r " + output_test_stream_folder + o.stream_id + ".zip " + output_test_stream_folder + "*"
                 print("# Creating archive (cwd=" + local_output_folder + "):\n")
                 print(zip_cmd + "\n")
                 if not dry_run:
@@ -226,36 +245,31 @@ def process_mezzanine(input:InputContent, input_csv, local_output_folder, batch_
 
 
             # create an encrypted copy of the stream if requested
-            cenc_stream = bool(row[14])
-
-            if cenc and cenc_stream:
+            if cenc and o.cenc:
                 
-                output_test_stream_folder_cenc = "{0}/{1}-cenc/{2}".format(output_folder_base, stream_id, batch_folder)
+                output_test_stream_folder_cenc = "{0}/{1}-cenc/{2}".format(output_folder_base, o.stream_id, batch_folder)
                 cenc_cmd = GPAC_EXECUTABLE + " -strict-error -i " + output_test_stream_folder + "/stream.mpd:forward=mani cecrypt:cfile=" + sys.path[0] + "/DRM.xml"
                 cenc_cmd += " @ -o " + output_test_stream_folder_cenc + "/stream.mpd:pssh=mv"
-                print("# Encrypting content:\n (cwd=" + local_output_folder + "):\n")
+                print("\n# Encrypting content (cwd=" + local_output_folder + "):\n")
                 print(cenc_cmd)
                 if not dry_run:
                     result = subprocess.run(cenc_cmd, shell=True, cwd=local_output_folder)
 
                 # Web exposed information
                 server_test_stream_access_url_cenc = SERVER_ACCESS_URL + output_test_stream_folder_cenc
-                database["CENC"][output_test_stream_folder_cenc] = {
-                    'source': source_notice,
-                    'representations': reps,
-                    'segmentDuration': str(seg_dur),
-                    'fragmentType': row[7],
-                    'hasSEI': row[2].lower() == 'true',
-                    'hasVUITiming': row[3].lower() == 'true',
-                    'visualSampleEntry': row[4],
-                    'mpdPath': '{0}stream.mpd'.format(server_test_stream_access_url_cenc),
-                    'zipPath': '{0}{1}.zip'.format(server_test_stream_access_url_cenc, stream_id + "-cenc")
-                }
+                database["CENC"][output_test_stream_folder_cenc] = format_db_entry(
+                    o,
+                    source_notice,
+                    reps,
+                    str(seg_dur),
+                    '{0}/stream.mpd'.format(server_test_stream_access_url_cenc),
+                    '{0}/{1}.zip'.format(server_test_stream_access_url_cenc, o.stream_id + "-cenc")
+                )
 
                 ########################################################################################################################
                 # ZIP IT
                 if zip:
-                    zip_cmd = "zip -r " + output_test_stream_folder_cenc + stream_id + "-cenc.zip " + output_test_stream_folder_cenc + "*"
+                    zip_cmd = "zip -r " + output_test_stream_folder_cenc + o.stream_id + "-cenc.zip " + output_test_stream_folder_cenc + "*"
                     print("# Executing (cwd=" + local_output_folder + "):\n")
                     print(zip_cmd)
                     if not dry_run:
@@ -307,29 +321,21 @@ def upload_sequence(output_folder_base, server_output_folder, dry_run):
 def get_mezzanine_list(mezzanine_cfg):
     res = []
     with open(mezzanine_cfg, 'r') as fi:
-        csv_reader = csv.DictReader(fi, delimiter=',')
+        csv_reader = csv.DictReader(fi, delimiter=CSV_DELIMITER)
         for row in csv_reader:
-            skips = getattr(row, 'skip', '')
-            if skips != '':
-                continue
-            basename = row['basename']
-            location = row['location']
-            fps_family = row['fps_family']
-            fps_num = int(row['fps_num'])
-            fps_den = row['fps_den']
-            fps_den = 1 if fps_den == '' else int(fps_den)
-            res.append(InputContent(basename, location, fps_family, Fraction(fps_num, fps_den)))
-    return res
+            res.append(InputContent(**row))
+        return res
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('MEZZANINE_CFG', help='a csv containing the list of mezzanine files to process')
-    parser.add_argument('OUTPUT_CFG', help='the wave profile being batch processed (chh1, cud1, chd1, ...). a corresponding csv configuration file is expected in the profiles directory')
+    parser.add_argument('OUTPUT_CFG', help='csv configuration for test content to be encoded')
     parser.add_argument('-d', '--dry-run', action='store_true', help='do not process commands, just print them out')
     parser.add_argument('-b', '--batch-dir', help='batch directory, defaults to YYYY-MM-DD')
     parser.add_argument('-z', '--zip', action='store_true', help='upload content to public server over sftp')
     parser.add_argument('-u', '--upload', action='store_true', help='upload content to public server over sftp')
+    parser.add_argument('-q', '--quiet', action='store_true', help='do not print mezzanine files not found')
     parser.add_argument('--no-encode', action='store_true', help='upload content to public server over sftp')
     parser.add_argument('--no-cenc', action='store_true', help='create a cenc encryption variant of the first stream of the list')
     args = parser.parse_args()
@@ -339,7 +345,7 @@ if __name__ == "__main__":
     batch_folder = f"{datetime.today().strftime('%Y-%m-%d')}"
 
     for input in get_mezzanine_list(args.MEZZANINE_CFG):
-        output_folder_base = process_mezzanine(input, args.OUTPUT_CFG, local_output_folder, batch_folder, database, (not args.no_encode), (not args.no_cenc), args.zip, args.dry_run)
+        output_folder_base = process_mezzanine(input, args.OUTPUT_CFG, local_output_folder, batch_folder, database, (not args.no_encode), (not args.no_cenc), args.zip, args.dry_run, args.quiet)
     
     if not args.dry_run:
         with open('./database.json', 'w') as outfile:

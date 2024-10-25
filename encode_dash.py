@@ -181,7 +181,7 @@ class HEVCCHD1:
     m_frame_rate = 60
     # FIXME: The HDR metadata should not be hardcoded here. 
     # these are specific to the source sequence used for CHD1 (SOL)
-    m_x265_opts = "hdr-opt=1:repeat-headers=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc:master-display=G(13250,34500)B(7500,3000)R(34000,16000)WP(15635,16450)L(10000000,1):max-cll=992,361"
+    m_x265_opts = ""
 
 class HEVCCUD1:
     m_profile = "main"
@@ -317,7 +317,7 @@ class Representation:
     m_vui_timing = None
     m_segment_duration = None
     m_num_b_frames = None
-    m_x265_opts = None
+    m_enc_opts = None
 
     def __init__(self, representation_config):
         config = representation_config.split(",")
@@ -465,6 +465,8 @@ class Representation:
                 self.m_vui_timing = value
             elif name == "sd":
                 self.m_segment_duration = value
+            elif name == "enc_opts":
+                self.m_enc_opts = value
             else:
                 print("Unknown configuration option for representation: " + name + " , it will be ignored.")
 
@@ -530,8 +532,9 @@ class Representation:
                 command += "::x264-params=\""
             elif self.m_codec == VideoCodecOptions.HEVC.value:
                 command += "::x265-params=\""
-                if self.m_x265_opts:
-                    command += self.m_x265_opts + ":"
+            
+            if self.m_enc_opts:
+                command += self.m_enc_opts + ":"
             
             command += "level=" + self.m_level + ":" \
                        "no-open-gop=1" + ":" \
@@ -543,8 +546,8 @@ class Representation:
                        "vbv-bufsize=" + str(int(self.m_bitrate) * 3) + ":" \
                        "vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
 
-            #if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
-            #    command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
+            if self.m_aspect_ratio_x and self.m_aspect_ratio_y:
+                command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
             
             command += "\":" #closing codec-specific parameters
 
@@ -655,6 +658,7 @@ def parse_args(args):
             title_notice = arg
         elif opt in ("-pf", "--profile"):
             wave_media_profile = arg
+
     # print(representations)
     return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice, title_notice, wave_media_profile, dry_run]
 

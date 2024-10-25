@@ -1,0 +1,10 @@
+*_Log_*.txt
+output/
+content_files/
+!**/*.csv
+*venv/
+.vscode
+**/*.numbers
+**/*.DS_Store
+.ignore/
+**/*.log

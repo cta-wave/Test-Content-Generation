@@ -1,0 +1,12 @@
+Stream ID;mezzanine radius;pic timing;VUI timing;sample entry;CMAF frag dur;init constraints;frag_type;resolution;framerate;bitrate;duration;cmaf_profile;wave_profile;cenc;sar;Skip
+1;L1_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1920x1080;1;3500;30;cmfc;chh1;TRUE;;
+2;L1_1920x1080;TRUE;FALSE;hev1;2;regular;pframes;1920x1080;1;3600;30;cmf2;chh1;FALSE;;
+3;L1_1920x1080;TRUE;TRUE;hvc1;2;regular;duration;1920x1080;1;3300;30;cmfc;chh1;FALSE;;
+4;L1_1920x1080;FALSE;FALSE;hvc1;2;regular;duration;1920x1080;1;3200;30;cmfc;chh1;FALSE;;
+5;L1_1920x1080;FALSE;TRUE;hev1;2;regular;duration;1920x1080;1;3100;30;cmfc;chh1;FALSE;;
+6;L1_1920x1080;FALSE;TRUE;hvc1;2;regular;pframes;1920x1080;1;3800;30;cmfc;chh1;FALSE;;
+7;L1_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1920x1080;1;3700;30;cmf2;chh1;FALSE;;
+10;L1_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1920x1080;1;3400;60;cmfc;chh1;FALSE;;
+11;L2_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1920x1080;0.5;3500;60;cmfc;chh1;FALSE;;
+12;J1_1280x720;FALSE;TRUE;hvc1;2;regular;duration;1280x720;0.5;2000;60;cmfc;chh1;FALSE;;
+non_square_par;L2_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1440x1080;1;2800;60;cmfc;chh1;FALSE;4/3;

@@ -1,0 +1,7 @@
+Stream ID;mezzanine radius;pic timing;VUI timing;sample entry;CMAF frag dur;init constraints;frag_type;resolution;framerate;bitrate;duration;cmaf_profile;wave_profile;cenc
+61;O1_3840x2160;FALSE;TRUE;hvc1;2;regular;duration;3840x2160;1;15000;30;cmfc;chd1;TRUE
+62;O1_3840x2160;TRUE;FALSE;hev1;2;regular;pframes;3840x2160;1;15000;30;cmf2;chd1;FALSE
+70;O1_3840x2160;FALSE;TRUE;hvc1;2;regular;duration;3840x2160;1;15000;60;cmfc;chd1;FALSE
+71;O1_3840x2160;FALSE;TRUE;hvc1;2;regular;duration;3840x2160;0.5;15000;60;cmfc;chd1;FALSE
+72;M1_2560x1440;FALSE;TRUE;hvc1;2;regular;duration;2560x1440;0.5;10000;60;cmfc;chd1;FALSE
+73;L1_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1920x1080;0.5;3500;60;cmfc;chd1;FALSE
