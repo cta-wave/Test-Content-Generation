@@ -144,10 +144,10 @@ class AVCSD:
 
 class AVCHD:
     m_profile = "high"
-    m_level = "52"
+    m_level = "40"
     m_color_primary = "1"
-    m_resolution_w = "3840"
-    m_resolution_h = "1920"
+    m_resolution_w = "1920"
+    m_resolution_h = "1080"
     m_frame_rate = 60
 
 class AVCHDHF:
