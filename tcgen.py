@@ -1,6 +1,5 @@
 import argparse
 from pathlib import Path
-from fractions import Fraction
 from datetime import datetime
 import sys
 import subprocess
@@ -10,18 +9,15 @@ logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger("tc-gen")
 
 from wavetcgen.models import TestContent, Mezzanine, FPS_SUITE, PROFILES_TYPE
-from wavetcgen.database import locate_source_content
+from wavetcgen.database import Database, locate_source_content
 
 GPAC_EXECUTABLE = "/usr/local/bin/gpac"
 
 def gen_encoder_cmd(m:Mezzanine, tc:TestContent, test_stream_dir:Path, dry_run=False):
 
-    seg_dur = Fraction(tc.cmaf_fragment_duration)
-    if m.fps.denominator == 1001:
-        seg_dur = Fraction(tc.cmaf_fragment_duration) * Fraction(1001, 1000)
-
-    # @TODO: database update 
-    reps = [tc.get_representation(m)] 
+    seg_dur = tc.get_seg_dur(m)
+    
+    # reps = [tc.get_representation(m)] 
 
     # @TODO: remove 'codec_defaults', always infer config from test matrix
     media_type, codec, codec_defaults = PROFILES_TYPE[tc.cmaf_media_profile]
@@ -48,8 +44,10 @@ def gen_encoder_cmd(m:Mezzanine, tc:TestContent, test_stream_dir:Path, dry_run=F
     encode_dash_cmd += f" --copyright=\'{m.copyright_notice}\' --source=\'{m.source_notice}\' --title=\'{title_notice}\' --profile={tc.cmaf_media_profile.value} {reps_command}"
     if dry_run:
         encode_dash_cmd += " --dry-run"
-    logger.info(f"# Encoding:\n {encode_dash_cmd}\n")
+    print(f"# Encoding:\n {encode_dash_cmd}\n")
     result = subprocess.run(encode_dash_cmd, shell=True)
+    if dry_run:
+        print("\n" + result + "\n")
 
 
 def gen_cenc_cmd(test_stream_cenc_dir:Path, test_stream_dir:Path, dry_run=False):
@@ -57,7 +55,7 @@ def gen_cenc_cmd(test_stream_cenc_dir:Path, test_stream_dir:Path, dry_run=False)
     stream_cenc_mpd = test_stream_cenc_dir / 'stream.mpd'
     cfile = Path(sys.path[0]) / '/DRM.xml'
     cenc_cmd = f'{GPAC_EXECUTABLE} -strict-error -i {stream_mpd}:forward=mani cecrypt:cfile={cfile} @ -o {stream_cenc_mpd}:pssh=mv'
-    logger.info(f"# Encrypting:\n {cenc_cmd}\n")
+    print(f"# Encrypting:\n {cenc_cmd}\n")
     if not dry_run:
         result = subprocess.run(cenc_cmd, shell=True)
 
@@ -80,11 +78,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     Mezzanine.root_dir = Path(args.source_dir)
-    framerates = [
-        FPS_SUITE._12_25_50,
-        FPS_SUITE._14_29_59,
-        FPS_SUITE._15_30_60
-    ]
+    framerates = FPS_SUITE.all()
     if args.fps_family != 'ALL':
         if args.fps_family not in framerates:
             raise Exception(f'Invalid framerate family {args.fps_family}')
@@ -101,10 +95,13 @@ if __name__ == "__main__":
             try:
                 m = locate_source_content(tc, fps_suite)
                 fps_suite_dir = Path(args.output_dir) / f"{tc.cmaf_media_profile.value}_sets" / fps_suite
-                test_stream_dir =  fps_suite_dir / tc.test_id / args.batch_dir
                 if tc.encryption:
-                    test_stream_cenc_dir = fps_suite_dir / f"{tc.test_id}-cenc" / args.batch_dir
-                    gen_cenc_cmd(test_stream_cenc_dir, test_stream_dir, args.dry_run)
+                    test_stream_cenc_dir =  Path(args.output_dir) / Database.test_entry_location(fps_suite, tc, args.batch_dir)
+                    test_stream_dir =  test_stream_cenc_dir.replace('-cenc', '')
+                    gen_cenc_cmd(test_stream_cenc_dir, test_stream_dir, args.dry_run)                
+                else:
+                    test_stream_dir =  fps_suite_dir / tc.test_id / args.batch_dir
+                    gen_encoder_cmd(m, tc, test_stream_dir, args.dry_run)
 
             except BaseException as e:
                 logger.error(e)

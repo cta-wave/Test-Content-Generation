@@ -81,6 +81,14 @@ class FPS_SUITE(str, Enum):
 	_12_25_50 = '12.5_25_50'
 	_15_30_60 = '15_30_60'
 	
+	@staticmethod
+	def all():
+		return [
+			FPS_SUITE._12_25_50,
+			FPS_SUITE._14_29_59,
+			FPS_SUITE._15_30_60
+		]
+
 	@classmethod
 	def from_string(cls, s):
 		if s == cls._12_25_50.value:
@@ -345,6 +353,11 @@ class TestContent:
 	def get_representation(self, m:Mezzanine):
 		return Representation(self.resolution, m.fps, self.bitrate, m.filename)
 
+	def get_seg_dur(self, m:Mezzanine):
+		seg_dur = Fraction(t.cmaf_fragment_duration)
+		if m.fps.denominator == 1001:
+			seg_dur = Fraction(t.cmaf_fragment_duration) * Fraction(1001, 1000)
+		return seg_dur
 
 	def to_batch_config_row(self):
 		if self.fps_base[0] == '12.5':

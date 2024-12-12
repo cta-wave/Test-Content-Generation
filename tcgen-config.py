@@ -3,8 +3,9 @@ from wavetcgen.models import TestContent
 import csv
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--matrix', help='test matrix exported in csv')
+    # @TODO: the script has been tested with the HEVC test matrix and needs further testing with other 'sparse matrices'.
+    parser = argparse.ArgumentParser(description="""Import tcgen.py test vector config from sparse matrix csv.""")
+    parser.add_argument('-m', '--matrix', help='csv sparse test matrix')
     parser.add_argument('-o', '--output', help='output tcgen.py config')
     parser.add_argument('-p', '--profile', help='only test vectors for a specific cmaf media profile')
     args = parser.parse_args()

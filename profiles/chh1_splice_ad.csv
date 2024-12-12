@@ -1,4 +1,0 @@
-Stream ID;mezzanine radius;pic timing;VUI timing;sample entry;CMAF frag dur;init constraints;frag_type;resolution;framerate;bitrate;duration;cmaf_profile;wave_profile;cenc
-splice_ad;AD-B1_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1920x1080;1;3500;5.76;cmfc;chh1;TRUE
-splice_ad;AD-B1_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1920x1080;1;3500;21.255;cmfc;chh1;TRUE
-splice_ad;AD-B1_1920x1080;FALSE;TRUE;hvc1;2;regular;duration;1920x1080;1;3500;6.4;cmfc;chh1;TRUE
