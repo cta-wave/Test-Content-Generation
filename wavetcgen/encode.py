@@ -558,7 +558,7 @@ class Representation:
             
             gop = Fraction(self.m_segment_duration) * Fraction(self.m_frame_rate)
             # print(f"# Using GOP size: {gop}")
-            command += ":gop=" + str(gop)
+            command += ":g=" + str(gop)
             
             if self.m_cmaf_profile in ("chh1",  "chd1"):
                 command += ":profile=" + self.m_profile + "10"
