@@ -69,14 +69,14 @@ class FPS(Fraction):
 			raise NotImplementedError(f'unknown framerate {self}')
 
 	@property
-	def family(self) -> 'FPS_SUITE':
+	def family(self) -> 'FPS_FAMILY':
 		fps = str(self)
-		for fam in (FPS_SUITE._12_25_50, FPS_SUITE._14_29_59, FPS_SUITE._15_30_60):
+		for fam in (FPS_FAMILY._12_25_50, FPS_FAMILY._14_29_59, FPS_FAMILY._15_30_60):
 			if fps in fam.value:
 				return fam
 
 
-class FPS_SUITE(str, Enum):
+class FPS_FAMILY(str, Enum):
 	_14_29_59 = '14.985_29.97_59.94'
 	_12_25_50 = '12.5_25_50'
 	_15_30_60 = '15_30_60'
@@ -84,9 +84,9 @@ class FPS_SUITE(str, Enum):
 	@staticmethod
 	def all():
 		return [
-			FPS_SUITE._12_25_50,
-			FPS_SUITE._14_29_59,
-			FPS_SUITE._15_30_60
+			FPS_FAMILY._12_25_50,
+			FPS_FAMILY._14_29_59,
+			FPS_FAMILY._15_30_60
 		]
 
 	@classmethod
@@ -114,7 +114,7 @@ class Mezzanine:
 		self._md5 = None
 	
 	@staticmethod
-	def fps_family(fps:FPS) -> FPS_SUITE:
+	def fps_family(fps:FPS) -> FPS_FAMILY:
 		return fps.family
 
 	@property
@@ -321,17 +321,17 @@ class TestContent:
 		elif s == 2:
 			return ('100', '120')
 
-	def get_fps(self, fps_suite:FPS_SUITE) -> FPS:
-		if fps_suite == FPS_SUITE._12_25_50:
+	def get_fps(self, fps_family:FPS_FAMILY) -> FPS:
+		if fps_family == FPS_FAMILY._12_25_50:
 			return FPS.from_string(self.fps_base[0])
-		if fps_suite == FPS_SUITE._15_30_60:
+		if fps_family == FPS_FAMILY._15_30_60:
 			return FPS.from_string(self.fps_base[-1])
-		if fps_suite == FPS_SUITE._14_29_59:
+		if fps_family == FPS_FAMILY._14_29_59:
 			if len(self.fps_base) < 3:
-				raise NotImplementedError(f'fps_suite: {fps_suite} not found in {self.fps_base}')
+				raise NotImplementedError(f'fps_family: {fps_family} not found in {self.fps_base}')
 			return FPS.from_string(self.fps_base[1])
 
-	def get_mezzanine(self, fps_suite:FPS_SUITE) -> Mezzanine:
+	def get_mezzanine(self, fps_family:FPS_FAMILY) -> Mezzanine:
 		hdr = None
 		if self.cmaf_media_profile == 'cud1':
 			hdr = 'sdr_bt2020'
@@ -339,7 +339,7 @@ class TestContent:
 			hdr = 'hlg10'
 		elif self.cmaf_media_profile == 'chd1':
 			hdr = 'hdr10'
-		fps = self.get_fps(fps_suite)
+		fps = self.get_fps(fps_family)
 		basename = self.mezzanine_prefix_25HZ if fps.to_lossy_string() in ('50', '25', '12.5') else self.mezzanine_prefix_30HZ
 		return Mezzanine(
 				basename=basename,
@@ -354,9 +354,9 @@ class TestContent:
 		return Representation(self.resolution, m.fps, self.bitrate, m.filename)
 
 	def get_seg_dur(self, m:Mezzanine):
-		seg_dur = Fraction(t.cmaf_fragment_duration)
+		seg_dur = Fraction(self.cmaf_fragment_duration)
 		if m.fps.denominator == 1001:
-			seg_dur = Fraction(t.cmaf_fragment_duration) * Fraction(1001, 1000)
+			seg_dur = Fraction(self.cmaf_fragment_duration) * Fraction(1001, 1000)
 		return seg_dur
 
 	def to_batch_config_row(self):
@@ -429,8 +429,8 @@ class TestContent:
 			else:
 				raise Exception(f'Invalid CMAF structural brand {row["cmaf_profile"]}')
 			cmaf_media_profile = CmafBrand.from_string(row["wave_profile"])
-			encryption = row["cenc"]
-			aspect_ratio_idc = row.get("sar", 1.0)
+			encryption = parse_bool(row["cenc"])
+			aspect_ratio_idc = row.get("sar", "1/1")
 			mezzanine_prefix_25HZ = row["mezzanine_prefix_25HZ"]
 			mezzanine_prefix_30HZ = row["mezzanine_prefix_30HZ"]
 			
@@ -528,7 +528,7 @@ class TestContent:
 		sample_flags_in_track_boxes = 'not set' in col[17].lower()
 
 		# 19 - aspect_ratio_idc (sample aspect ratio 1=1:1, 14=4:3)
-		aspect_ratio_idc = float(col[18])
+		aspect_ratio_idc = '1/1' if col[18] == '1' else col[18]
 
 		# 20 - Mezzanine prefix 25Hz family
 		mezzanine_prefix_25HZ = col[19]

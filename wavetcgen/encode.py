@@ -155,7 +155,7 @@ class AVCHDHF:
 
 # HEVC: ISO/IEC 23000-19 Annex B.5
 class HEVCCHHD:
-    m_profile = "main"
+    m_profile = "main10"
     m_level = "41"
     m_color_primary = "1"
     m_resolution_w = "1920"
@@ -165,7 +165,7 @@ class HEVCCHHD:
 ### 10n bit HEVC MATRIX #####################
 
 class HEVCCHH1:
-    m_profile = "main" # main10
+    m_profile = "main10" # main10
     m_level = "41"
     m_color_primary = "1"   # GF_COLOR_PRIM_BT709
     m_color_trc = "1"       # GF_COLOR_TRC_BT709
@@ -175,7 +175,7 @@ class HEVCCHH1:
     m_frame_rate = 60
 
 class HEVCCUD1: 
-    m_profile = "main"
+    m_profile = "main10"
     m_level = "51"
     m_color_primary = "9"   # GF_COLOR_PRIM_BT2020
     m_color_trc = "14"      # GF_COLOR_TRC_BT2020_10
@@ -185,7 +185,7 @@ class HEVCCUD1:
     m_frame_rate = 60
 
 class HEVCCLG1:
-    m_profile = "main"
+    m_profile = "main10"
     m_level = "51"
     m_color_primary = "9"   # GF_COLOR_PRIM_BT2020
     m_color_trc = "18"      # GF_COLOR_TRC_ARIB_STD_B67
@@ -195,7 +195,7 @@ class HEVCCLG1:
     m_frame_rate = 60
 
 class HEVCCHD1:
-    m_profile = "main"
+    m_profile = "main10"
     m_level = "51"
     m_color_primary = "9"   # GF_COLOR_PRIM_BT2020
     m_color_trc = "16"      # GF_COLOR_TRC_SMPTE2084
@@ -438,6 +438,38 @@ class Representation:
                     if self.m_resolution_w is None and self.m_resolution_h is None:
                         self.m_resolution_w = HEVCCUD1.m_resolution_w
                         self.m_resolution_h = HEVCCUD1.m_resolution_h
+                elif value == "cud1":
+                    if self.m_profile is None:
+                        self.m_profile = HEVCCUD1.m_profile
+                    if self.m_level is None:
+                        self.m_level = HEVCCUD1.m_level
+                    if self.m_frame_rate is None:
+                        self.m_frame_rate = HEVCCUD1.m_frame_rate
+                    if self.m_color_primary is None:
+                        self.m_color_primary = HEVCCUD1.m_color_primary
+                    if self.m_color_trc is None:
+                        self.m_color_trc = HEVCCUD1.m_color_trc
+                    if self.m_colorspace is None:
+                        self.m_colorspace = HEVCCUD1.m_colorspace
+                    if self.m_resolution_w is None and self.m_resolution_h is None:
+                        self.m_resolution_w = HEVCCUD1.m_resolution_w
+                        self.m_resolution_h = HEVCCUD1.m_resolution_h
+                elif value == "clg1":
+                    if self.m_profile is None:
+                        self.m_profile = HEVCCLG1.m_profile
+                    if self.m_level is None:
+                        self.m_level = HEVCCLG1.m_level
+                    if self.m_frame_rate is None:
+                        self.m_frame_rate = HEVCCLG1.m_frame_rate
+                    if self.m_color_primary is None:
+                        self.m_color_primary = HEVCCLG1.m_color_primary
+                    if self.m_color_trc is None:
+                        self.m_color_trc = HEVCCLG1.m_color_trc
+                    if self.m_colorspace is None:
+                        self.m_colorspace = HEVCCLG1.m_colorspace
+                    if self.m_resolution_w is None and self.m_resolution_h is None:
+                        self.m_resolution_w = HEVCCLG1.m_resolution_w
+                        self.m_resolution_h = HEVCCLG1.m_resolution_h
                 else:
                     print("Unknown CMAF profile: " + name)
 

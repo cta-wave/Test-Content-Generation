@@ -1,4 +1,4 @@
-from .models import Mezzanine, TestContent, FPS_SUITE
+from .models import Mezzanine, TestContent, FPS_FAMILY
 import json
 from pathlib import Path
 from datetime import datetime
@@ -6,12 +6,12 @@ from datetime import datetime
 SERVER_ACCESS_URL = "https://dash-large-files.akamaized.net/WAVE/vectors/"
 
 
-def locate_source_content(tc:TestContent, fps_suite:FPS_SUITE):
-    m = tc.get_mezzanine(fps_suite)
+def locate_source_content(tc:TestContent, fps_family:FPS_FAMILY):
+    m = tc.get_mezzanine(fps_family)
     if not (Mezzanine.root_dir / m.filename).exists():
         # splice_ test vectors have no duration in the test matrix,
         # try figuring out the duration from source content filename
-        if 'splice_' in m.filename and Path(m.filename).stem.endswith('-1'):
+        if tc.duration == '-1':
             splice_sequence = [*Mezzanine.root_dir.glob(m.filename.replace('-1', '*'))]
             if len(splice_sequence) == 1:
                 m.duration = splice_sequence[0].stem.split('_')[-1]
@@ -43,11 +43,11 @@ class Database:
             return f't{tc.test_id.replace('_cenc', '-cenc')}' if tc.encryption else f't{tc.test_id}'
 
     @staticmethod
-    def test_entry_key(fps:FPS_SUITE, t:TestContent, batch_dir:str):
+    def test_entry_key(fps:FPS_FAMILY, t:TestContent, batch_dir:str):
         return f'{t.cmaf_media_profile.value}_sets/{fps.value}/{Database.test_id(t)}/{batch_dir}'
 
     @staticmethod
-    def test_entry_location(fps:FPS_SUITE, t:TestContent, batch_dir:str):
+    def test_entry_location(fps:FPS_FAMILY, t:TestContent, batch_dir:str):
         return Path(f'{t.cmaf_media_profile.value}_sets') / fps.value / Database.test_id(t) / batch_dir
 
     @staticmethod

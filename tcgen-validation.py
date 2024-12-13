@@ -14,7 +14,7 @@ from functools import wraps
 
 from wavetcgen.database import SERVER_ACCESS_URL as WAVE_VECTORS
 from wavetcgen.database import Database, most_recent_batch
-from wavetcgen.models import TestContent, FPS_SUITE
+from wavetcgen.models import TestContent, FPS_FAMILY
 
 
 JCCP_STAGING = "https://staging.conformance.dashif.org/"
@@ -111,7 +111,7 @@ async def validate_local_strings(args):
     
     async with aiohttp.ClientSession() as session:
         for tv in iter_vectors(args):
-            for fps in FPS_SUITE.all():
+            for fps in FPS_FAMILY.all():
                 test_entry_key = Database.test_entry_key(fps, tv, '')
                 vector_dir = args.vectors_dir / Database.test_entry_location(fps, tv, '')
                 batch_dir = most_recent_batch(vector_dir)

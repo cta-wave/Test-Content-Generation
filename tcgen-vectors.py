@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from wavetcgen.models import TestContent, FPS_SUITE, CSV_DELIMITER
+from wavetcgen.models import TestContent, FPS_FAMILY, CSV_DELIMITER
 from wavetcgen.database import Database, most_recent_batch
 from pathlib import Path
 from datetime import datetime
@@ -38,7 +38,7 @@ if __name__ == "__main__":
             local_vector_checked = False
             if args.vectors_dir:
                 
-                for fps in FPS_SUITE.all():
+                for fps in FPS_FAMILY.all():
                     test_entry_key = Database.test_entry_key(fps, tv, '')
                     vector_dir = args.vectors_dir / Database.test_entry_location(fps, tv, '')
                     try:
@@ -70,7 +70,7 @@ if __name__ == "__main__":
             elif args.database:
                     results = db.find(tv)
                     # list missing vectors in local directory
-                    for key in [Database.test_entry_key(fps, tv, '') for fps in FPS_SUITE.all()]:
+                    for key in [Database.test_entry_key(fps, tv, '') for fps in FPS_FAMILY.all()]:
                         for test_entry_key in results:
                             if test_entry_key.startswith(key):
                                 status[key] = test_entry_key

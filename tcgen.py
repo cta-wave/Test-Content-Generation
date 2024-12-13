@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger("tc-gen")
 
-from wavetcgen.models import TestContent, Mezzanine, FPS_SUITE, PROFILES_TYPE
+from wavetcgen.models import TestContent, Mezzanine, FPS_FAMILY, PROFILES_TYPE
 from wavetcgen.database import Database, locate_source_content
 
 GPAC_EXECUTABLE = "/usr/local/bin/gpac"
@@ -32,22 +32,22 @@ def gen_encoder_cmd(m:Mezzanine, tc:TestContent, test_stream_dir:Path, dry_run=F
     if m.mastering_display:
         reps_command += f',"hdr_mastering_display:{m.mastering_display.replace(',','~')}"'
     if m.max_cll_fall:
-        reps_command += f',"max_cll_fall:{m.max_cll_fall.replace(',','~')}"'
+        reps_command += f",max_cll_fall:{m.max_cll_fall.replace(',','~')}"
     # Finalize one-AdaptationSet formatting
     reps_command = "--reps=" + reps_command
     title_notice = f"{tc.cmaf_media_profile.value}, Test Vector {tc.test_id}"
     if media_type == "video":
         title_notice = f"{m.content}, {tc.bitrate}, {m.fps.numerator}/{m.fps.denominator}fps " + title_notice
     # Encode, package, and manifest generation (DASH-only)
-    encode_dash_cmd = f"./wavetcgen/encode.py --path={GPAC_EXECUTABLE} --out=stream.mpd --outdir={test_stream_dir}"
+    encode_dash_cmd = f"python3 ./wavetcgen/encode.py --path={GPAC_EXECUTABLE} --out=stream.mpd --outdir={test_stream_dir}"
     encode_dash_cmd += f" --dash=sd:{seg_dur},fd:{seg_dur},ft:{tc.fragment_type.value},fr:{m.fps.numerator}/{m.fps.denominator},cmaf:{tc.cmaf_structural_brand.value}"
     encode_dash_cmd += f" --copyright=\'{m.copyright_notice}\' --source=\'{m.source_notice}\' --title=\'{title_notice}\' --profile={tc.cmaf_media_profile.value} {reps_command}"
     if dry_run:
         encode_dash_cmd += " --dry-run"
-    print(f"# Encoding:\n {encode_dash_cmd}\n")
+    print(f"# Encoding {tc.test_id}:\n{encode_dash_cmd}")
     result = subprocess.run(encode_dash_cmd, shell=True)
-    if dry_run:
-        print("\n" + result + "\n")
+    if not dry_run:
+        result.check_returncode()
 
 
 def gen_cenc_cmd(test_stream_cenc_dir:Path, test_stream_dir:Path, dry_run=False):
@@ -55,9 +55,10 @@ def gen_cenc_cmd(test_stream_cenc_dir:Path, test_stream_dir:Path, dry_run=False)
     stream_cenc_mpd = test_stream_cenc_dir / 'stream.mpd'
     cfile = Path(sys.path[0]) / '/DRM.xml'
     cenc_cmd = f'{GPAC_EXECUTABLE} -strict-error -i {stream_mpd}:forward=mani cecrypt:cfile={cfile} @ -o {stream_cenc_mpd}:pssh=mv'
-    print(f"# Encrypting:\n {cenc_cmd}\n")
+    print(f"# Encrypting {tc.test_id}:\n{cenc_cmd}")
     if not dry_run:
-        result = subprocess.run(cenc_cmd, shell=True)
+        result = subprocess.run(cenc_cmd, shell=True, stdout=subprocess.STDOUT, stderr=subprocess.STDOUT)
+        result.check_returncode()
 
 
 if __name__ == "__main__":
@@ -78,11 +79,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     Mezzanine.root_dir = Path(args.source_dir)
-    framerates = FPS_SUITE.all()
+    framerates = FPS_FAMILY.all()
     if args.fps_family != 'ALL':
         if args.fps_family not in framerates:
             raise Exception(f'Invalid framerate family {args.fps_family}')
-        framerates = [FPS_SUITE.from_string(args.fps_family)]
+        framerates = [FPS_FAMILY.from_string(args.fps_family)]
 
     # for tc in TestContent.iter_vectors_in_matrix(args.matrix):
     for tc in TestContent.iter_vectors_in_batch_config(args.config):
@@ -91,16 +92,16 @@ if __name__ == "__main__":
         if args.test_id != None and tc.test_id != args.test_id:
                 continue
         
-        for fps_suite in framerates:
+        for fps_family in framerates:
             try:
-                m = locate_source_content(tc, fps_suite)
-                fps_suite_dir = Path(args.output_dir) / f"{tc.cmaf_media_profile.value}_sets" / fps_suite
+                m = locate_source_content(tc, fps_family)
+                fps_family_dir = Path(args.output_dir) / f"{tc.cmaf_media_profile.value}_sets" / fps_family
                 if tc.encryption:
-                    test_stream_cenc_dir =  Path(args.output_dir) / Database.test_entry_location(fps_suite, tc, args.batch_dir)
-                    test_stream_dir =  test_stream_cenc_dir.replace('-cenc', '')
+                    test_stream_cenc_dir =  Path(args.output_dir) / Database.test_entry_location(fps_family, tc, args.batch_dir)
+                    test_stream_dir =  Path(str(test_stream_cenc_dir).replace('_cenc', ''))
                     gen_cenc_cmd(test_stream_cenc_dir, test_stream_dir, args.dry_run)                
                 else:
-                    test_stream_dir =  fps_suite_dir / tc.test_id / args.batch_dir
+                    test_stream_dir =  Path(args.output_dir) / Database.test_entry_location(fps_family, tc, args.batch_dir)
                     gen_encoder_cmd(m, tc, test_stream_dir, args.dry_run)
 
             except BaseException as e:
