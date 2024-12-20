@@ -165,7 +165,7 @@ class HEVCCHHD:
 ### 10n bit HEVC MATRIX #####################
 
 class HEVCCHH1:
-    m_profile = "main10" # main10
+    m_profile = "main10"
     m_level = "41"
     m_color_primary = "1"   # GF_COLOR_PRIM_BT709
     m_color_trc = "1"       # GF_COLOR_TRC_BT709
@@ -541,7 +541,7 @@ class Representation:
             # Resize
             command += "ffsws:osize=" + self.m_resolution_w + "x" + self.m_resolution_h
 
-            if self.m_cmaf_profile in ("chh1", "chd1"):
+            if self.m_cmaf_profile in ("chh1", "chd1", "cud1", "clg1"):
                 command += ":ofmt=yuv420_10"
 
             command += ":SID=" + "GEN" + self.m_id
@@ -559,11 +559,7 @@ class Representation:
             gop = Fraction(self.m_segment_duration) * Fraction(self.m_frame_rate)
             # print(f"# Using GOP size: {gop}")
             command += ":g=" + str(gop)
-            
-            if self.m_cmaf_profile in ("chh1",  "chd1"):
-                command += ":profile=" + self.m_profile + "10"
-            else:
-                command += ":profile=" + self.m_profile
+            command += ":profile=" + self.m_profile
             command += ":color_primaries=" + self.m_color_primary
             command += ":color_trc=" + ( self.m_color_trc or self.m_color_primary )
             command += ":colorspace=" + ( self.m_colorspace or self.m_color_primary )
@@ -638,7 +634,7 @@ def generate_log(gpac_path, command):
     result = subprocess.run(gpac_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
 
     script = ""
-    with open('encode_dash.py', mode='r', encoding='utf-8') as file:
+    with open(__file__, mode='r', encoding='utf-8') as file:
         script = file.read()
 
     filename = "logs/CTATestContentGeneration_Log_" + date + "_" + time.replace(':','-') + ".txt"

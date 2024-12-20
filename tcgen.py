@@ -39,12 +39,12 @@ def gen_encoder_cmd(m:Mezzanine, tc:TestContent, test_stream_dir:Path, dry_run=F
     if media_type == "video":
         title_notice = f"{m.content}, {tc.bitrate}, {m.fps.numerator}/{m.fps.denominator}fps " + title_notice
     # Encode, package, and manifest generation (DASH-only)
-    encode_dash_cmd = f"python3 ./wavetcgen/encode.py --path={GPAC_EXECUTABLE} --out=stream.mpd --outdir={test_stream_dir}"
+    encode_dash_cmd = f"python3 ./wavetcgen/encode_dash.py --path={GPAC_EXECUTABLE} --out=stream.mpd --outdir={test_stream_dir}"
     encode_dash_cmd += f" --dash=sd:{seg_dur},fd:{seg_dur},ft:{tc.fragment_type.value},fr:{m.fps.numerator}/{m.fps.denominator},cmaf:{tc.cmaf_structural_brand.value}"
     encode_dash_cmd += f" --copyright=\'{m.copyright_notice}\' --source=\'{m.source_notice}\' --title=\'{title_notice}\' --profile={tc.cmaf_media_profile.value} {reps_command}"
     if dry_run:
         encode_dash_cmd += " --dry-run"
-    print(f"# Encoding {tc.test_id}:\n{encode_dash_cmd}")
+    # print(f"# Encoding {tc.test_id}:\n{encode_dash_cmd}")
     result = subprocess.run(encode_dash_cmd, shell=True)
     if not dry_run:
         result.check_returncode()
