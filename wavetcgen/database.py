@@ -71,7 +71,7 @@ class Database:
 
     def load(self, filename):
         with open(filename) as fo:
-            self.data = json.loads(fo)
+            self.data = json.load(fo)
 
     def save(self, filename):
         with open(filename, 'w') as fo:
