@@ -90,7 +90,7 @@ class ContentModel:
                     content_type = 'audio'
                     adaptation_set.setAttribute('contentType', content_type)
 
-                adaptation_set.setAttribute('containerProfiles', self.m_structural_brand + self.m_wave_media_profile)
+                adaptation_set.setAttribute('containerProfiles', f'{self.m_structural_brand} {self.m_wave_media_profile}')
 
             representations = adaptation_set.getElementsByTagName('Representation')
             for representation in representations:
