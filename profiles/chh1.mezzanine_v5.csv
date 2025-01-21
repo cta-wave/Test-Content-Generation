@@ -1,0 +1,5 @@
+Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,resolution,framerate,bitrate,duration,cmaf_profile,wave_profile,cenc,sar,mezzanine_prefix_25HZ,mezzanine_prefix_30HZ
+1_splice_main,B1_1920x1080,False,True,hvc1,2.0,multiple,duration,1920x1080,1,8000,-1,cmf2,chh1,False,1/1,splice_main_croatia_,splice_main_tos_
+1_splice_ad,AD-B1_1920x1080,False,True,hvc1,2.0,multiple,duration,1920x1080,1,8000,-1,cmf2,chh1,False,1/1,splice_ad_bbb_,splice_ad_bbb_
+1_splice_main_enc,B1_1920x1080,False,True,hvc1,2.0,multiple,duration,1920x1080,1,8000,-1,cmf2,chh1,True,1/1,splice_main_croatia_,splice_main_tos_
+1_splice_ad_enc,AD-B1_1920x1080,False,True,hvc1,2.0,multiple,duration,1920x1080,1,8000,-1,cmf2,chh1,True,1/1,splice_ad_bbb_,splice_ad_bbb_
