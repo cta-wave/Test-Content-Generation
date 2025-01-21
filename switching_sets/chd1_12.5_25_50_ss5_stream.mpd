@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<!-- MPD file Generated with GPAC version 2.5-DEV-rev1002-gc13026f84-master at 2025-01-16T03:48:37.284Z -->
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.000S" type="static" mediaPresentationDuration="PT0H1M0.000S" maxSegmentDuration="PT0H0M2.000S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
+  <ProgramInformation>
+    <Title>sol hdr10 - 3840x2160 - 25/1fps - chd1 switching set: t70, t71, t72, t73</Title>
+    <Source>sol_hdr10_O1_3840x2160@50_60 version 5 (2024-11-28)</Source>
+    <Copyright>© Sol Levante (2020), credited to Netflix, used and licensed under Creative Commons Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/) by the Consumer Technology Association (CTA)® / annotated, encoded and compressed from original.</Copyright>
+  </ProgramInformation>
+  <Period duration="PT0H1M0.000S">
+    <AdaptationSet segmentAlignment="true" maxWidth="3840" maxHeight="2160" maxFrameRate="50" par="16:9" mimeType="video/mp4" startWithSAP="1" contentType="video" containerProfiles="cmf2 chd1">
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:ColourPrimaries" value="9"/>
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:TransferCharacteristics" value="16"/>
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:MatrixCoefficients" value="9"/>
+      <SegmentTemplate media="1/$Time$.m4s" initialization="1/init.mp4" timescale="12800">
+        <SegmentTimeline>
+          <S t="0" d="25600" r="29"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation id="../../../../chd1_sets/12.5_25_50/t73/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="1920" height="1080" frameRate="25" sar="1:1" bandwidth="5000000"/>
+      <Representation id="../../../../chd1_sets/12.5_25_50/t72/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="2560" height="1440" frameRate="25" sar="1:1" bandwidth="9000000"/>
+      <Representation id="../../../../chd1_sets/12.5_25_50/t71/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="25" sar="1:1" bandwidth="15000000"/>
+      <Representation id="../../../../chd1_sets/12.5_25_50/t70/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="50" sar="1:1" bandwidth="17500000"/>
+    </AdaptationSet>
+  </Period>
+</MPD>
