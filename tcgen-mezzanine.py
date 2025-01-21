@@ -1,7 +1,6 @@
 import argparse
 from pathlib import Path
-from wavetcgen.models import TestContent, Mezzanine, FPS_FAMILY
-from wavetcgen.database import locate_source_content
+from wavetcgen.models import TestContent, Mezzanine, FPS_FAMILY, locate_source_content
 from wavetcgen.transfer import md5_checksum
 
 import logging
@@ -25,7 +24,7 @@ if __name__ == "__main__":
     )
     parser.add_argument('source_dir')
     parser.add_argument('matrix')
-    parser.add_argument('-p', '--profile')
+    parser.add_argument('-p', '--profile', help='process only this profile')
     args = parser.parse_args()
 
     Mezzanine.root_dir = Path(args.source_dir)

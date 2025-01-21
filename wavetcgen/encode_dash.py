@@ -8,104 +8,6 @@ from datetime import datetime
 import xml.dom.minidom
 from fractions import Fraction
 
-# Content Model ####################################################################
-# Modify the generated content to comply with CTA Content Model
-# TODO: keep this post-processing as minimal as possible (e.g. move in tooling)
-####################################################################################
-
-# class Mode(Enum):
-#     FRAGMENTED = 1
-#     CHUNKED = 2
-
-class ContentModel:
-
-    def __init__(self, filename, structural_brand, wave_media_profile, mode=None):
-        self.m_filename = filename
-        self.m_structural_brand = structural_brand
-        self.m_wave_media_profile = wave_media_profile
-        # m_mode = Mode.FRAGMENTED.value if mode is None else mode
-
-    def process(self, copyright_notice, source_notice, title_notice):
-        DOMTree = xml.dom.minidom.parse(str(self.m_filename))
-        mpd = DOMTree.documentElement
-        self.process_mpd(DOMTree, mpd, copyright_notice, source_notice, title_notice)
-        with open(self.m_filename, 'w') as f:
-            prettyOutput = '\n'.join([line for line in DOMTree.toprettyxml(indent=' '*2).split('\n') if line.strip()])
-            f.write(prettyOutput)
-
-    def process_mpd(self, DOMTree, mpd, copyright_notice, source_notice, title_notice):
-        # @profiles
-        profiles = mpd.getAttribute('profiles')
-        # TODO: could be added from the packager command-line
-        cta_profile1 = "urn:cta:wave:test-content-media-profile:2022"
-        if cta_profile1 not in profiles:
-            profiles += "," + cta_profile1
-        cta_profile2 = "urn:mpeg:dash:profile:cmaf:2019"
-        if cta_profile2 not in profiles:
-            profiles += "," + cta_profile2
-        mpd.setAttribute('profiles', profiles)
-
-        # ProgramInformation
-        program_informations = mpd.getElementsByTagName("ProgramInformation")
-        self.remove_element(program_informations)
-        program_information = DOMTree.createElement("ProgramInformation")
-        title = DOMTree.createElement("Title")
-        title_txt = DOMTree.createTextNode(title_notice)
-        title.appendChild(title_txt)
-        source = DOMTree.createElement("Source")
-        source_txt = DOMTree.createTextNode(source_notice)
-        source.appendChild(source_txt)
-        copyright = DOMTree.createElement("Copyright")
-        copyright_txt = DOMTree.createTextNode(copyright_notice)
-        copyright.appendChild(copyright_txt)
-        program_information.appendChild(title)
-        program_information.appendChild(source)
-        program_information.appendChild(copyright)
-
-        # Period
-        period = mpd.getElementsByTagName("Period").item(0)
-        mpd.insertBefore(program_information, period)
-        self.process_period(DOMTree, mpd, period)
-
-    def process_period(self, DOMTree, mpd, period):
-        # Adaptation Set
-        self.process_adaptation_sets(period.getElementsByTagName('AdaptationSet'))
-
-    def process_adaptation_sets(self, adaptation_sets):
-        adaptation_set_index = 0
-        representation_index = 0
-        for adaptation_set in adaptation_sets:
-            id = adaptation_set.getAttribute('id')
-
-            content_type = adaptation_set.getAttribute('contentType')
-            if  content_type == "":
-                representations = adaptation_set.getElementsByTagName('Representation')
-                mime_type = representations.item(0).getAttribute('mimeType') if representations.item(0).getAttribute('mimeType') != '' \
-                    else adaptation_set.getAttribute('mimeType')
-
-                if 'video' in mime_type:
-                    content_type = 'video'
-                    adaptation_set.setAttribute('contentType', content_type)
-                elif 'audio' in mime_type:
-                    content_type = 'audio'
-                    adaptation_set.setAttribute('contentType', content_type)
-
-                adaptation_set.setAttribute('containerProfiles', f'{self.m_structural_brand} {self.m_wave_media_profile}')
-
-            representations = adaptation_set.getElementsByTagName('Representation')
-            for representation in representations:
-                self.process_representation(representation, adaptation_set_index, representation_index, id, content_type)
-                representation_index += 1
-
-            adaptation_set_index += 1
-
-    def process_representation(self, representation, adaptation_set_index, representation_index, id, content_type):
-        rep_id = content_type + id + "/" + str(representation_index)
-
-    def remove_element(self, nodes):
-        for node in nodes:
-            parent = node.parentNode
-            parent.removeChild(node)
 
 ####################################################################################
 
@@ -188,7 +90,8 @@ class HEVCCLG1:
     m_profile = "main10"
     m_level = "51"
     m_color_primary = "9"   # GF_COLOR_PRIM_BT2020
-    m_color_trc = "18"      # GF_COLOR_TRC_ARIB_STD_B67
+    m_color_trc = "14"      # GF_COLOR_TRC_BT2020_10
+    m_prefered_color_trc = "18"  # GF_COLOR_TRC_ARIB_STD_B67
     m_colorspace = "9"      # GF_COLOR_MX_BT2020_NCL
     m_resolution_w = "3840"
     m_resolution_h = "2160"
@@ -320,6 +223,7 @@ class Representation:
         self.m_frame_rate = None
         self.m_color_primary = None
         self.m_color_trc = None
+        self.m_prefered_color_trc = None
         self.m_colorspace = None
         self.m_resolution_w = None
         self.m_resolution_h = None
@@ -438,22 +342,6 @@ class Representation:
                     if self.m_resolution_w is None and self.m_resolution_h is None:
                         self.m_resolution_w = HEVCCUD1.m_resolution_w
                         self.m_resolution_h = HEVCCUD1.m_resolution_h
-                elif value == "cud1":
-                    if self.m_profile is None:
-                        self.m_profile = HEVCCUD1.m_profile
-                    if self.m_level is None:
-                        self.m_level = HEVCCUD1.m_level
-                    if self.m_frame_rate is None:
-                        self.m_frame_rate = HEVCCUD1.m_frame_rate
-                    if self.m_color_primary is None:
-                        self.m_color_primary = HEVCCUD1.m_color_primary
-                    if self.m_color_trc is None:
-                        self.m_color_trc = HEVCCUD1.m_color_trc
-                    if self.m_colorspace is None:
-                        self.m_colorspace = HEVCCUD1.m_colorspace
-                    if self.m_resolution_w is None and self.m_resolution_h is None:
-                        self.m_resolution_w = HEVCCUD1.m_resolution_w
-                        self.m_resolution_h = HEVCCUD1.m_resolution_h
                 elif value == "clg1":
                     if self.m_profile is None:
                         self.m_profile = HEVCCLG1.m_profile
@@ -465,6 +353,7 @@ class Representation:
                         self.m_color_primary = HEVCCLG1.m_color_primary
                     if self.m_color_trc is None:
                         self.m_color_trc = HEVCCLG1.m_color_trc
+                        self.m_prefered_color_trc = HEVCCLG1.m_prefered_color_trc
                     if self.m_colorspace is None:
                         self.m_colorspace = HEVCCLG1.m_colorspace
                     if self.m_resolution_w is None and self.m_resolution_h is None:
@@ -538,6 +427,9 @@ class Representation:
 
         command = ""
         if self.m_media_type in ("v", "video"):
+            is_avc = self.m_codec == VideoCodecOptions.AVC.value
+            is_hevc = self.m_codec == VideoCodecOptions.HEVC.value
+
             # Resize
             command += "ffsws:osize=" + self.m_resolution_w + "x" + self.m_resolution_h
 
@@ -549,7 +441,10 @@ class Representation:
             # Encode
             command += " @ "
             command += "enc:gfloc"
-            command += ":c=libx265" # + self.m_codec
+            if is_avc:
+                command += ":c=libx264"
+            elif is_hevc:
+                command += ":c=libx265"
             command += ":b=" + self.m_bitrate + "k"
             command += ":bf=" + str(self.m_num_b_frames)
             # if self.m_num_b_frames != 0:
@@ -564,31 +459,38 @@ class Representation:
             command += ":color_trc=" + ( self.m_color_trc or self.m_color_primary )
             command += ":colorspace=" + ( self.m_colorspace or self.m_color_primary )
 
-            if self.m_codec == VideoCodecOptions.AVC.value:
+            if is_avc:
                 command += "::x264-params=\""
-            elif self.m_codec == VideoCodecOptions.HEVC.value:
+
+            elif is_hevc:
                 command += "::x265-params=\""
-            
-            hdr_metadata = bool(self.m_hdr_mastering_display) or bool(self.m_max_cll_fall)
-            if hdr_metadata:
-                command += "repeat-headers=1:"
-            if bool(self.m_hdr_mastering_display):
-                command += f"master-display={self.m_hdr_mastering_display}:"
-            if bool(self.m_max_cll_fall):
-                command += f"max-cll={self.m_max_cll_fall}:"
+                
+                if self.m_prefered_color_trc is not None:
+                    command += f"atc-sei={self.m_prefered_color_trc}:"            
+
+                hdr_metadata = bool(self.m_hdr_mastering_display) or bool(self.m_max_cll_fall)
+                if hdr_metadata:
+                    command += "repeat-headers=1:"
+                if bool(self.m_hdr_mastering_display):
+                    command += f"master-display={self.m_hdr_mastering_display}:"
+                if bool(self.m_max_cll_fall):
+                    command += f"max-cll={self.m_max_cll_fall}:"
             
             command += "level=" + self.m_level + ":" \
-                       "no-open-gop=1" + ":" \
-                       "scenecut=0"
+                       "no-open-gop=1:" \
+                       "scenecut=0:"
 
             if self.m_pic_timing == "True":
-                command +=  ":" \
-                       "nal-hrd=vbr" + ":" \
-                       "vbv-bufsize=" + str(int(self.m_bitrate) * 3) + ":" \
-                       "vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
+                if is_avc:
+                    command += "nal-hrd=vbr:"
+                elif is_hevc:
+                    command += "hrd=1:"
+
+                command += "vbv-bufsize=" + str(int(self.m_bitrate) * 3) + ":" \
+                       "vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2)) + ":"
 
             if self.m_aspect_ratio_x and self.m_aspect_ratio_y:
-                command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
+                command += "sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
             
             command += "\":" #closing codec-specific parameters
 
@@ -794,6 +696,3 @@ if __name__ == "__main__":
         print(command)
     else:
         subprocess.run(command, shell=True)
-        content_model = ContentModel(output_file, dash_options.m_cmaf_brand, wave_media_profile)
-        content_model.process(copyright_notice, source_notice, title_notice)
-        generate_log(gpac_path, command)

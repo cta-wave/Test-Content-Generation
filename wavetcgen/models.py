@@ -68,9 +68,23 @@ class FPS(Fraction):
 		else:
 			raise NotImplementedError(f'unknown framerate {self}')
 
+	def to_number(self):
+		if self.denominator == 1:
+			return self.numerator
+		elif self == Fraction(25, 2):
+			return 12.5
+		elif self == Fraction(30000, 1001):
+			return 29.97
+		elif self == Fraction(60000, 1001):
+			return 59.94
+		elif self == Fraction(15000, 1001):
+			return 14.985
+		else:
+			raise NotImplementedError(f'unknown framerate {self}')
+
 	@property
 	def family(self) -> 'FPS_FAMILY':
-		fps = str(self)
+		fps = str(self.to_number())
 		for fam in (FPS_FAMILY._12_25_50, FPS_FAMILY._14_29_59, FPS_FAMILY._15_30_60):
 			if fps in fam.value:
 				return fam
@@ -101,7 +115,7 @@ class FPS_FAMILY(str, Enum):
 
 class Mezzanine:
 
-	root_dir = Path()
+	root_dir = Path(os.getenv('WAVE_MEZZANINE_DIR', '.'))
 
 	def __init__(self, basename:str, label:str, resolution:'VideoResolution', fps:FPS, duration:str, hdr:str):
 		self.content = basename
@@ -112,6 +126,8 @@ class Mezzanine:
 		self.hdr = hdr
 		self._properties = None
 		self._md5 = None
+		self._copyright_notice = None
+		self._source_notice = None
 	
 	@staticmethod
 	def fps_family(fps:FPS) -> FPS_FAMILY:
@@ -126,7 +142,7 @@ class Mezzanine:
 		dur = str(self.duration)
 		if dur.endswith(".0"):
 			dur = dur[:-2]
-		return f'{self.content}{self.label}_{self.resolution}@{self.fps.to_lossy_string()}_{dur}.mp4'
+		return f'{self.content}{self.label}_{self.resolution}@{self.fps.to_number()}_{dur}.mp4'
 
 	@property
 	def copyright_notice(self) -> str:
@@ -200,7 +216,7 @@ class Mezzanine:
 			self._properties = data["Mezzanine"]["properties"]
 			assert self._properties["width"] == self.resolution.w, 'invalid mezzanine width found in metadata'
 			assert self._properties["height"] == self.resolution.h, 'invalid mezzanine height found in metadata'
-			assert str(self._properties["frame_rate"]) == str(self.fps.to_lossy_string()), 'invalid mezzanine frame_rate found in metadata'
+			assert str(self._properties["frame_rate"]) == str(self.fps.to_number()), 'invalid mezzanine frame_rate found in metadata'
 
 			self._copyright_notice = data["Mezzanine"]["license"]
 			self._source_notice = "" + data["Mezzanine"]["name"] + " version " + str(data["Mezzanine"]["version"]) + " (" + data["Mezzanine"]["creation_date"] + ")"
@@ -235,6 +251,18 @@ class CmafBrand(str, Enum):
 		elif s == "chd1" :
 			return cls.CHD1
 
+def locate_source_content(tc:'TestContent', fps_family:FPS_FAMILY):
+    m = tc.get_mezzanine(fps_family)
+    if not (Mezzanine.root_dir / m.filename).exists():
+        # splice_ test vectors have no duration in the test matrix,
+        # try figuring out the duration from source content filename
+        if tc.duration == '-1':
+            splice_sequence = [*Mezzanine.root_dir.glob(m.filename.replace('-1', '*'))]
+            if len(splice_sequence) == 1:
+                m.duration = splice_sequence[0].stem.split('_')[-1]
+                return m
+        raise Exception(f'test content "{tc.test_id}" - mezzanine file not found "{m.filename}"')
+    return m
 
 class CmafInitConstraints(str, Enum):
 	SINGLE: str = 'single'
@@ -255,12 +283,17 @@ class CmafFragmentType(str, Enum):
 @dataclass
 class Representation:
 	resolution: 'VideoResolution'
-	framerate: Fraction
+	framerate: FPS
 	bitrate: int # o.bitrate
 	input: str # input_filename
 
 	def to_json(self):
-		return {"resolution": self.resolution, "framerate": self.fps, "bitrate": self.bitrate, "input": self.input}
+		return {
+			"resolution": str(self.resolution), 
+			"framerate": self.framerate.to_number(), 
+			"bitrate": self.bitrate, 
+			"input": self.input
+		}
 
 
 # PARSE TESTT CONTENT FROM MATRIX
@@ -340,7 +373,7 @@ class TestContent:
 		elif self.cmaf_media_profile == 'chd1':
 			hdr = 'hdr10'
 		fps = self.get_fps(fps_family)
-		basename = self.mezzanine_prefix_25HZ if fps.to_lossy_string() in ('50', '25', '12.5') else self.mezzanine_prefix_30HZ
+		basename = self.mezzanine_prefix_25HZ if fps.to_number() in (50, 25, 12.5) else self.mezzanine_prefix_30HZ
 		return Mezzanine(
 				basename=basename,
 				label=self.mezzanine_label, 
@@ -524,8 +557,8 @@ class TestContent:
 		mezzanine_label = col[16]
 
 		# 18 - default_sample_flags, sample_flags and first_sample_flags in the TrackFragmentHeaderBox and TrackRunBox 
-		assert 'set' in col[17].lower(), f'Invalid test matrix format on row 10' # AVC = resolution
-		sample_flags_in_track_boxes = 'not set' in col[17].lower()
+		assert 'set' in col[17].lower(), f'Invalid test matrix format on row 10' # AVC matrix = resolution ?
+		sample_flags_in_track_boxes = 'not set' not in col[17].lower()
 
 		# 19 - aspect_ratio_idc (sample aspect ratio 1=1:1, 14=4:3)
 		aspect_ratio_idc = '1/1' if col[18] == '1' else col[18]

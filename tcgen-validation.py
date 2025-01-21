@@ -252,7 +252,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--config', help='Optional, tcgen.py config file listing test vectors.')
     parser.add_argument('-d', '--database', help='Optional, validates test vectors in database.')
     parser.add_argument('-v', '--vectors_dir', help='Check for missing content in local vectors directory.')
-    parser.add_argument('-j', '--jccp', default=JCCP_STAGING, help='JCCP HTTP endpoint.')
+    parser.add_argument('-j', '--jccp', default=JCCP_STAGING, help='JCCP HTTP endpoint or docker container id.')
     parser.add_argument('-o', '--output', help='dump validation result to json file.')
     parser.add_argument('--host', default=host, help='host/ip for test vectors')
     args = parser.parse_args()
