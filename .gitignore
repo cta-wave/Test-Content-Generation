@@ -1,6 +1,9 @@
 *_Log_*.txt
 output/
+output*/
+database*.json
 content_files/
+gen_*
 !**/*.csv
 *venv/
 .vscode
