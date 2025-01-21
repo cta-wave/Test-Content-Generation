@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<!-- MPD file Generated with GPAC version 2.5-DEV-rev1002-gc13026f84-master at 2025-01-16T05:01:27.784Z -->
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.000S" type="static" mediaPresentationDuration="PT0H0M30.000S" maxSegmentDuration="PT0H0M2.000S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
+  <ProgramInformation>
+    <Title>Croatia_hlg10, 3840x2160, 50fps, clg1, Test Vector 42</Title>
+    <Source>croatia_hlg10_O1_3840x2160@50_30 version 5 (2024-11-28)</Source>
+    <Copyright>© Croatia (2019), credited to EBU, used and licensed under Creative Commons Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/) by the Consumer Technology Association (CTA)® / annotated, encoded and compressed from original.</Copyright>
+  </ProgramInformation>
+  <Period duration="PT0H0M30.000S">
+    <AdaptationSet segmentAlignment="true" maxWidth="3840" maxHeight="2160" maxFrameRate="50" par="16:9" mimeType="video/mp4" startWithSAP="1" subsegmentAlignment="true" subsegmentStartsWithSAP="1" contentType="video" containerProfiles="cmfc clg1">
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:ColourPrimaries" value="9"/>
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:TransferCharacteristics" value="14"/>
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:MatrixCoefficients" value="9"/>
+      <SupplementalProperty schemeIdUri="urn:mpeg:mpegB:cicp:TransferCharacteristics" value="18"/>
+      <SegmentTemplate media="1/$Time$_$SubNumber$.m4s" initialization="1/init.mp4" timescale="12800">
+        <SegmentTimeline>
+          <S t="0" d="25600" k="5" r="14"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation id="1" codecs="hev1.2.4.H153.90" width="3840" height="2160" frameRate="50" sar="1:1" bandwidth="17000000">
+   </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>

@@ -71,7 +71,7 @@ if __name__ == "__main__":
     global fo
     fo = None
     for b in boxes:
-        bytes = fi.read(b[0]);
+        bytes = fi.read(b[0])
         if b[1] == b'styp':
             continue
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
             fo = open(input_file + "_" + str(i_chunk+1) + ".m4s", 'wb')
             styp = open("styp", 'rb')
             fo.write(styp.read(28))
-            styp.close();
+            styp.close()
         
         fo.write(bytes)
 
