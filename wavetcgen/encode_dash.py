@@ -145,6 +145,7 @@ class DASH:
                         self.m_fragment_type = value
                         if value == "every_frame":
                             self.m_num_b_frames = 0 # only P-frames
+
                 elif name == "fd":
                     self.m_fragment_duration = value
                 elif name == "fr":
@@ -231,7 +232,7 @@ class Representation:
         self.m_max_cll_fall = None
         self.m_aspect_ratio_x = None
         self.m_aspect_ratio_y = None
-            
+        
         config = representation_config.split(",")
         for i in range(0, len(config)):
             config_opt = config[i].split(":")
@@ -385,6 +386,9 @@ class Representation:
                     self.m_num_b_frames = 2
             elif name == "color":
                 self.m_color_primary = value
+            elif name == "hlg" and value == "vui":
+                self.m_color_trc = HEVCCLG1.m_prefered_color_trc
+                self.m_prefered_color_trc = None
             elif name == "pic_timing":
                 self.m_pic_timing = value
             elif name == "vui_timing":
@@ -447,12 +451,8 @@ class Representation:
                 command += ":c=libx265"
             command += ":b=" + self.m_bitrate + "k"
             command += ":bf=" + str(self.m_num_b_frames)
-            # if self.m_num_b_frames != 0:
-            #      command += ":b_strategy=0"
-            command += ":fintra=" + self.m_segment_duration
-            
+            command += ":fintra=" + self.m_segment_duration            
             gop = Fraction(self.m_segment_duration) * Fraction(self.m_frame_rate)
-            # print(f"# Using GOP size: {gop}")
             command += ":g=" + str(gop)
             command += ":profile=" + self.m_profile
             command += ":color_primaries=" + self.m_color_primary
@@ -461,50 +461,76 @@ class Representation:
 
             if is_avc:
                 command += "::x264-params=\""
+                # by default, x264 disables open-gop
+                command += "no-scenecut=1"
+                if self.m_num_b_frames > 0:
+                    command += ":b-adapt=0"
+                command += ":level=" + self.m_level
 
             elif is_hevc:
                 command += "::x265-params=\""
-                
+                command += "scenecut=0"
+                command += ":no-open-gop=1"
+                # disabling adaptative B 'frames' placement ensures we have them where expected, 
+                # otherwise they may be absent from the generated test content
+                # same options for x264 & x265                       
+                if self.m_num_b_frames > 0:
+                    command += ":b-adapt=0"
+                command += ":level-idc=" + self.m_level
+                # for now, all content described in test matrix uses Main tier
+                command += ":no-high-tier=1" 
+
                 if self.m_prefered_color_trc is not None:
-                    command += f"atc-sei={self.m_prefered_color_trc}:"            
+                    command += f":atc-sei={self.m_prefered_color_trc}"
 
                 hdr_metadata = bool(self.m_hdr_mastering_display) or bool(self.m_max_cll_fall)
                 if hdr_metadata:
-                    command += "repeat-headers=1:"
+                    command += ":repeat-headers=1"
                 if bool(self.m_hdr_mastering_display):
-                    command += f"master-display={self.m_hdr_mastering_display}:"
+                    command += f":master-display={self.m_hdr_mastering_display}"
                 if bool(self.m_max_cll_fall):
-                    command += f"max-cll={self.m_max_cll_fall}:"
-            
-            command += "level=" + self.m_level + ":" \
-                       "no-open-gop=1:" \
-                       "scenecut=0:"
+                    command += f":max-cll={self.m_max_cll_fall}"
 
             if self.m_pic_timing == "True":
                 if is_avc:
-                    command += "nal-hrd=vbr:"
+                    command += ":nal-hrd=vbr"
                 elif is_hevc:
-                    command += "hrd=1:"
+                    command += ":hrd=1"
 
-                command += "vbv-bufsize=" + str(int(self.m_bitrate) * 3) + ":" \
-                       "vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2)) + ":"
+            # common x264 / x265 options
+            command += ":vbv-bufsize=" + str(int(self.m_bitrate) * 3) + \
+                   ":vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
 
             if self.m_aspect_ratio_x and self.m_aspect_ratio_y:
-                command += "sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
+                command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
             
-            command += "\":" #closing codec-specific parameters
+            command += "\":" # closing encoder specific parameters
 
+            bsrw = None
+            rmseis = []
             if self.m_vui_timing == "False":
-                command += " @ bsrw:novuitiming"
+                bsrw = "novuitiming"
+                rmseis.append("0")
+
+            # HLG signaled in VUI instead of SEI
+            if self.m_color_trc == HEVCCLG1.m_prefered_color_trc:
+                rmseis.append("147")
+            
+            if bsrw is not None or len(rmseis):
+                command += " @ bsrw"
+                if bsrw is not None:
+                    command += ":novuitiming"
+                if len(rmseis):
+                    command += ":rmsei:seis=" + ",".join(rmseis)
 
             command += ":FID=V" + index
+        # end if v / video #####
 
         elif self.m_media_type in ("a", "audio"):
             if self.m_codec != "copy":
                 command += "enc:gfloc" + \
                         ":c=" + self.m_codec + \
                         ":b=" + "128" + "k" #FIXME: self.m_bitrate
-
                 command += ":SID=" + "GEN" + self.m_id
                 command += ":FID=A" + index
             else:
