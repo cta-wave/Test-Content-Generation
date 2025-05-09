@@ -279,6 +279,9 @@ class CmafFragmentType(str, Enum):
 	PFRAMES: str = "pframes"
 	EVERY_FRAME: str = "every_frame" 
 
+class HlgSignaling(str, Enum):
+	SEI: str = 'sei'
+	VUI: str = 'vui'
 
 @dataclass
 class Representation:
@@ -308,13 +311,13 @@ class TestContent:
 	summary:str
 	picture_timing_sei:bool
 	vui_timing:bool
-
+	hlg_signaling:HlgSignaling
 	sample_entry:str
 	parameter_sets_in_cmaf_header:bool
 	parameter_sets_in_band:bool
 
 	cmaf_fragment_duration:int
-	cmaf_init_constraints:CmafInitConstraints
+	cmaf_init_constraints:CmafInitConstraints # applies to switching sets only
 	fragment_type:CmafFragmentType
 	sample_flags_in_track_boxes:bool
 	resolution:VideoResolution
@@ -393,6 +396,9 @@ class TestContent:
 		return seg_dur
 
 	def to_batch_config_row(self):
+		"""
+		Converts reference matrix test content entry to configuration files for content generation scripts. 
+		"""
 		if self.fps_base[0] == '12.5':
 			framerate = '0.25'
 		elif self.fps_base[0] == '25':
@@ -406,7 +412,7 @@ class TestContent:
 			"Stream ID" : self.test_id,
 			"mezzanine radius" : f'{self.mezzanine_label}_{self.resolution}',
 			"pic timing" : self.picture_timing_sei,
-			"VUI timing" : self.vui_timing,
+			"HLG SEI": self.hlg_signaling, 
 			"sample entry" : self.sample_entry,
 			"CMAF frag dur" : self.cmaf_fragment_duration,
 			"init constraints" : self.cmaf_init_constraints,
@@ -467,11 +473,14 @@ class TestContent:
 			mezzanine_prefix_25HZ = row["mezzanine_prefix_25HZ"]
 			mezzanine_prefix_30HZ = row["mezzanine_prefix_30HZ"]
 			
+			hlg_signaling = HlgSignaling.VUI if str(row.get("HLG SEI", "")).upper() == "FALSE" else HlgSignaling.SEI
+			
 			return TestContent(
 				test_id,
 				None,
 				picture_timing_sei,
 				vui_timing,
+				hlg_signaling,
 				sample_entry,
 				None,
 				None,

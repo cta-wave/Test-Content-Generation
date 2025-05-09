@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger("tc-gen")
 
-from wavetcgen.models import TestContent, Mezzanine, FPS_FAMILY, PROFILES_TYPE, locate_source_content
+from wavetcgen.models import TestContent, Mezzanine, FPS_FAMILY, PROFILES_TYPE, HlgSignaling, locate_source_content
 from wavetcgen.database import Database
 from wavetcgen.patch_mpd_info import ContentModel, title_notice
 
@@ -28,6 +28,8 @@ def gen_encoder_cmd(m:Mezzanine, tc:TestContent, test_stream_dir:Path, dry_run=F
     reps_command = f"id:{tc.test_id},type:{media_type},codec:{codec},vse:{tc.sample_entry},cmaf:{codec_defaults.value}"
     reps_command += f",fps:{m.fps.numerator}/{m.fps.denominator},res:{tc.resolution},bitrate:{tc.bitrate}"
     reps_command += f",input:'{m.root_dir/m.filename}',pic_timing:{tc.picture_timing_sei},vui_timing:{tc.vui_timing},sd:{str(seg_dur)},bf:{tc.fragment_type.value}"
+    if tc.hlg_signaling == HlgSignaling.VUI:
+        reps_command += f",hlg:vui"
     if tc.aspect_ratio_idc != 1:
         reps_command += f",sar:{tc.aspect_ratio_idc}" # @TODO: not tested after refactoring
     if m.mastering_display:
@@ -40,11 +42,15 @@ def gen_encoder_cmd(m:Mezzanine, tc:TestContent, test_stream_dir:Path, dry_run=F
     # Encode, package, and manifest generation (DASH-only)
     encode_dash_cmd = f"python3 ./wavetcgen/encode_dash.py --path={GPAC_EXECUTABLE} --out=stream.mpd --outdir={test_stream_dir}"
     encode_dash_cmd += f" --dash=sd:{seg_dur},fd:{seg_dur},ft:{tc.fragment_type.value},fr:{m.fps.numerator}/{m.fps.denominator},cmaf:{tc.cmaf_structural_brand.value}"
-    encode_dash_cmd += f" --copyright=\'{m.copyright_notice}\' --source=\'{m.source_notice}\' --title=\'{title}\' --profile={tc.cmaf_media_profile.value} {reps_command}"
+    encode_dash_cmd += f" --copyright=\'{m.copyright_notice}\' --source=\'{m.source_notice}\' --title=\'{title}\' --profile={tc.cmaf_media_profile.value}"
+    encode_dash_cmd += f" {reps_command}"
     if dry_run:
         encode_dash_cmd += " --dry-run"
-    print(f"# Encoding {tc.test_id}:\n{encode_dash_cmd}")
-    if not dry_run:
+    sys.stdout.write(f"# Encoding {tc.test_id}:\n")
+    sys.stdout.flush()
+    if dry_run:
+        print(encode_dash_cmd)
+    else:
         subprocess.run(encode_dash_cmd, shell=True).check_returncode()
     return test_stream_dir / 'stream.mpd'
 
@@ -98,13 +104,13 @@ if __name__ == "__main__":
                     test_stream_cenc_dir =  Path(args.output_dir) / Database.test_entry_location(fps_family, tc, args.batch_dir)
                     test_stream_dir =  Path(re.sub(r"[-_]c?enc/", "/", str(test_stream_cenc_dir)))
                     output_mpd = gen_cenc_cmd(test_stream_cenc_dir, test_stream_dir, args.dry_run)
-                    # if not args.dry_run:
-                    ContentModel.patch_mpd(output_mpd, m, tc)
+                    if not args.dry_run:
+                        ContentModel.patch_mpd(output_mpd, m, tc)
                 else:
                     test_stream_dir =  Path(args.output_dir) / Database.test_entry_location(fps_family, tc, args.batch_dir)
                     output_mpd = gen_encoder_cmd(m, tc, test_stream_dir, args.dry_run)
-                    # if not args.dry_run:
-                    ContentModel.patch_mpd(output_mpd, m, tc)
+                    if not args.dry_run:
+                        ContentModel.patch_mpd(output_mpd, m, tc)
 
             except BaseException as e:
                 logger.error(e)
