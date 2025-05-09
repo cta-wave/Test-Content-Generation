@@ -1,7 +1,7 @@
 Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,resolution,framerate,bitrate,duration,cmaf_profile,wave_profile,cenc,sar,mezzanine_prefix_25HZ,mezzanine_prefix_30HZ
 61,O1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,1,17500,30.0,cmf2,chd1,False,1/1,sol_hdr10_,sol_hdr10_
 61_enc,O1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,1,17500,30.0,cmf2,chd1,True,1/1,sol_hdr10_,sol_hdr10_
-62,O1_3840x2160,True,False,hev1,2.0,multiple,pframes,3840x2160,1,17500,30.0,cmfc,chd1,False,1/1,sol_hdr10_,sol_hdr10_
+62,O1_3840x2160,True,False,hev1,2.0,single,pframes,3840x2160,1,17500,30.0,cmfc,chd1,False,1/1,sol_hdr10_,sol_hdr10_
 70,O1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,1,17500,60.0,cmf2,chd1,False,1/1,sol_hdr10_,sol_hdr10_
 71,O1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,0.5,15000,60.0,cmf2,chd1,False,1/1,sol_hdr10_,sol_hdr10_
 72,M1_2560x1440,False,True,hvc1,2.0,multiple,duration,2560x1440,0.5,9000,60.0,cmf2,chd1,False,1/1,sol_hdr10_,sol_hdr10_
