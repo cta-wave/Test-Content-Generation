@@ -1,8 +1,6 @@
 from argparse import ArgumentParser
 from wavetcgen.models import TestContent, FPS_FAMILY, CSV_DELIMITER
 from wavetcgen.database import Database, most_recent_batch
-from pathlib import Path
-from datetime import datetime
 import csv
 import subprocess
 
