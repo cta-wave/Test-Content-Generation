@@ -1,3 +1,13 @@
+## `chh1` cmaf brand requirements
+
+See : [CTa-5003-B](https://shop.cta.tech/products/web-application-video-ecosystem-device-playback-capabilities-cta-5003-b) 
+
+11.3 - Media Profile: CMAF HEVC HHD10 ('chh1')
+11.3.2 - Capability Discovery Options
+11.3.3 - Source Buffer Initialization Requirements
+11.3.4 - Content Options
+
+
 ### Content Options
 
 The content options are based on clause 10.2.2, but only a subset is

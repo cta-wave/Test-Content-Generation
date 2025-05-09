@@ -1,3 +1,13 @@
+## `cud1` cmaf brand requirements
+
+See : [CTa-5003-B](https://shop.cta.tech/products/web-application-video-ecosystem-device-playback-capabilities-cta-5003-b) 
+
+11.4 - Media Profile: CMAF HEVC UHD10 ('cud1')
+11.4.2 - Capability Discovery Options
+11.4.3 - Source Buffer Initialization Requirements
+11.4.4 - Content Options
+
+
 ### Content Options
 
 The content options are based on clause 10.2.2, but only a subset is

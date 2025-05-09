@@ -1,8 +1,21 @@
-### Content Options
+## `clg1` cmaf brand requirements
 
-The content options are based on clause 10.2.2, but only a subset is
-recommended to be tested as general constraints are expected to be
-covered by the tests in clause 10.2.
+See : [CTa-5003-B](https://shop.cta.tech/products/web-application-video-ecosystem-device-playback-capabilities-cta-5003-b) 
+
+11.6 - Media Profile: CMAF HEVC HLG10 ('clg1')
+11.6.2 - Capability Discovery Options
+11.6.3 - Source Buffer Initialization Requirements
+11.6.4 - Content Options
+
+
+### Capability Discovery Options
+
+[...]
+
+NOTE: HLG content (i.e., the 'clg1' media profile) always has the HLG transfer function.  It may be signaled in one of two ways, depending on whether the creator also wants to use the HLG video with a player only supporting the 'cud1' media profile.  For the purposes of querying device capabilities, when asking about the 'clg1' profile, it's only the HLG transfer function that's of interest.  (If a player were to find that 'clg1' is not supported, then the player could then query 'cud1' and if that's OK then it could still play HLG content that has backwards compatible signaling, albeit not with HDR.  
+
+
+### Content Options
 
 **Proposed CMAF Options (see clause 7 of CMAF \[CMAF\])**
 
@@ -99,6 +112,8 @@ covered by the tests in clause 10.2.
         alternative_transfer_characteristics.
 
     -   If transfer_characteristics = 18, then no SEI message
+
+See *Note* in **capability discovery options** for *clg1*.
 
 -   B.3.3.2
 
