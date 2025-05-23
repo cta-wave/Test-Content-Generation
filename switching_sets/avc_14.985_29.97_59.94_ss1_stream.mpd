@@ -28,7 +28,7 @@
           </SegmentTimeline>
         </SegmentTemplate>
       </Representation>
-      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t23/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="1280" height="720" frameRate="60000/1001" sar="1:1" bandwidth="4900000">
+      <Representation id="../../../../cfhd_sets/14.985_29.97_59.94/t23/2023-09-01/1" mimeType="video/mp4" codecs="avc1.640028" width="1280" height="720" frameRate="60000/1001" sar="1:1" bandwidth="3000000">
         <SegmentTemplate media="$RepresentationID$/$Time$.m4s" initialization="$RepresentationID$/init.mp4" timescale="60000">
           <SegmentTimeline>
           <S t="0" d="120120" r="28"/>
