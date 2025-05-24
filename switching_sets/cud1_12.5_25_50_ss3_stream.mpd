@@ -16,8 +16,8 @@
           <S t="0" d="25600" r="29"/>
         </SegmentTimeline>
       </SegmentTemplate>
-      <Representation id="../../../../cud1_sets/12.5_25_50/t32/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="2560" height="1440" frameRate="25" sar="1:1" bandwidth="9000000"/>
-      <Representation id="../../../../cud1_sets/12.5_25_50/t31/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="25" sar="1:1" bandwidth="15000000"/>
+      <Representation id="../../../../cud1_sets/12.5_25_50/t32/2025-04-15/1" codecs="hvc1.2.4.L153.90" width="2560" height="1440" frameRate="25" sar="1:1" bandwidth="9000000"/>
+      <Representation id="../../../../cud1_sets/12.5_25_50/t31/2025-04-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="25" sar="1:1" bandwidth="15000000"/>
       <Representation id="../../../../cud1_sets/12.5_25_50/t30/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="50" sar="1:1" bandwidth="17500000"/>
     </AdaptationSet>
   </Period>

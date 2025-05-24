@@ -2,20 +2,11 @@
 set -eux
 
 SSi="ss3"
-REPS=("t30" "t31" "t32")
 PROFILE="cud1"
-BATCH_IN="2025-01-15" # input batch
-BATCH_OUT=$BATCH_IN # change when you need to regenerate the output in a different batch folder
-
+BATCH_OUT="2025-05-24"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 INPUT_DIR="$SCRIPT_DIR/../output"
 OUTPUT_DIR="$SCRIPT_DIR/../output_ss_$PROFILE" # make it different of $INPUT_DIR to avoid collisions and deletions of input files
-
-# safety check
-if ! grep $BATCH_IN $SCRIPT_DIR/"$PROFILE"_*.mpd >/dev/null 2>/dev/null; then
-    echo "ERROR: you must replace the batch dates in the MPD files with \"$BATCH_IN\". Make sure these files exist first."
-    exit 1
-fi
 
 mkdir -p $OUTPUT_DIR
 cd $OUTPUT_DIR
@@ -28,11 +19,17 @@ for FR in "${FRAMERATES[@]}" ; do
     mkdir -p $SS_OUTPUT_RELDIR
     cp $SCRIPT_DIR/"$PROFILE"_"$FR"_"$SSi"_stream.mpd $SS_OUTPUT_RELDIR/stream.mpd
 
-    for SINGLE in "${REPS[@]}" ; do
-        SINGLE_DIR="$PROFILE"_sets/$FR/$SINGLE/$BATCH_IN/1
-        mkdir -p $SINGLE_DIR
-        cp -r $INPUT_DIR/$SINGLE_DIR/* $SINGLE_DIR
-    done
+    t30_dir="cud1_sets/$FR/t30/2025-01-15/1/" 
+    mkdir -p $t30_dir
+    cp -r $INPUT_DIR/$t30_dir* $t30_dir
+
+    t31_dir="cud1_sets/$FR/t31/2025-04-15/1/"
+    mkdir -p $t31_dir
+    cp -r $INPUT_DIR/$t31_dir* $t31_dir
+
+    t32_dir="cud1_sets/$FR/t32/2025-04-15/1/"
+    mkdir -p $t32_dir
+    cp -r $INPUT_DIR/$t32_dir* $t32_dir
 
     # delete old archives
     #find . -name '*.zip' | xargs rm
