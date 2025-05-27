@@ -4,7 +4,7 @@ set -eux
 INPUT_DIR="$PWD/output/"
 OUTPUT_DIR="$PWD/output_ss1/" # make it different of $INPUT_DIR to avoid collisions and deletions of input files
 BATCH_IN="2023-09-01" # input batch
-BATCH_OUT="2023-10-05" # Romain: $BATCH_IN # change when you need to regenerate the output in a different batch folder
+BATCH_OUT="2025-05-24" # Romain: $BATCH_IN # change when you need to regenerate the output in a different batch folder
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # safety check
