@@ -5,7 +5,7 @@ SSi="ss4"
 REPS=("t50" "t51" "t52" "t53")
 PROFILE="clg1"
 BATCH_IN="2025-01-15" # input batch
-BATCH_OUT=$BATCH_IN # change when you need to regenerate the output in a different batch folder
+BATCH_OUT="2025-05-24" # change when you need to regenerate the output in a different batch folder
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 INPUT_DIR="$SCRIPT_DIR/../output"
