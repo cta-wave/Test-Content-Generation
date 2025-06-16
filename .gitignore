@@ -14,3 +14,5 @@ gen_*
 validation/
 vectors/
 __pycache__/
+.rm/
+src/tcgen.egg-info/

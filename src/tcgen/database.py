@@ -54,7 +54,7 @@ class Database:
             'zipPath':  f'{public_stream_url}/{test_id}.zip'
         }
         return f'{key}/', data
-    
+
     def __init__(self, data = {}) -> None:
         self.data = data
 
@@ -89,3 +89,25 @@ class Database:
                 if profile and not test_entry_key.startswith(profile):
                     continue
                 yield test_entry_key, test_entry
+
+    def merge(self, patch:'Database'):
+        def remove_deprecated(table):
+            clean = {}
+            keys = {}
+            for entry in table.keys():
+                parts = entry.split("/")
+                batch = parts.pop()
+                k = "/".join(parts)
+                if k in keys:
+                    keys[k].append(batch)
+                else:
+                    keys[k] = [batch]
+            for k, batches in keys.items():
+                key = k + '/' + sorted(batches)[-1]
+                clean[key] = table[key]
+            return clean
+            
+        for root_key, table in patch.data.items():
+            for test_entry_key, value in table.items():
+                self.data[root_key][test_entry_key] = value
+            self.data[root_key] = remove_deprecated(self.data[root_key])

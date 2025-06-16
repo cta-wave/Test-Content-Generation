@@ -240,6 +240,9 @@ class CmafBrand(str, Enum):
 	CLG1: str = "clg1"
 	CHD1: str = "chd1"
 
+	def __str__(self):
+		return self.value
+
 	@classmethod
 	def from_string(cls, s):
 		if s == "chh1" :
