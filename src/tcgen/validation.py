@@ -13,12 +13,12 @@ from tqdm.asyncio import tqdm_asyncio
 
 from functools import wraps
 
-from wavetcgen.database import Database, most_recent_batch
-from wavetcgen.models import TestContent, FPS_FAMILY
+from tcgen.database import Database, most_recent_batch
+from tcgen.models import TestContent, FPS_FAMILY
 
 
 JCCP_STAGING = "https://staging.conformance.dashif.org/"
-
+DOCKER_EXE = "podman"
 
 def coro(f):
     @wraps(f)
@@ -89,7 +89,7 @@ async def xhr_validate_stream(session, semaphore, jccp_xhr_endpoint, test_entry_
     
 
 async def cli_validate_stream(semaphore, jccp_container_id, test_entry_key, test_vector_uri):
-    jccp_cli = ['podman', 'exec', '-w', '/var/www/html/Utils/', jccp_container_id,
+    jccp_cli = [DOCKER_EXE, 'exec', '-w', '/var/www/html/Utils/', jccp_container_id,
         'php', 'Process_cli.php', '--cmaf', '--ctawave', '--segments', test_vector_uri]
     async with semaphore:
         p = await asyncio.create_subprocess_exec(
@@ -131,53 +131,6 @@ def iter_vectors(args):
                 batch_dir = most_recent_batch(vector_dir)
                 test_vector_uri = f'{args.host}/{test_entry_key}{batch_dir.stem}/stream.mpd'
                 yield test_entry_key, test_vector_uri
-
-
-async def validate_test_vectors(args):
-
-    server = None
-    report = {}
-    semaphore = asyncio.Semaphore(1)
-
-    if args.vectors_dir and Path(args.vectors_dir).exists():
-        server, _ = await start_content_server(args.vectors_dir, '0.0.0.0', 8000)
-    
-    if args.jccp.startswith("http"):
-        async with aiohttp.ClientSession() as session:
-            tasks = [xhr_validate_stream(session, semaphore, args.jccp, test_entry_key, test_vector_uri) 
-                for test_entry_key, test_vector_uri in iter_vectors(args)]
-            res = await tqdm_asyncio.gather(*tasks)
-    else:
-        tasks = [cli_validate_stream(semaphore, args.jccp, test_entry_key, test_vector_uri) 
-            for test_entry_key, test_vector_uri in iter_vectors(args)]
-        res = await tqdm_asyncio.gather(*tasks)
-    
-    if server:
-        await server.cleanup()
-    
-    for test_stream_key, result, err in res:
-        if err:
-            report[test_stream_key] = str(err)
-        else:
-            report[test_stream_key] = result
-    
-    print(f'validation results: {args.output}')
-    with open(args.output, 'w') as fo:
-        json.dump(report, fo, indent=4)
-    
-    rows = []
-    print(f'validation errors: {args.output}.md')
-    with open(args.output + ".md", 'w') as fomd:
-        for test_key, test_validation in report.items():
-            failures = get_validation_failures(test_validation)
-            if len(failures):
-                write_validation_report(fomd, test_key, failures)
-            rows.append([test_key, len(failures)])
-
-    with open(args.output + ".csv", 'w') as focsv:
-        writer = csv.writer(focsv)
-        writer.writerow(["test id", "failures"])
-        writer.writerows(rows)
 
 
 def write_validation_report(fo, test_key, failures):
@@ -244,7 +197,54 @@ async def serve_test_vectors(args):
     server, _ = await start_content_server(args.vectors_dir, '0.0.0.0', 8000)
 
 
-if __name__ == "__main__":
+async def validate_test_vectors(args):
+
+    server = None
+    report = {}
+    semaphore = asyncio.Semaphore(1)
+
+    if args.vectors_dir and Path(args.vectors_dir).exists():
+        server, _ = await start_content_server(args.vectors_dir, '0.0.0.0', 8000)
+    
+    if args.jccp.startswith("http"):
+        async with aiohttp.ClientSession() as session:
+            tasks = [xhr_validate_stream(session, semaphore, args.jccp, test_entry_key, test_vector_uri) 
+                for test_entry_key, test_vector_uri in iter_vectors(args)]
+            res = await tqdm_asyncio.gather(*tasks)
+    else:
+        tasks = [cli_validate_stream(semaphore, args.jccp, test_entry_key, test_vector_uri) 
+            for test_entry_key, test_vector_uri in iter_vectors(args)]
+        res = await tqdm_asyncio.gather(*tasks)
+    
+    if server:
+        await server.cleanup()
+    
+    for test_stream_key, result, err in res:
+        if err:
+            report[test_stream_key] = str(err)
+        else:
+            report[test_stream_key] = result
+    
+    print(f'validation results: {args.output}')
+    with open(args.output, 'w') as fo:
+        json.dump(report, fo, indent=4)
+    
+    rows = []
+    print(f'validation errors: {args.output}.md')
+    with open(args.output + ".md", 'w') as fomd:
+        for test_key, test_validation in report.items():
+            failures = get_validation_failures(test_validation)
+            if len(failures):
+                write_validation_report(fomd, test_key, failures)
+            rows.append([test_key, len(failures)])
+
+    with open(args.output + ".csv", 'w') as focsv:
+        writer = csv.writer(focsv)
+        writer.writerow(["test id", "failures"])
+        writer.writerows(rows)
+
+
+def main():
     import socket
     host = f'http://{socket.gethostbyname(socket.gethostname())}:8000'
     parser = ArgumentParser()
@@ -257,3 +257,6 @@ if __name__ == "__main__":
     parser.add_argument('--host', default=host, help='host/ip for test vectors')
     args = parser.parse_args()
     asyncio.run(validate_test_vectors(args))
+
+if __name__ == "__main__":
+    main()
