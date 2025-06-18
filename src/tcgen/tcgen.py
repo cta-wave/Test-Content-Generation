@@ -175,8 +175,8 @@ def upload_db(sftp, db, content_dir, dry_run):
 def upload(ctx, database, vectors_dir, dry_run):
     """
     Upload test vectors listed in DATABASE to the cdn using sftp. \
-    The 'CDN_PRIVATE_KEY' environment variable must be set to the path of a suitable private key.\
-    Content is uploaded to the '/129021/dash/WAVE/vectors/' directory.
+    Upload of batch content to the server uses SFTP and requires a private key authorizing access. \
+    The key is expected to be stored as a file, with its absolute path exported to the environment variable `CDN_PRIVATE_KEY`.
     """
 
     db = {}
