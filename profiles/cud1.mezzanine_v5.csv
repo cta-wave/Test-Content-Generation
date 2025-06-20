@@ -5,7 +5,7 @@ Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init
 30,O1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,1,17500,60.0,cmf2,cud1,False,1/1,sol_sdr_bt2020_,sol_sdr_bt2020_
 31,O1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,0.5,15000,60.0,cmf2,cud1,False,1/1,sol_sdr_bt2020_,sol_sdr_bt2020_
 32,M1_2560x1440,False,True,hvc1,2.0,multiple,duration,2560x1440,0.5,9000,60.0,cmf2,cud1,False,1/1,sol_sdr_bt2020_,sol_sdr_bt2020_
-2_splice_main,C1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,1,17000,-1,cmf2,cud1,False,1/1,splice_main_sol_sdr_bt2020_,splice_main_sol_sdr_bt2020_
-2_splice_ad,AD-C1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,1,17000,-1,cmf2,cud1,False,1/1,splice_ad_sol_sdr_bt2020_,splice_ad_sol_sdr_bt2020_
-2_splice_main_enc,C1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,1,17000,-1,cmf2,cud1,True,1/1,splice_main_sol_sdr_bt2020_,splice_main_sol_sdr_bt2020_
-2_splice_ad_enc,AD-C1_3840x2160,False,True,hvc1,2.0,multiple,duration,3840x2160,1,17000,-1,cmf2,cud1,True,1/1,splice_ad_sol_sdr_bt2020_,splice_ad_sol_sdr_bt2020_
+2_splice_main,C1_3840x2160,False,True,hvc1,1.92,multiple,duration,3840x2160,1,17000,-1,cmf2,cud1,False,1/1,splice_main_sol_sdr_bt2020_,splice_main_sol_sdr_bt2020_
+2_splice_ad,AD-C1_3840x2160,False,True,hvc1,1.92,multiple,duration,3840x2160,1,17000,-1,cmf2,cud1,False,1/1,splice_ad_sol_sdr_bt2020_,splice_ad_sol_sdr_bt2020_
+2_splice_main_enc,C1_3840x2160,False,True,hvc1,1.92,multiple,duration,3840x2160,1,17000,-1,cmf2,cud1,True,1/1,splice_main_sol_sdr_bt2020_,splice_main_sol_sdr_bt2020_
+2_splice_ad_enc,AD-C1_3840x2160,False,True,hvc1,1.92,multiple,duration,3840x2160,1,17000,-1,cmf2,cud1,True,1/1,splice_ad_sol_sdr_bt2020_,splice_ad_sol_sdr_bt2020_
