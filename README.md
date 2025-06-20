@@ -33,10 +33,10 @@ Note: Once installed in a [python environment](https://docs.python.org/3/library
 2. Create a batch configuration file
 3. Batch encode/package content
 4. Content post-processing (creating chunked fragments, switching sets, )
-4. Batch conformance testing
-5. Create zip archives and generate a database from batch configuration
-6. Upload batch content
-7. Download database content
+5. Batch conformance testing
+6. Create zip archives and generate a database from batch configuration
+7. Upload batch content
+8. Download database content
 
 *_Important_*: the following workflow has been implemented while generating HEVC test content. Although it hasn't been tested with AVC content, it is expected to work exactly the same. **For audio content, a separate set of instructions is available**. It is suggested that this worflow be used for all content future generation. 
 
@@ -84,13 +84,14 @@ The encoding and packaging is performed using [GPAC](http://gpac.io), leveraging
 See detailed instructions for AAC / AC-4 / E-AC-3 : [Encoding and packaging Audio content (AAC / AC-4 / E-AC-3)](Instructions/audio.md)
 
 
-### 4. Batch conformance testing
+### 5. Batch conformance testing
 
-#### 4.1 DASH-IF Conformance validation (JCCP)
+#### 5.1 DASH-IF Conformance validation (JCCP)
 
 ...
 
-#### 4.2 CTA WAVE validation reports
+
+#### 5.2 CTA WAVE validation reports
 
 A separate set of test content validation scripts may be used to cross-check the results:
 - check that test vectors match CTA WAVE specific format, and content options defined in sparse matrices.
@@ -100,7 +101,7 @@ Please refer to [that repository](https://github.com/nicholas-fr/test-content-va
 
 
 
-### 5. Create zip archives and generate a database from batch configuration
+### 6. Create zip archives and generate a database from batch configuration
 
 In order to contribute content, test content archives and database should be generated:
 
@@ -117,7 +118,7 @@ For details on available options use : `tcgen export --help`
 Note: While it can patch an existing database, this command is not intended to update the [reference test content database](https://github.com/cta-wave/Test-Content) because it doesn't remove deprecated database entries.
 
 
-### 6. Upload batch content
+### 7. Upload batch content
 
 Uploading a batch uses the database file created at step 5:
 ```
@@ -130,7 +131,7 @@ To instructions to **configure credentials**, and details on available options u
 After [uploading](https://dash.akamaized.net/WAVE/vectors/), a pull request should be opened to [update the test content database](https://github.com/cta-wave/Test-Content).
 
 
-### 7. Download database content
+### 8. Download database content
 
 To download test vectors listed in a database file, such as the [reference test content database](https://github.com/cta-wave/Test-Content):
 
