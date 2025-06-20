@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 
-SERVER_ACCESS_URL = "https://dash-large-files.akamaized.net/WAVE/vectors/"
+PUBLIC_VECTORS_DIRECTORY = "https://dash-large-files.akamaized.net/WAVE/vectors/"
 
 
 def most_recent_batch(vector_dir:Path):
@@ -40,7 +40,7 @@ class Database:
     @staticmethod
     def format_entry(m:Mezzanine, t:TestContent, batch_dir:str):
         key = Database.test_entry_key(m.fps.family, t, batch_dir)
-        public_stream_url = SERVER_ACCESS_URL + key
+        public_stream_url = PUBLIC_VECTORS_DIRECTORY + key
         test_id = Database.test_id(t)
         data = {
             'source': m.source_notice,
@@ -86,9 +86,12 @@ class Database:
     def iter_entries(self, profile=None):
         for _, data in self.data.items():
             for test_entry_key, test_entry in data.items():
-                if profile and not test_entry_key.startswith(profile):
-                    continue
-                yield test_entry_key, test_entry
+                if profile:
+                    if test_entry_key.startswith(profile):
+                        yield test_entry_key, test_entry
+                    elif test_entry_key.startswith('switching_sets') and (profile in test_entry_key):
+                        yield test_entry_key, test_entry
+
 
     def merge(self, patch:'Database'):
         def remove_deprecated(table):

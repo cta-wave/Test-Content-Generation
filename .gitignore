@@ -11,8 +11,9 @@ gen_*
 **/*.DS_Store
 .ignore/
 **/*.log
-validation/
-vectors/
 __pycache__/
 .rm/
 src/tcgen.egg-info/
+validation/
+output/
+vectors/

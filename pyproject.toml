@@ -11,4 +11,3 @@ dependencies = [
 
 [project.scripts]
 tcgen = "tcgen.tcgen:cli"
-tcgen-jccp = "tcgen.validation:main"

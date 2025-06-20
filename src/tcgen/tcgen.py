@@ -8,10 +8,12 @@ from datetime import datetime
 import requests
 import click
 import pysftp
+import asyncio
 
 from tcgen.models import TestContent, FPS_FAMILY, locate_source_content, Mezzanine
 from tcgen.database import Database, most_recent_batch
-from tcgen.encode import encode_stream, encrypt_stream_cenc, patch_mpd
+from tcgen.encode import encode_stream, encrypt_stream_cenc, patch_mpd, HR_SPLIT_LOG
+from tcgen.validation import validate_test_vectors_async, JCCP_STAGING
 
 @click.group()
 @click.pass_context
@@ -34,8 +36,9 @@ def cli(ctx):
 @click.option('--format-mpd/--no-format-mpd', default=True, help="patch mpd content to match CTA WAVE requirements")
 @click.option('-t', '--test-id', help='process only vector with id "-', default=None)
 @click.option('-f', '--fps-family', default='ALL', help='process only one of 14.985_29.97_59.94 - 12.5_25_50 - 15_30_60')
+@click.option('--drm-config', default=(Path(__file__) / '../../../DRM.xml').resolve(), help='path to DRM.xml config file')
 @click.option('--dry_run/--no-dry-run', default=False, help="dry run, usefull for debugging")
-def encode(ctx, mezzanine, config, vectors_dir, batch_dir, encode, format_mpd, test_id, fps_family, dry_run):
+def encode(ctx, mezzanine, config, vectors_dir, batch_dir, encode, format_mpd, test_id, fps_family, drm_config, dry_run):
     """
     Encode content from MEZZANINE directory into test vectors using content options specified in CONFIG.
     """
@@ -58,19 +61,17 @@ def encode(ctx, mezzanine, config, vectors_dir, batch_dir, encode, format_mpd, t
                 if tc.encryption:
                     test_stream_cenc_dir =  Path(vectors_dir) / Database.test_entry_location(fps_family, tc, batch_dir)
                     test_stream_dir =  Path(re.sub(r"[-_]c?enc/", "/", str(test_stream_cenc_dir)))
-                    output_mpd = encrypt_stream_cenc(test_stream_cenc_dir, test_stream_dir, dry_run)
-                    if not dry_run:
-                        patch_mpd(output_mpd, m, tc)
+                    output_mpd = encrypt_stream_cenc(test_stream_cenc_dir, test_stream_dir, drm_config, dry_run)
                 else:
                     test_stream_dir =  Path(vectors_dir) / Database.test_entry_location(fps_family, tc, batch_dir)
                     encode_dry_run = not encode
                     output_mpd = encode_stream(m, tc, test_stream_dir, encode_dry_run)
-                    if format_mpd:
-                        if not dry_run:
-                            patch_mpd(output_mpd, m, tc)
-
+                if format_mpd:
+                    if not dry_run:
+                        patch_mpd(output_mpd, m, tc)
+            
             except BaseException as e:
-                print.error(e)
+                print(e)
 
 
 ###############################################################
@@ -121,6 +122,32 @@ def export(ctx, mezzanine, config, vectors_dir, database, zip):
     if database is not None:
         db.save(database)
 
+###############################################################
+# JCCP VALIDATION
+###############################################################
+
+@cli.command()
+@click.pass_context
+@click.argument('database')
+@click.option('-j', '--jccp', default=JCCP_STAGING, help="DASH-IF's Joint Content Conformance Project. Can be one of: 1) API endpoint URI to call JCCP. 2) Docker container ID to execute JCCP on command line.")
+@click.option('-v', '--vectors-dir', default=None, help="overide the location of test vector's mpdPath")
+@click.option('-r', '--results-dir', default=None, help='optional directory to store the results')
+@click.option('-p', '--port', default=8000, help='specifies port to serve content to JCCP when --vectors-dir is a local directory. default=8000')
+@click.option('--summary/--no-summary', default=False, help='generates markdown summary in result directory')
+def jccp_validation(ctx, database, jccp, vectors_dir, results_dir, port, summary):
+    """
+    Runs DASH-IF-Conformance software (jccp) on test content listed in DATABASE. 
+    
+    When --vectors-dir specifies a local directory:
+    1) results are stored in each test vector directory unless --results-dir is set.
+    2) a local HTTP server is automatically spawned to serve the content.
+    3) a local JCCP container should be used to access the content.
+    
+    When --vectors-dir specifies an HTTP directory:
+    1) results are stored in './validation' unless --results-dir is set. 
+    """
+    asyncio.run(validate_test_vectors_async(database, jccp, vectors_dir, results_dir, port, summary))
+
 
 ###############################################################
 # UPLOAD
@@ -162,7 +189,6 @@ def upload_db_entry(sftp, key, entry, content_dir, dry_run):
 
 def upload_db(sftp, db, content_dir, dry_run):
     for records in db.values():
-        print(records)
         for key, entry in records.items():
             upload_db_entry(sftp, key, entry, content_dir, dry_run)
 
