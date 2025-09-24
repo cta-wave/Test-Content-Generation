@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "click==8.1.7",
     "pysftp==0.2.9",
-    "requests==2.32.3"
+    "requests==2.32.4"
 ]
 
 [project.scripts]
