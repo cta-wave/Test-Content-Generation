@@ -14,7 +14,7 @@ class Database:
     @staticmethod
     def root_key(tc:TestContent):
         if 'splice' in tc.test_id:
-            return f'{tc.cmaf_media_profile.value.upper()}_SPLICING'
+            return f'{tc.cmaf_media_profile.value.upper()}-SPLICING'
         elif tc.encryption:
             return 'CENC'
         else:
