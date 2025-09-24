@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<!-- MPD file Generated with GPAC version 2.5-DEV-rev1002-gc13026f84-master at 2025-01-16T01:19:43.450Z -->
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.002S" type="static" mediaPresentationDuration="PT0H0M59.993S" maxSegmentDuration="PT0H0M2.002S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
+  <ProgramInformation>
+    <Title>sol wcg bt2020 - 3840x2160 - 60000/1001fps - cud1 switching set: t30, t31, t32</Title>
+    <Source>sol_sdr_bt2020_O1_3840x2160@59.94_60 version 5 (2024-11-26)</Source>
+    <Copyright>© Sol Levante (2020), credited to Netflix, used and licensed under Creative Commons Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/) by the Consumer Technology Association (CTA)® / annotated, encoded and compressed from original.</Copyright>
+  </ProgramInformation>
+  <Period duration="PT0H0M59.993S">
+    <AdaptationSet segmentAlignment="true" maxWidth="3840" maxHeight="2160" maxFrameRate="60000/1001" par="16:9" mimeType="video/mp4" startWithSAP="1" contentType="video" containerProfiles="cmf2 cud1">
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:ColourPrimaries" value="9"/>
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:TransferCharacteristics" value="14"/>
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:MatrixCoefficients" value="9"/>
+      <SegmentTemplate media="1/$Time$.m4s" initialization="1/init.mp4" timescale="30000">
+        <SegmentTimeline>
+          <S t="0" d="60060" r="28"/>
+          <S d="58058"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation id="../../../../cud1_sets/14.985_29.97_59.94/t32/2025-04-15/1" codecs="hvc1.2.4.L153.90" width="2560" height="1440" frameRate="30000/1001" sar="1:1" bandwidth="9000000"/>
+      <Representation id="../../../../cud1_sets/14.985_29.97_59.94/t31/2025-04-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="30000/1001" sar="1:1" bandwidth="15000000"/>
+      <Representation id="../../../../cud1_sets/14.985_29.97_59.94/t30/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="60000/1001" sar="1:1" bandwidth="17500000">
+        <SegmentTemplate media="1/$Time$.m4s" initialization="1/init.mp4" timescale="60000">
+          <SegmentTimeline>
+            <S t="0" d="120120" r="28"/>
+            <S d="116116"/>
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>

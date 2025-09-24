@@ -1,0 +1,12 @@
+Stream ID,mezzanine radius,pic timing,VUI timing,sample entry,CMAF frag dur,init constraints,frag_type,resolution,framerate,bitrate,duration,cmaf_profile,wave_profile,cenc,sar,mezzanine_prefix_25HZ,mezzanine_prefix_30HZ,HLG SEI
+41,O1_3840x2160,FALSE,TRUE,hvc1,2.0,multiple,duration,3840x2160,1,17000,30.0,cmf2,clg1,FALSE,1/1,croatia_hlg10_,croatia_hlg10_,TRUE
+41_enc,O1_3840x2160,FALSE,TRUE,hvc1,2.0,multiple,duration,3840x2160,1,17000,30.0,cmf2,clg1,TRUE,1/1,croatia_hlg10_,croatia_hlg10_,TRUE
+42,O1_3840x2160,TRUE,FALSE,hev1,2.0,single,pframes,3840x2160,1,17000,30.0,cmfc,clg1,FALSE,1/1,croatia_hlg10_,croatia_hlg10_,FALSE
+50,O1_3840x2160,FALSE,TRUE,hvc1,2.0,multiple,duration,3840x2160,1,17000,60.0,cmf2,clg1,FALSE,1/1,croatia_hlg10_,croatia_hlg10_,TRUE
+51,O1_3840x2160,FALSE,TRUE,hvc1,2.0,multiple,duration,3840x2160,0.5,15000,60.0,cmf2,clg1,FALSE,1/1,croatia_hlg10_,croatia_hlg10_,TRUE
+52,M1_2560x1440,FALSE,TRUE,hvc1,2.0,multiple,duration,2560x1440,0.5,9000,60.0,cmf2,clg1,FALSE,1/1,croatia_hlg10_,croatia_hlg10_,TRUE
+53,L1_1920x1080,FALSE,TRUE,hvc1,2.0,multiple,duration,1920x1080,0.5,5000,60.0,cmf2,clg1,FALSE,1/1,croatia_hlg10_,croatia_hlg10_,TRUE
+3_splice_main,C1_3840x2160,FALSE,TRUE,hvc1,1.92,multiple,duration,3840x2160,1,17500,-1,cmf2,clg1,FALSE,1/1,splice_main_croatia_hlg10_,splice_main_croatia_hlg10_,TRUE
+3_splice_ad,AD-C1_3840x2160,FALSE,TRUE,hvc1,1.92,multiple,duration,3840x2160,1,17500,-1,cmf2,clg1,FALSE,1/1,splice_ad_croatia_hlg10_,splice_ad_croatia_hlg10_,TRUE
+3_splice_main_enc,C1_3840x2160,FALSE,TRUE,hvc1,1.92,multiple,duration,3840x2160,1,17500,-1,cmf2,clg1,TRUE,1/1,splice_main_croatia_hlg10_,splice_main_croatia_hlg10_,TRUE
+3_splice_ad_enc,AD-C1_3840x2160,FALSE,TRUE,hvc1,1.92,multiple,duration,3840x2160,1,17500,-1,cmf2,clg1,TRUE,1/1,splice_ad_croatia_hlg10_,splice_ad_croatia_hlg10_,TRUE

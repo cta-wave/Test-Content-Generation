@@ -1,116 +1,13 @@
-#!/usr/bin/env python3
-import sys, os, glob, getopt
-from pathlib import Path
-from enum import Enum
+import sys
 import subprocess
-from subprocess import PIPE
-from datetime import datetime
-import struct
-from xml.dom.minidom import parse
-import xml.dom.minidom
+import getopt
+from enum import Enum
 from fractions import Fraction
+from pathlib import Path
 
-
-# Content Model
-# Modify the generated content to comply with CTA Content Model
-# TODO: keep this post-processing as minimal as possible (e.g. move in tooling)
-class Mode(Enum):
-    FRAGMENTED = 1
-    CHUNKED = 2
-
-class ContentModel:
-    m_filename = ""
-    m_wave_media_profile = ""
-    m_mode = Mode.FRAGMENTED.value
-
-    def __init__(self, filename, wave_media_profile, mode=None):
-        self.m_filename = filename
-        self.m_wave_media_profile = wave_media_profile
-        if mode is not None:
-            self.m_mode = mode
-
-    def process(self, copyright_notice, source_notice, title_notice):
-        DOMTree = xml.dom.minidom.parse(self.m_filename)
-        mpd = DOMTree.documentElement
-        self.process_mpd(DOMTree, mpd, copyright_notice, source_notice, title_notice)
-        with open(self.m_filename, 'w') as f:
-            prettyOutput = '\n'.join([line for line in DOMTree.toprettyxml(indent=' '*2).split('\n') if line.strip()])
-            f.write(prettyOutput)
-
-    def process_mpd(self, DOMTree, mpd, copyright_notice, source_notice, title_notice):
-        # @profiles
-        profiles = mpd.getAttribute('profiles')
-        # TODO: could be added from the packager command-line
-        cta_profile1 = "urn:cta:wave:test-content-media-profile:2022"
-        if cta_profile1 not in profiles:
-            profiles += "," + cta_profile1
-        cta_profile2 = "urn:mpeg:dash:profile:cmaf:2019"
-        if cta_profile2 not in profiles:
-            profiles += "," + cta_profile2
-        mpd.setAttribute('profiles', profiles)
-
-        # ProgramInformation
-        program_informations = mpd.getElementsByTagName("ProgramInformation")
-        self.remove_element(program_informations)
-        program_information = DOMTree.createElement("ProgramInformation")
-        title = DOMTree.createElement("Title")
-        title_txt = DOMTree.createTextNode(title_notice)
-        title.appendChild(title_txt)
-        source = DOMTree.createElement("Source")
-        source_txt = DOMTree.createTextNode(source_notice)
-        source.appendChild(source_txt)
-        copyright = DOMTree.createElement("Copyright")
-        copyright_txt = DOMTree.createTextNode(copyright_notice)
-        copyright.appendChild(copyright_txt)
-        program_information.appendChild(title)
-        program_information.appendChild(source)
-        program_information.appendChild(copyright)
-
-        # Period
-        period = mpd.getElementsByTagName("Period").item(0)
-        mpd.insertBefore(program_information, period)
-        self.process_period(DOMTree, mpd, period)
-
-    def process_period(self, DOMTree, mpd, period):
-        # Adaptation Set
-        self.process_adaptation_sets(period.getElementsByTagName('AdaptationSet'))
-
-    def process_adaptation_sets(self, adaptation_sets):
-        adaptation_set_index = 0
-        representation_index = 0
-        for adaptation_set in adaptation_sets:
-            id = adaptation_set.getAttribute('id')
-
-            content_type = adaptation_set.getAttribute('contentType')
-            if  content_type == "":
-                representations = adaptation_set.getElementsByTagName('Representation')
-                mime_type = representations.item(0).getAttribute('mimeType') if representations.item(0).getAttribute('mimeType') != '' \
-                    else adaptation_set.getAttribute('mimeType')
-
-                if 'video' in mime_type:
-                    content_type = 'video'
-                    adaptation_set.setAttribute('contentType', content_type)
-                elif 'audio' in mime_type:
-                    content_type = 'audio'
-                    adaptation_set.setAttribute('contentType', content_type)
-
-                adaptation_set.setAttribute('containerProfiles', 'cmf2 ' + self.m_wave_media_profile)
-
-            representations = adaptation_set.getElementsByTagName('Representation')
-            for representation in representations:
-                self.process_representation(representation, adaptation_set_index, representation_index, id, content_type)
-                representation_index += 1
-
-            adaptation_set_index += 1
-
-    def process_representation(self, representation, adaptation_set_index, representation_index, id, content_type):
-        rep_id = content_type + id + "/" + str(representation_index)
-
-    def remove_element(self, nodes):
-        for node in nodes:
-            parent = node.parentNode
-            parent.removeChild(node)
-
+########################################################################################
+# TODO: legacy. script should NOT be called as a subprocess, but exported as functions.
+########################################################################################
 
 # Supported codecs
 class VideoCodecOptions(Enum):
@@ -129,7 +26,6 @@ class VisualSampleEntry(Enum):
     AVC1p3 = "avc1+3"
     HVC1 = "hvc1"
     HEV1 = "hev1"
-
 
 # CMAF Profiles
 # AVC: ISO/IEC 23000-19 Annex A.1
@@ -159,25 +55,70 @@ class AVCHDHF:
 
 # HEVC: ISO/IEC 23000-19 Annex B.5
 class HEVCCHHD:
-    m_profile = "main"
+    m_profile = "main10"
     m_level = "41"
     m_color_primary = "1"
     m_resolution_w = "1920"
     m_resolution_h = "1080"
     m_frame_rate = 60
 
+### 10n bit HEVC MATRIX #####################
+
+class HEVCCHH1:
+    m_profile = "main10"
+    m_level = "41"
+    m_color_primary = "1"   # GF_COLOR_PRIM_BT709
+    m_color_trc = "1"       # GF_COLOR_TRC_BT709
+    m_colorspace = "1"      # GF_COLOR_MX_BT709
+    m_resolution_w = "3840"
+    m_resolution_h = "2160"
+    m_frame_rate = 60
+
+class HEVCCUD1: 
+    m_profile = "main10"
+    m_level = "51"
+    m_color_primary = "9"   # GF_COLOR_PRIM_BT2020
+    m_color_trc = "14"      # GF_COLOR_TRC_BT2020_10
+    m_colorspace = "9"      # GF_COLOR_MX_BT2020_NCL
+    m_resolution_w = "3840"
+    m_resolution_h = "2160"
+    m_frame_rate = 60
+
+class HEVCCLG1:
+    m_profile = "main10"
+    m_level = "51"
+    m_color_primary = "9"   # GF_COLOR_PRIM_BT2020
+    m_color_trc = "14"      # GF_COLOR_TRC_BT2020_10
+    m_prefered_color_trc = "18"  # GF_COLOR_TRC_ARIB_STD_B67
+    m_colorspace = "9"      # GF_COLOR_MX_BT2020_NCL
+    m_resolution_w = "3840"
+    m_resolution_h = "2160"
+    m_frame_rate = 60
+
+class HEVCCHD1:
+    m_profile = "main10"
+    m_level = "51"
+    m_color_primary = "9"   # GF_COLOR_PRIM_BT2020
+    m_color_trc = "16"      # GF_COLOR_TRC_SMPTE2084
+    m_colorspace = "9"      # GF_COLOR_MX_BT2020_NCL
+    m_resolution_w = "3840"
+    m_resolution_h = "2160"
+    m_frame_rate = 60
+
 
 # DASHing
 class DASH:
-    m_segment_duration = "2"
-    m_segment_signaling = "timeline"
-    m_fragment_type = "duration"
-    m_fragment_duration = "2"
-    m_num_b_frames = 2 # necessary for p-to-p fragmentation, see https://github.com/cta-wave/Test-Content-Generation/issues/54
-    m_frame_rate = None
-    m_cmaf_brand = "cmf2"
-
+    
     def __init__(self, dash_config=None):
+
+        self.m_segment_duration = "2"
+        self.m_segment_signaling = "timeline"
+        self.m_fragment_type = "duration"
+        self.m_fragment_duration = "2"
+        self.m_num_b_frames = 2 # necessary for p-to-p fragmentation, see https://github.com/cta-wave/Test-Content-Generation/issues/54
+        self.m_frame_rate = None
+        self.m_cmaf_brand = "cmf2"
+        
         if dash_config is not None:
             config = dash_config.split(',')
             for i in range(0, len(config)):
@@ -202,16 +143,18 @@ class DASH:
                         self.m_fragment_type = value
                         if value == "every_frame":
                             self.m_num_b_frames = 0 # only P-frames
+
                 elif name == "fd":
                     self.m_fragment_duration = value
                 elif name == "fr":
                     self.m_frame_rate = value
                 elif name == "cmaf":
                     self.m_cmaf_brand = value
+    
 
     def dash_package_command(self, index_v, index_a, output_file):
-        dash_command = "-o " + output_file
-        dash_command += ":profile=live" + \
+        dash_command = f"-o {output_file}"
+        dash_command += ":!deps:profile=live" + \
                         ":ctmode=negctts" + \
                         ":cmaf=" + self.m_cmaf_brand + \
                         ":segdur=" + self.m_segment_duration + \
@@ -219,7 +162,7 @@ class DASH:
 
         # Segment naming
         # Note: this requirement may actually create chunk name collision when multiple streams are present
-        dash_command += ":template=\$Init=1/init\$\$Segment=1/\$"
+        dash_command += ':template=\\$Init=1/init\\$\\$Segment=1/\\$'
 
         if self.m_segment_signaling == "timeline":
             dash_command += ":stl"
@@ -247,6 +190,7 @@ class DASH:
         return dash_command
 
 
+####################################################################################
 # Encoding
 # Encoding is done based on the representation configuration given in
 # the command line. The syntax for configuration for each Representation is as follows:
@@ -267,28 +211,26 @@ class DASH:
 #### bframes: duration or pframes (2 B-Frames), every_frame (no B-Frames)
 # The first six configuration parameters shall be provided. The rest can be filled according to the specified
 # cmaf profile. When optional parameters are present these will override the default values for the specified CMAF profile
-class Representation:
-    m_id = None
-    m_input = None
-    m_media_type = None
-    m_codec = None
-    m_video_sample_entry = None
-    m_cmaf_profile = None
-    m_bitrate = None
-    m_resolution_w = None
-    m_resolution_h = None
-    m_frame_rate = None
-    m_aspect_ratio_x = None
-    m_aspect_ratio_y = None
-    m_profile = None
-    m_level = None
-    m_color_primary = None
-    m_pic_timing = None
-    m_vui_timing = None
-    m_segment_duration = None
-    m_num_b_frames = None
+####################################################################################
 
+class Representation:
+    
     def __init__(self, representation_config):
+
+        self.m_profile = None
+        self.m_level = None
+        self.m_frame_rate = None
+        self.m_color_primary = None
+        self.m_color_trc = None
+        self.m_prefered_color_trc = None
+        self.m_colorspace = None
+        self.m_resolution_w = None
+        self.m_resolution_h = None
+        self.m_hdr_mastering_display = None
+        self.m_max_cll_fall = None
+        self.m_aspect_ratio_x = None
+        self.m_aspect_ratio_y = None
+        
         config = representation_config.split(",")
         for i in range(0, len(config)):
             config_opt = config[i].split(":")
@@ -367,8 +309,58 @@ class Representation:
                     if self.m_resolution_w is None and self.m_resolution_h is None:
                         self.m_resolution_w = HEVCCHHD.m_resolution_w
                         self.m_resolution_h = HEVCCHHD.m_resolution_h
+                elif value == "chd1":
+                    if self.m_profile is None:
+                        self.m_profile = HEVCCHD1.m_profile
+                    if self.m_level is None:
+                        self.m_level = HEVCCHD1.m_level
+                    if self.m_frame_rate is None:
+                        self.m_frame_rate = HEVCCHD1.m_frame_rate
+                    if self.m_color_primary is None:
+                        self.m_color_primary = HEVCCHD1.m_color_primary
+                    if self.m_color_trc is None:
+                        self.m_color_trc = HEVCCHD1.m_color_trc
+                    if self.m_colorspace is None:
+                        self.m_colorspace = HEVCCHD1.m_colorspace
+                    if self.m_resolution_w is None and self.m_resolution_h is None:
+                        self.m_resolution_w = HEVCCHD1.m_resolution_w
+                        self.m_resolution_h = HEVCCHD1.m_resolution_h
+                elif value == "cud1":
+                    if self.m_profile is None:
+                        self.m_profile = HEVCCUD1.m_profile
+                    if self.m_level is None:
+                        self.m_level = HEVCCUD1.m_level
+                    if self.m_frame_rate is None:
+                        self.m_frame_rate = HEVCCUD1.m_frame_rate
+                    if self.m_color_primary is None:
+                        self.m_color_primary = HEVCCUD1.m_color_primary
+                    if self.m_color_trc is None:
+                        self.m_color_trc = HEVCCUD1.m_color_trc
+                    if self.m_colorspace is None:
+                        self.m_colorspace = HEVCCUD1.m_colorspace
+                    if self.m_resolution_w is None and self.m_resolution_h is None:
+                        self.m_resolution_w = HEVCCUD1.m_resolution_w
+                        self.m_resolution_h = HEVCCUD1.m_resolution_h
+                elif value == "clg1":
+                    if self.m_profile is None:
+                        self.m_profile = HEVCCLG1.m_profile
+                    if self.m_level is None:
+                        self.m_level = HEVCCLG1.m_level
+                    if self.m_frame_rate is None:
+                        self.m_frame_rate = HEVCCLG1.m_frame_rate
+                    if self.m_color_primary is None:
+                        self.m_color_primary = HEVCCLG1.m_color_primary
+                    if self.m_color_trc is None:
+                        self.m_color_trc = HEVCCLG1.m_color_trc
+                        self.m_prefered_color_trc = HEVCCLG1.m_prefered_color_trc
+                    if self.m_colorspace is None:
+                        self.m_colorspace = HEVCCLG1.m_colorspace
+                    if self.m_resolution_w is None and self.m_resolution_h is None:
+                        self.m_resolution_w = HEVCCLG1.m_resolution_w
+                        self.m_resolution_h = HEVCCLG1.m_resolution_h
                 else:
                     print("Unknown CMAF profile: " + name)
+
             elif name == "bitrate":
                 self.m_bitrate = value
             elif name == "res":
@@ -392,12 +384,19 @@ class Representation:
                     self.m_num_b_frames = 2
             elif name == "color":
                 self.m_color_primary = value
+            elif name == "hlg" and value == "vui":
+                self.m_color_trc = HEVCCLG1.m_prefered_color_trc
+                self.m_prefered_color_trc = None
             elif name == "pic_timing":
                 self.m_pic_timing = value
             elif name == "vui_timing":
                 self.m_vui_timing = value
             elif name == "sd":
                 self.m_segment_duration = value
+            elif name == "hdr_mastering_display":
+                self.m_hdr_mastering_display = value.replace('~',',')
+            elif name == "max_cll_fall":
+                self.m_max_cll_fall = value.replace('~',',')
             else:
                 print("Unknown configuration option for representation: " + name + " , it will be ignored.")
 
@@ -413,7 +412,8 @@ class Representation:
             print("Low framerate detected: disabling B-Frames.")
             self.m_num_b_frames = 0
 
-    def form_command(self, index):
+    def format_command(self, i):
+        index = str(i)
         input_file_command = "-i \"" + self.m_input + "\""
         input_file_command += ":#StartNumber=-2000000" + ":#Representation=1"
 
@@ -429,61 +429,106 @@ class Representation:
 
         command = ""
         if self.m_media_type in ("v", "video"):
+            is_avc = self.m_codec == VideoCodecOptions.AVC.value
+            is_hevc = self.m_codec == VideoCodecOptions.HEVC.value
+
             # Resize
             command += "ffsws:osize=" + self.m_resolution_w + "x" + self.m_resolution_h
-            if self.m_cmaf_profile == "chh1":
+
+            if self.m_cmaf_profile in ("chh1", "chd1", "cud1", "clg1"):
                 command += ":ofmt=yuv420_10"
+
             command += ":SID=" + "GEN" + self.m_id
 
             # Encode
             command += " @ "
             command += "enc:gfloc"
-            command += ":c=" + self.m_codec
+            if is_avc:
+                command += ":c=libx264"
+            elif is_hevc:
+                command += ":c=libx265"
             command += ":b=" + self.m_bitrate + "k"
             command += ":bf=" + str(self.m_num_b_frames)
-            if self.m_num_b_frames != 0:
-                 command += ":b_strategy=0"
-            command += ":fintra=" + self.m_segment_duration
-            if self.m_cmaf_profile == "chh1":
-                command += ":profile=" + self.m_profile + "10"
-            else:
-                command += ":gop=" + str(Fraction(self.m_segment_duration) * Fraction(self.m_frame_rate))
-                command += ":profile=" + self.m_profile
+            command += ":fintra=" + self.m_segment_duration            
+            gop = Fraction(self.m_segment_duration) * Fraction(self.m_frame_rate)
+            command += ":g=" + str(gop)
+            command += ":profile=" + self.m_profile
             command += ":color_primaries=" + self.m_color_primary
-            command += ":color_trc=" + self.m_color_primary
-            command += ":colorspace=" + self.m_color_primary
+            command += ":color_trc=" + ( self.m_color_trc or self.m_color_primary )
+            command += ":colorspace=" + ( self.m_colorspace or self.m_color_primary )
 
-            if self.m_codec == VideoCodecOptions.AVC.value:
+            if is_avc:
                 command += "::x264-params=\""
-            elif self.m_codec == VideoCodecOptions.HEVC.value:
-                command += "::x265-params=\""
+                # by default, x264 disables open-gop
+                command += "no-scenecut=1"
+                if self.m_num_b_frames > 0:
+                    command += ":b-adapt=0"
+                command += ":level=" + self.m_level
 
-            command += "level=" + self.m_level + ":" \
-                       "no-open-gop=1" + ":" \
-                       "scenecut=0"
+            elif is_hevc:
+                command += "::x265-params=\""
+                command += "scenecut=0"
+                command += ":no-open-gop=1"
+                # disabling adaptative B 'frames' placement ensures we have them where expected, 
+                # otherwise they may be absent from the generated test content
+                # same options for x264 & x265                       
+                if self.m_num_b_frames > 0:
+                    command += ":b-adapt=0"
+                command += ":level-idc=" + self.m_level
+                # for now, all content described in test matrix uses Main tier
+                command += ":no-high-tier=1" 
+
+                if self.m_prefered_color_trc is not None:
+                    command += f":atc-sei={self.m_prefered_color_trc}"
+
+                hdr_metadata = bool(self.m_hdr_mastering_display) or bool(self.m_max_cll_fall)
+                if hdr_metadata:
+                    command += ":repeat-headers=1"
+                if bool(self.m_hdr_mastering_display):
+                    command += f":master-display={self.m_hdr_mastering_display}"
+                if bool(self.m_max_cll_fall):
+                    command += f":max-cll={self.m_max_cll_fall}"
 
             if self.m_pic_timing == "True":
-                command +=  ":" \
-                       "nal-hrd=vbr" + ":" \
-                       "vbv-bufsize=" + str(int(self.m_bitrate) * 3) + ":" \
-                       "vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
+                if is_avc:
+                    command += ":nal-hrd=vbr"
+                elif is_hevc:
+                    command += ":hrd=1"
 
-            #if self.m_aspect_ratio_x is not None and self.m_aspect_ratio_y is not None:
-            #    command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
+            # common x264 / x265 options
+            command += ":vbv-bufsize=" + str(int(self.m_bitrate) * 3) + \
+                   ":vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
 
-            command += "\":" #closing codec-specific parameters
+            if self.m_aspect_ratio_x and self.m_aspect_ratio_y:
+                command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
+            
+            command += "\":" # closing encoder specific parameters
 
+            bsrw = None
+            rmseis = []
             if self.m_vui_timing == "False":
-                command += " @ bsrw:novuitiming"
+                bsrw = "novuitiming"
+                rmseis.append("0")
+
+            # HLG signaled in VUI instead of SEI
+            if self.m_color_trc == HEVCCLG1.m_prefered_color_trc:
+                rmseis.append("147")
+            
+            if bsrw is not None or len(rmseis):
+                command += " @ bsrw"
+                if bsrw is not None:
+                    command += ":novuitiming"
+                if len(rmseis):
+                    command += ":rmsei:seis=" + ",".join(rmseis)
 
             command += ":FID=V" + index
+        # end if v / video #####
 
         elif self.m_media_type in ("a", "audio"):
             if self.m_codec != "copy":
                 command += "enc:gfloc" + \
                         ":c=" + self.m_codec + \
                         ":b=" + "128" + "k" #FIXME: self.m_bitrate
-
                 command += ":SID=" + "GEN" + self.m_id
                 command += ":FID=A" + index
             else:
@@ -503,42 +548,6 @@ class Representation:
 
         return [input_file_command, command]
 
-# Collect logs regarding the generated content. The collected logs are as follows:
-#### Content generation date and time,
-#### Tool version and executed commands,
-#### this python script (encode_dash.py)
-def generate_log(gpac_path, command):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    date = now.split(" ")[0]
-    time = now.split(" ")[1]
-
-    result = subprocess.run(gpac_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
-
-    script = ""
-    with open('encode_dash.py', mode='r', encoding='utf-8') as file:
-        script = file.read()
-
-    filename = "CTATestContentGeneration_Log_" + date + "_" + time.replace(':','-') + ".txt"
-    f = open(filename, "w+")
-
-    f.write("CTA Test Content Generation Log (Generated at: " + "'{0}' '{1}'".format(date, time) + ")\n\n\n\n")
-
-    f.write("-----------------------------------\n")
-    f.write("GPAC Information:\n")
-    f.write("-----------------------------------\n")
-    f.write("%s\n\n\n\n" % result.stderr.decode('ascii'))
-
-    f.write("-----------------------------------\n")
-    f.write("Command run:\n")
-    f.write("-----------------------------------\n")
-    f.write("%s\n\n\n\n" % command)
-
-    f.write("-----------------------------------\n")
-    f.write("encode_dash.py:\n")
-    f.write("-----------------------------------\n")
-    f.write("%s\n\n\n\n" % script)
-    f.close()
-
 
 # Parse input arguments
 # Output MPD: --out="<desired_mpd_name>"
@@ -553,12 +562,16 @@ def parse_args(args):
     outDir = None
     copyright_notice = None
     source_notice = None
+    title_notice = None
     bframes = None
     wave_media_profile = None
+    dry_run = False
     for opt, arg in args:
         if opt == '-h':
             print('test.py -i <inputfile> -o <outputfile>')
             sys.exit()
+        elif opt in ("--dry-run"):
+            dry_run = True
         elif opt in ("-p", "--path"):
             gpac_path = arg
         elif opt in ("-o", "--out"):
@@ -578,8 +591,8 @@ def parse_args(args):
         elif opt in ("-pf", "--profile"):
             wave_media_profile = arg
 
-    print(representations)
-    return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice, title_notice, wave_media_profile]
+    # print(representations)
+    return [gpac_path, output_file, representations, dashing, outDir, copyright_notice, source_notice, title_notice, wave_media_profile, dry_run]
 
 
 # Check if the input arguments are correctly given
@@ -589,7 +602,7 @@ def assert_configuration(configuration):
     representations = configuration[2]
     dashing = configuration[3]
     out_dir = configuration[4]
-    result = subprocess.run(gpac_path + " -version", shell=True, stdout=PIPE, stderr=PIPE)
+    result = subprocess.run(gpac_path + " -version", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if "gpac - GPAC command line filter engine - version" not in result.stderr.decode('ascii'):
         print("gpac binary is checked in the \"" + gpac_path + "\" path, but not found.")
         sys.exit(1)
@@ -610,41 +623,46 @@ def assert_configuration(configuration):
         print("Warning: Output directory wasn't specified, it will output everything into cwd")
 
 
-if __name__ == "__main__":
-    # Read input, parse and assert
+def parse_config():
     try:
-        arguments, values = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od:c:s:t:pf', ['out=', 'reps=', 'dash=', 'path=', 'outdir=', 'copyright=', 'source=', 'title=', 'profile='])
+        arguments, _ = getopt.getopt(sys.argv[1:], 'ho:r:d:p:od:c:s:t:pf', ['out=', 'reps=', 'dash=', 'path=', 'outdir=', 'copyright=', 'source=', 'title=', 'profile=', 'dry-run'])
     except getopt.GetoptError:
         sys.exit(2)
     configuration = parse_args(arguments)
     assert_configuration(configuration)
+    return configuration
 
-    gpac_path = configuration[0]
-    output_file = configuration[1]
-    representations = configuration[2]
-    dash = configuration[3]
-    out_dir = configuration[4]
-    copyright_notice = configuration[5]
-    source_notice = configuration[6]
-    title_notice = configuration[7]
-    wave_media_profile = configuration[8]
+
+HR_SPLIT_LOG = f'\n\n{"="*64}\n\n'
+
+if __name__ == "__main__":
+
+    cfg = parse_config()
+    gpac_path = cfg[0]
+    output_file = cfg[1]
+    representations = cfg[2]
+    dash = cfg[3]
+    out_dir = Path(cfg[4])
+    copyright_notice = cfg[5]
+    source_notice = cfg[6]
+    title_notice = cfg[7]
+    wave_media_profile = cfg[8]
+    dry_run = cfg[-1]
 
     if out_dir is not None:
-        output_file = out_dir + "/" + output_file
-        Path(out_dir).mkdir(parents=True, exist_ok=True)
-        print("Checking that the output directory exists")
+        output_file = out_dir / output_file
+        out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Prepare the encoding for each Representation
     options = []
     index_v = 0
     index_a = 0
     for representation_config in representations:
         representation = Representation(representation_config)
         if representation.m_media_type in ("v", "video"):
-            options.append(representation.form_command(str(index_v)))
+            options.append(representation.format_command(index_v))
             index_v += 1
         elif representation.m_media_type in ("a", "audio"):
-            options.append(representation.form_command(str(index_a)))
+            options.append(representation.format_command(index_a))
             index_a += 1
         else:
             print("Media type for a representation denoted by <type> can either be \"v\" or \"video\" for video media"
@@ -653,26 +671,21 @@ if __name__ == "__main__":
 
     input_command = ""
     encode_command = ""
-    for i in range(0, len(options)):
-        option_i = options[i]
-        input_command += option_i[0] + " "
-        encode_command += option_i[1] + " "
-
-    # Prepare the DASH formatting
+    for option in options:
+        input_command += option[0] + " "
+        encode_command += option[1] + " "
     dash_options = DASH(dash)
     dash_package_command = dash_options.dash_package_command(index_v, index_a, output_file)
 
-    # Run the command
     command = gpac_path + " " + \
               input_command + " " + \
               encode_command + " " + \
               dash_package_command
-    print(command)
-    subprocess.run(command, shell=True)
-
-    # Content Model
-    content_model = ContentModel(output_file, wave_media_profile)
-    content_model.process(copyright_notice, source_notice, title_notice)
-
-    # Save the log
-    generate_log(gpac_path, command)
+    sys.stdout.write(HR_SPLIT_LOG)
+    sys.stdout.write(command)
+    sys.stdout.write(HR_SPLIT_LOG)
+    subprocess.run(gpac_path + " -version", shell=True)
+    sys.stdout.write(HR_SPLIT_LOG)
+    if not dry_run:
+        subprocess.run(command, shell=True)
+        

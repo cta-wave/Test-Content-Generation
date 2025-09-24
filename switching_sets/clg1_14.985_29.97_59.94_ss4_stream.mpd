@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<!-- MPD file Generated with GPAC version 2.5-DEV-rev1002-gc13026f84-master at 2025-01-16T05:34:15.811Z -->
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.002S" type="static" mediaPresentationDuration="PT0H0M59.993S" maxSegmentDuration="PT0H0M2.002S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
+  <ProgramInformation>
+    <Title>croatia hlg10 - 3840x2160 - 60000/1001fps - clg1 switching set: t50, t51, t52, t53</Title>
+    <Source>croatia_hlg10_O1_3840x2160@59.94_60 version 5 (2024-11-28)</Source>
+    <Copyright>© Croatia (2019), credited to EBU, used and licensed under Creative Commons Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/) by the Consumer Technology Association (CTA)® / annotated, encoded and compressed from original.</Copyright>
+  </ProgramInformation>
+  <Period duration="PT0H0M59.993S">
+    <AdaptationSet segmentAlignment="true" maxWidth="3840" maxHeight="2160" maxFrameRate="60000/1001" par="16:9" mimeType="video/mp4" startWithSAP="1" contentType="video" containerProfiles="cmf2 clg1">
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:ColourPrimaries" value="9"/>
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:TransferCharacteristics" value="14"/>
+      <EssentialProperty schemeIdUri="urn:mpeg:mpegB:cicp:MatrixCoefficients" value="9"/>
+      <SupplementalProperty schemeIdUri="urn:mpeg:mpegB:cicp:TransferCharacteristics" value="18"/>
+      <SegmentTemplate media="1/$Time$.m4s" initialization="1/init.mp4" timescale="30000">
+        <SegmentTimeline>
+          <S t="0" d="60060" r="28"/>
+          <S d="58058"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation id="../../../../clg1_sets/14.985_29.97_59.94/t53/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="1920" height="1080" frameRate="30000/1001" sar="1:1" bandwidth="5000000"/>
+      <Representation id="../../../../clg1_sets/14.985_29.97_59.94/t52/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="2560" height="1440" frameRate="30000/1001" sar="1:1" bandwidth="9000000"/>
+      <Representation id="../../../../clg1_sets/14.985_29.97_59.94/t51/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="30000/1001" sar="1:1" bandwidth="15000000"/>
+      <Representation id="../../../../clg1_sets/14.985_29.97_59.94/t50/2025-01-15/1" codecs="hvc1.2.4.L153.90" width="3840" height="2160" frameRate="60000/1001" sar="1:1" bandwidth="17000000">
+        <SegmentTemplate media="1/$Time$.m4s" initialization="1/init.mp4" timescale="60000">
+          <SegmentTimeline>
+            <S t="0" d="120120" r="28"/>
+            <S d="116116"/>
+          </SegmentTimeline>
+        </SegmentTemplate>
+      </Representation>
+    </AdaptationSet>
+
+  </Period>
+</MPD>

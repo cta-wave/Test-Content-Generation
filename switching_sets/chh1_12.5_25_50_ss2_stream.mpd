@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<!-- MPD file Generated with GPAC version 2.5-DEV-rev1002-gc13026f84-master at 2025-01-09T04:53:22.597Z -->
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.000S" type="static" mediaPresentationDuration="PT0H1M0.000S" maxSegmentDuration="PT0H0M2.000S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
+  <ProgramInformation>
+    <Title>croatia - 1920x1080 - 50/1fps - chh1 switching set: t10, t11, t12</Title>
+    <Source>croatia_L1_1920x1080@50_60 version 4 (2023-02-13)</Source>
+    <Copyright>© Croatia (2019), credited to EBU, used and licensed under Creative Commons Attribution 4.0 International (CC BY 4.0) (https://creativecommons.org/licenses/by/4.0/) by the Consumer Technology Association (CTA)® / annotated, encoded and compressed from original.</Copyright>
+  </ProgramInformation>
+  <Period duration="PT0H1M0.000S">
+    <AdaptationSet segmentAlignment="true" maxWidth="1920" maxHeight="1080" maxFrameRate="50" par="16:9" mimeType="video/mp4" startWithSAP="1" contentType="video" containerProfiles="cmf2 chh1">
+      <SegmentTemplate media="1/$Time$.m4s" initialization="1/init.mp4" timescale="12800">
+        <SegmentTimeline>
+          <S t="0" d="25600" r="29"/>
+        </SegmentTimeline>
+      </SegmentTemplate>
+      <Representation id="../../../../chh1_sets/12.5_25_50/t12/2025-01-15/1" codecs="hvc1.2.4.L123.90" width="1280" height="720" frameRate="25" sar="1:1" bandwidth="3100000"/>
+      <Representation id="../../../../chh1_sets/12.5_25_50/t11/2025-01-15/1" codecs="hvc1.2.4.L123.90" width="1920" height="1080" frameRate="25" sar="1:1" bandwidth="5000000"/>
+      <Representation id="../../../../chh1_sets/12.5_25_50/t10/2025-01-15/1" codecs="hvc1.2.4.L123.90" width="1920" height="1080" frameRate="50" sar="1:1" bandwidth="8000000"/>
+    </AdaptationSet>
+  </Period>
+</MPD>

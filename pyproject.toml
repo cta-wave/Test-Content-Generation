@@ -1,0 +1,13 @@
+[project]
+name = "tcgen"
+version = "1.0.0"
+description = "tools to generate reference content for CTA WAVE"
+requires-python = ">=3.11"
+dependencies = [
+    "click==8.1.7",
+    "pysftp==0.2.9",
+    "requests==2.32.3"
+]
+
+[project.scripts]
+tcgen = "tcgen.tcgen:cli"
