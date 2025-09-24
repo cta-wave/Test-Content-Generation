@@ -9,6 +9,8 @@ import requests
 import click
 import pysftp
 import asyncio
+import xml.etree.ElementTree as ET
+import shutil
 
 from tcgen.models import TestContent, FPS_FAMILY, locate_source_content, Mezzanine
 from tcgen.database import Database, most_recent_batch
@@ -121,6 +123,90 @@ def export(ctx, mezzanine, config, vectors_dir, database, zip):
 
     if database is not None:
         db.save(database)
+
+
+###############################################################
+# SWITCHING SETS
+###############################################################
+
+def extract_representation_ids(xml_file):
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+    ns = {"mpd": "urn:mpeg:dash:schema:mpd:2011"}
+    representation_elements = root.findall(".//mpd:Representation", ns)
+    ids = [rep.get("id") for rep in representation_elements if rep.get("id") is not None]
+    return ids
+
+@cli.command()
+@click.pass_context
+@click.argument('mpd')
+@click.argument('vectors-dir')
+@click.option('-b', '--batch-dir', default=None, help='if unspecified, %Y-%m-%d will be used.')
+@click.option('--overwrite', is_flag=True, default=False, help='overwrite output directory.')
+@click.option('-t', '--tmp-dir', default=None, help='if unspecified, VECTORS_DIR/tmp will be used.')
+def archive_switching_set(ctx, mpd, vectors_dir, batch_dir, overwrite, tmp_dir):
+    """
+    Look up all representations from MPD switching set in VECTORS_DIR, \
+        creates an archive containing the .mpd manifest and all representations, \
+        and copy the result to VECTORS_DIR. Currently, the entry has to be added manually to the database.\n
+    MPD             filename must be formated as: '$profile_$fpsFamily_$ssN_stream.mpd'\n
+    VECTORS_DIR     directory must contain the represenations referenced by MPD
+    """
+    parts = Path(mpd).name.split('_')
+    profile = parts[0]
+    fps = '_'.join(parts[1:4])
+    name = f'{parts[4]}_{profile}'
+    rep_ids = extract_representation_ids(mpd)
+    assert len(rep_ids) > 1, 'not a valid switching set playlist'
+
+    vectors_dir = Path(vectors_dir)
+
+    if batch_dir is None:
+        batch_dir = datetime.now().strftime("%Y-%m-%d")
+
+    ss_dir = Path("switching_sets") / fps / name / batch_dir
+    ss_out_dir = vectors_dir / ss_dir
+    # check for overwrite
+    if ss_out_dir.exists():
+        if overwrite:
+            shutil.rmtree(ss_out_dir)
+        else:
+            raise Exception(f"Directory already exists: {ss_out_dir}")
+    
+    click.echo(f"Creating output directory: {ss_out_dir}")
+    Path.mkdir(ss_out_dir, exist_ok=False, parents=True)
+
+    if tmp_dir is None:
+        tmp_dir = Path(vectors_dir) / 'tmp' / name 
+    else:
+        tmp_dir = Path(tmp_dir) / name
+
+    if tmp_dir.exists():
+        click.echo(f"Creating tmp directory: {tmp_dir}")
+        shutil.rmtree(tmp_dir)
+
+    click.echo(f"Copying mpd to tmp dir")
+    Path.mkdir(tmp_dir / ss_dir, exist_ok=False, parents=True)
+    shutil.copy(mpd, tmp_dir / ss_dir / 'stream.mpd')
+
+    for rep_id in rep_ids:
+        rep_path = Path(rep_id.replace("../", ""))
+        src_path = vectors_dir / rep_path
+        dst_path = tmp_dir / rep_path
+        click.echo(f"Copying representation to tmp dir: {rep_path}")
+        shutil.copytree(src_path, dst_path)
+
+    click.echo(f"Creating archive: {tmp_dir}.zip")
+    shutil.make_archive(tmp_dir, 'zip', tmp_dir.parent, name)
+
+    click.echo(f"Copying to output directory")
+    shutil.copy(mpd, ss_out_dir / 'stream.mpd')
+    shutil.copy(tmp_dir.with_suffix('.zip'),  ss_out_dir / f'{name}.zip')
+    
+    if tmp_dir.exists():
+        click.echo(f"Removing tmp directory")
+        shutil.rmtree(tmp_dir)
+
 
 ###############################################################
 # JCCP VALIDATION
