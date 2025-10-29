@@ -687,5 +687,5 @@ if __name__ == "__main__":
     subprocess.run(gpac_path + " -version", shell=True)
     sys.stdout.write(HR_SPLIT_LOG)
     if not dry_run:
-        subprocess.run(command, shell=True)
+        subprocess.run(command, shell=True).check_returncode()
         

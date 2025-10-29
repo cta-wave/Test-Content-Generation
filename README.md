@@ -2,10 +2,10 @@
 
 ## Introduction
 
-This repository provides the information and scripts to generate the CTA Wave Test Content according to [CTa-5003-B](https://shop.cta.tech/products/web-application-video-ecosystem-device-playback-capabilities-cta-5003-b) . 
+This repository provides the information and scripts to generate the CTA Wave Test Content according to [CTa-5003-B](https://shop.cta.tech/products/web-application-video-ecosystem-device-playback-capabilities-cta-5003-b).
 
 
-## scripts installation
+## Scripts installation
 
 clone the repository:
 ```
@@ -14,7 +14,7 @@ git clone https://github.com/cta-wave/Test-Content-Generation.git
 cd Test-Content-Generation
 
 # create/activate a python virtual environment (recommended) - docs.python.org/3/library/venv.html
-python -m venv .venv
+python -m venv venv
 source venv/bin/activate
 
 # install the content generation scripts 
@@ -38,10 +38,10 @@ Note: Once installed in a [python environment](https://docs.python.org/3/library
 7. Upload batch content
 8. Download database content
 
-*_Important_*: the following workflow has been implemented while generating HEVC test content. Although it hasn't been tested with AVC content, it is expected to work exactly the same. **For audio content, a separate set of instructions is available**. It is suggested that this worflow be used for all content future generation. 
+*_Important_*: the following workflow has been implemented while generating HEVC test content. Although it hasn't been tested with AVC content, it is expected to work exactly the same. For audio content, a [separate set of instructions](https://github.com/cta-wave/Test-Content-Generation/blob/master/Instructions/audio.md) is available. It is suggested to use this worflow for all content future generation. 
 
 
-### 1. Donwload mezzanine content
+### 1. Download mezzanine content
 
 Test vectors are generated from mezzanine content.
 
@@ -49,6 +49,14 @@ Mezzanine content is generated with the [cta-wave mezzanine software](https://gi
 
 Make sure to check mezzanine file's md5 checksum after downloading. It should match the one in the sidecar json metadata.
 
+Here is a sample script to download Mezzanine v4:
+
+```
+mkdir -p releases/4
+cd releases/4
+curl http://dash.akamaized.net/WAVE/Mezzanine/releases/4/ | sed -n 's/^<IMG SRC=\"\/icons\/generic.gif\" ALT=\"\[FILE\]\"> <A HREF=\"\(.*\)\".*$/\1/p' | grep -v croatia_M1 | grep -v croatia_N1 | grep -v croatia_O1 | xargs -I % wget http://dash.akamaized.net/WAVE/Mezzanine/releases/4/%
+cd ..
+```
 
 ### 2. Create a batch configuration file
 
@@ -64,7 +72,7 @@ Batch files used to produce reference content is stored in the [./profiles](prof
 
 typical usage of `tcgen encode`:
 ```
-tcgen encode -v ./output -b 2024-01-31 /path/to/mazzanine/dir ./profiles/config.csv
+tcgen encode -v ./output -b 2024-01-31 /path/to/mezzanine/dir ./profiles/config.csv
 ```
 
 Note the batch id. When unspecified, the current date will be used as batch id.
@@ -88,7 +96,7 @@ See detailed instructions for AAC / AC-4 / E-AC-3 : [Encoding and packaging Audi
 
 #### 5.1 DASH-IF Conformance validation (JCCP)
 
-...
+The content manually validated against the [DASH-IF conformance tool](https://conformance.dashif.org).
 
 
 #### 5.2 CTA WAVE validation reports
@@ -106,16 +114,17 @@ Please refer to [that repository](https://github.com/nicholas-fr/test-content-va
 In order to contribute content, test content archives and database should be generated:
 
 ```
-tcgen export -v ./output -d ./database.json /path/to/mazzanine/dir ./profiles/config.csv
+tcgen export -v ./output -d ./database.json /path/to/mezzanine/dir ./profiles/config.csv
 ```
-the command does the following:
-- for all test vectors listed in `./profiles/batch-config.csv`, find the most recent batch in the `./output` directory.
-- generate a zip archive of each test vector, in the test vector directory itself
-- generate a `./database.json`. If `./database.json` already exists, it is patched
+
+The command does the following:
+- For all test vectors listed in `./profiles/batch-config.csv`, find the most recent batch in the `./output` directory.
+- Generate a zip archive of each test vector, in the test vector directory itself.
+- Generate a `./database.json`. If `./database.json` already exists, it is patched.
 
 For details on available options use : `tcgen export --help`
 
-Note: While it can patch an existing database, this command is not intended to update the [reference test content database](https://github.com/cta-wave/Test-Content) because it doesn't remove deprecated database entries.
+Note: While it can patch an existing database, this command is not intended to update the [reference test content database](https://cta-wave.github.io/Test-Content/database.json) because it doesn't remove deprecated database entries.
 
 
 ### 7. Upload batch content

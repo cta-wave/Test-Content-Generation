@@ -12,4 +12,4 @@
 ## generating chunked content
 
 1. create the MPD corresponding to the target test vector configuration and name it according to the media profile.
-2. run the `gen.sh` script with the corresponding arguments
+2. run the `gen.sh` script with the corresponding arguments.
