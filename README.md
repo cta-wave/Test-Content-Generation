@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repository provides the information and scripts to generate the CTA Wave Test Content according to [CTa-5003-B](https://shop.cta.tech/products/web-application-video-ecosystem-device-playback-capabilities-cta-5003-b).
+This repository provides the information and scripts to generate the CTA Wave Test Content according to [CTA-5003-B](https://shop.cta.tech/products/web-application-video-ecosystem-device-playback-capabilities-cta-5003-b).
 
 
 ## Scripts installation
