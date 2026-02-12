@@ -38,7 +38,7 @@ Note: Once installed in a [python environment](https://docs.python.org/3/library
 7. Upload batch content
 8. Download database content
 
-*_Important_*: the following workflow has been implemented while generating HEVC test content. Although it hasn't been tested with AVC content, it is expected to work exactly the same. For audio content, a [separate set of instructions](https://github.com/cta-wave/Test-Content-Generation/blob/master/Instructions/audio.md) is available. It is suggested to use this worflow for all content future generation. 
+*_Important_*: the following workflow has been implemented while generating HEVC test content. Although it hasn't been tested thoroughly with other codecs, it is expected to work exactly the same. For audio content, a [separate set of instructions](https://github.com/cta-wave/Test-Content-Generation/blob/master/Instructions/audio.md) is available. It is suggested to use this worflow for all content future generation.
 
 
 ### 1. Download mezzanine content
@@ -67,7 +67,6 @@ Batch files used to produce reference content is stored in the [./profiles](prof
 
 ### 3. Batch encode/package content
 
-
 #### 3.1 Video content
 
 typical usage of `tcgen encode`:
@@ -81,7 +80,7 @@ For detail on each available options use : `tcgen encode --help`
 
 
 
-The encoding and packaging is performed using [GPAC](http://gpac.io), leveraging [libavcodec](https://ffmpeg.org/libavcodec.html) with [x264](http://www.videolan.org/developers/x264.html) and [x265](https://www.x265.org/) to generate the CMAF content along with a DASH manifest. The intent is to keep the size of the post-processing (e.g. manifest manipulation) as small as possible.
+The encoding and packaging is performed using [GPAC](http://gpac.io), leveraging [libavcodec](https://ffmpeg.org/libavcodec.html) with [x264](http://www.videolan.org/developers/x264.html), [x265](https://www.x265.org/) and [VVenC](https://github.com/fraunhoferhhi/vvenc) to generate the CMAF content along with a DASH manifest. The intent is to keep the size of the post-processing (e.g. manifest manipulation) as small as possible.
 
 
 

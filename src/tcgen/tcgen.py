@@ -11,6 +11,9 @@ import pysftp
 import asyncio
 import xml.etree.ElementTree as ET
 import shutil
+import logging
+import sys
+import traceback
 
 from tcgen.models import TestContent, FPS_FAMILY, locate_source_content, Mezzanine
 from tcgen.database import Database, most_recent_batch
@@ -36,10 +39,10 @@ def cli(ctx):
 @click.option('-b', '--batch-dir', default=datetime.today().strftime('%Y-%m-%d'), help='batch directory name. default value uses the current date, eg. 2024-12-31')
 @click.option('--encode/--no-encode', default=True, help="encode content")
 @click.option('--format-mpd/--no-format-mpd', default=True, help="patch mpd content to match CTA WAVE requirements")
-@click.option('-t', '--test-id', help='process only vector with id "-', default=None)
+@click.option('-t', '--test-id', help='process only vector with id', default=None)
 @click.option('-f', '--fps-family', default='ALL', help='process only one of 14.985_29.97_59.94 - 12.5_25_50 - 15_30_60')
 @click.option('--drm-config', default=(Path(__file__) / '../../../DRM.xml').resolve(), help='path to DRM.xml config file')
-@click.option('--dry_run/--no-dry-run', default=False, help="dry run, usefull for debugging")
+@click.option('--dry_run/--no-dry-run', default=False, help="dry run, useful for debugging")
 def encode(ctx, mezzanine, config, vectors_dir, batch_dir, encode, format_mpd, test_id, fps_family, drm_config, dry_run):
     """
     Encode content from MEZZANINE directory into test vectors using content options specified in CONFIG.
@@ -73,6 +76,7 @@ def encode(ctx, mezzanine, config, vectors_dir, batch_dir, encode, format_mpd, t
                         patch_mpd(output_mpd, m, tc)
             
             except BaseException as e:
+                traceback.print_exc()
                 print(e)
 
 
@@ -119,6 +123,7 @@ def export(ctx, mezzanine, config, vectors_dir, database, zip):
                 m = locate_source_content(tv, fps)
                 db.add_entry(tv, m, batch_dir.name)
             except BaseException as e:
+                traceback.print_exc()
                 logging.warning(f'{test_entry_key} : {e}')
 
     if database is not None:
