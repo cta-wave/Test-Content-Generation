@@ -267,7 +267,7 @@ class Representation:
                    value != VisualSampleEntry.AVC1p3.value and \
                    value != VisualSampleEntry.HEV1.value and value != VisualSampleEntry.HVC1.value:
                     print("Supported video sample entries for AVC are \"avc1\", \"avc3\", \"avc1+3\" and"
-                          " for HEVC \"hev1\" and \"hvc1\".") # ROMAIN
+                          " for HEVC \"hev1\" and \"hvc1\".") # TODO: add 'vvc1' and 'vvi1'
                     sys.exit(1)
                 else:
                     self.m_video_sample_entry = value
@@ -520,10 +520,10 @@ class Representation:
                 if bool(self.m_max_cll_fall):
                     command += f":max-cll={self.m_max_cll_fall}"
 
-            #elif is_vvc: # ROMAIN TODO
-                # command += "::vvenc-params=\""
-                # command += ":profile=" + self.m_profile
-                # command += ":level=" + self.m_level
+            elif is_vvc:
+                command += "::vvenc-params=\""
+                command += "refreshsec=" + self.m_segment_duration
+                command += ":refreshtype=idr"
 
             if is_avc or is_hevc:
                 if self.m_pic_timing == "True":
@@ -536,10 +536,11 @@ class Representation:
                 command += ":vbv-bufsize=" + str(int(self.m_bitrate) * 3) + \
                     ":vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
 
+                # FIXME: VVenC parsing is broken
                 if self.m_aspect_ratio_x and self.m_aspect_ratio_y:
                     command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
 
-                command += "\":" # closing encoder specific parameters
+            command += "\":" # closing encoder specific parameters
 
             bsrw = None
             rmseis = []
