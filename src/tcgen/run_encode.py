@@ -13,6 +13,7 @@ from pathlib import Path
 class VideoCodecOptions(Enum):
     AVC = "h264"
     HEVC = "h265"
+    VVC = "h266"
 
 class AudioCodecOptions(Enum):
     AAC = "aac"
@@ -105,6 +106,16 @@ class HEVCCHD1:
     m_resolution_h = "2160"
     m_frame_rate = 60
 
+# VVC: ISO/IEC 23000-19
+class VVCCHD:
+    m_profile = "main10"
+    m_level = "41"
+    m_color_primary = "9"   # GF_COLOR_PRIM_BT2020
+    m_color_trc = "16"      # GF_COLOR_TRC_SMPTE2084
+    m_colorspace = "9"      # GF_COLOR_MX_BT2020_NCL
+    m_resolution_w = "1920"
+    m_resolution_h = "1080"
+    m_frame_rate = 60
 
 # DASHing
 class DASH:
@@ -245,9 +256,10 @@ class Representation:
                 self.m_media_type = value
             elif name == "codec":
                 if value != VideoCodecOptions.AVC.value and value != VideoCodecOptions.HEVC.value \
+                   and value != VideoCodecOptions.VVC.value \
                    and value != AudioCodecOptions.AAC.value and value != AudioCodecOptions.COPY.value:
-                    print("Supported codecs are AVC denoted by \"h264\" and HEVC denoted by \"h265\" for video, and "
-                          "AAC denoted by \"aac\" or the special value \"copy\" disables the audio transcoding.")
+                    print("Supported codecs are AVC denoted by \"h264\", HEVC (\"h265\") and VVC (\"h266\") for video, and "
+                          "AAC denoted by \"aac\" or the special value \"copy\" disables the audio transcoding. Found \"" + value + "\".")
                     sys.exit(1)
                 self.m_codec = value
             elif name == "vse":
@@ -255,7 +267,7 @@ class Representation:
                    value != VisualSampleEntry.AVC1p3.value and \
                    value != VisualSampleEntry.HEV1.value and value != VisualSampleEntry.HVC1.value:
                     print("Supported video sample entries for AVC are \"avc1\", \"avc3\", \"avc1+3\" and"
-                          " for HEVC \"hev1\" and \"hvc1\".")
+                          " for HEVC \"hev1\" and \"hvc1\".") # TODO: add 'vvc1' and 'vvi1'
                     sys.exit(1)
                 else:
                     self.m_video_sample_entry = value
@@ -358,6 +370,22 @@ class Representation:
                     if self.m_resolution_w is None and self.m_resolution_h is None:
                         self.m_resolution_w = HEVCCLG1.m_resolution_w
                         self.m_resolution_h = HEVCCLG1.m_resolution_h
+                elif value == "vvc1":
+                    if self.m_profile is None:
+                        self.m_profile = VVCCHD.m_profile
+                    if self.m_level is None:
+                        self.m_level = VVCCHD.m_level
+                    if self.m_frame_rate is None:
+                        self.m_frame_rate = VVCCHD.m_frame_rate
+                    if self.m_color_primary is None:
+                        self.m_color_primary = VVCCHD.m_color_primary
+                    if self.m_color_trc is None:
+                        self.m_color_trc = VVCCHD.m_color_trc
+                    if self.m_colorspace is None:
+                        self.m_colorspace = VVCCHD.m_colorspace
+                    if self.m_resolution_w is None and self.m_resolution_h is None:
+                        self.m_resolution_w = VVCCHD.m_resolution_w
+                        self.m_resolution_h = VVCCHD.m_resolution_h
                 else:
                     print("Unknown CMAF profile: " + name)
 
@@ -431,6 +459,7 @@ class Representation:
         if self.m_media_type in ("v", "video"):
             is_avc = self.m_codec == VideoCodecOptions.AVC.value
             is_hevc = self.m_codec == VideoCodecOptions.HEVC.value
+            is_vvc = self.m_codec == VideoCodecOptions.VVC.value
 
             # Resize
             command += "ffsws:osize=" + self.m_resolution_w + "x" + self.m_resolution_h
@@ -447,6 +476,8 @@ class Representation:
                 command += ":c=libx264"
             elif is_hevc:
                 command += ":c=libx265"
+            elif is_vvc:
+                command += ":c=vvc"
             command += ":b=" + self.m_bitrate + "k"
             command += ":bf=" + str(self.m_num_b_frames)
             command += ":fintra=" + self.m_segment_duration            
@@ -489,19 +520,26 @@ class Representation:
                 if bool(self.m_max_cll_fall):
                     command += f":max-cll={self.m_max_cll_fall}"
 
-            if self.m_pic_timing == "True":
-                if is_avc:
-                    command += ":nal-hrd=vbr"
-                elif is_hevc:
-                    command += ":hrd=1"
+            elif is_vvc:
+                command += "::vvenc-params=\""
+                command += "refreshsec=" + self.m_segment_duration
+                command += ":refreshtype=idr"
 
-            # common x264 / x265 options
-            command += ":vbv-bufsize=" + str(int(self.m_bitrate) * 3) + \
-                   ":vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
+            if is_avc or is_hevc:
+                if self.m_pic_timing == "True":
+                    if is_avc:
+                        command += ":nal-hrd=vbr"
+                    elif is_hevc:
+                        command += ":hrd=1"
 
-            if self.m_aspect_ratio_x and self.m_aspect_ratio_y:
-                command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
-            
+                # common x264 / x265 options
+                command += ":vbv-bufsize=" + str(int(self.m_bitrate) * 3) + \
+                    ":vbv-maxrate=" + str(int(int(self.m_bitrate) * 3 / 2))
+
+                # FIXME: VVenC parsing is broken
+                if self.m_aspect_ratio_x and self.m_aspect_ratio_y:
+                    command += ":sar=" + self.m_aspect_ratio_x + "\\:" + self.m_aspect_ratio_y
+
             command += "\":" # closing encoder specific parameters
 
             bsrw = None
