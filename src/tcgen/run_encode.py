@@ -523,7 +523,7 @@ class Representation:
             elif is_vvc:
                 command += "::vvenc-params=\""
                 command += "refreshsec=" + self.m_segment_duration
-                command += ":refreshtype=idr"
+                command += ":refreshtype=idr_no_radl:poc0idr=1:intraperiod=1"
 
             if is_avc or is_hevc:
                 if self.m_pic_timing == "True":
