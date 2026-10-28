@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!-- MPD file Generated with GPAC version 2.1-DEV-rev348-gf1b2ba890-master at 2022-09-29T17:24:12.543Z -->
-<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.000S" type="static" mediaPresentationDuration="PT0H0M59.993S" maxSegmentDuration="PT0H0M2.000S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
+<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" minBufferTime="PT2.000S" type="static" mediaPresentationDuration="PT0H0M59.993S" maxSegmentDuration="PT0H0M2.002S" profiles="urn:mpeg:dash:profile:isoff-live:2011,urn:mpeg:dash:profile:cmaf:2019,urn:cta:wave:test-content-media-profile:2022">
   <ProgramInformation>
     <Title>tos, 1920x1080, 59.94005994005994fps, chdf, Test Vector SS1</Title>
     <Source>tos_L2_1920x1080@59.94_60 version 4</Source>
