@@ -16,6 +16,7 @@ PROFILES_TYPE = {
     "cud1": ("video", "h265", None),
     "clg1": ("video", "h265", None),
     "chd1": ("video", "h265", None),
+    "vvc1": ("video", "h266", None),
     "caac": ("audio", "aac", "caac"),
     "dts1": ("audio", "copy", None),
     "dts2": ("audio", "copy", None)
@@ -239,6 +240,7 @@ class CmafBrand(str, Enum):
 	CUD1: str = "cud1"
 	CLG1: str = "clg1"
 	CHD1: str = "chd1"
+	VVCCHD: str = "vvc1"
 
 	def __str__(self):
 		return self.value
@@ -253,6 +255,10 @@ class CmafBrand(str, Enum):
 			return cls.CLG1
 		elif s == "chd1" :
 			return cls.CHD1
+		elif s == "vvc1" :
+			return cls.VVCCHD
+		else:
+			raise Exception(f'unknown CMAF media profile: {s}')
 
 def locate_source_content(tc:'TestContent', fps_family:FPS_FAMILY):
     m = tc.get_mezzanine(fps_family)
@@ -556,7 +562,7 @@ class TestContent:
 		# 13 - Duration of stream
 		duration = float(col[12].rstrip('s')) if bool(col[12]) else -1
 
-		# 14 - AVC/HEVC profile and level
+		# 14 - codec profile and level
 		codec = col[13]
 
 		# 15 - CMAF media profile
